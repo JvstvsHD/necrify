@@ -24,17 +24,36 @@
 
 package de.jvstvshd.velocitypunishment.config;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Locale;
 
-@SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal"})
 public class ConfigData {
 
-    private DataBaseData dataBaseData = new DataBaseData();
-    private Locale forcedLanguage = null;
+    @JsonProperty("database")
+    @JsonAlias("dataBaseData")
+    private final DataBaseData dataBaseData;
 
-    private boolean whitelistActivated = false;
+    @JsonProperty("forced-language")
+    @JsonAlias("forcedLanguage")
+    private final Locale forcedLanguage;
 
-    public DataBaseData getDataBaseData() {
+    @JsonProperty("whitelist-activated")
+    @JsonAlias("whitelistActivated")
+    private boolean whitelistActivated;
+
+    public ConfigData(DataBaseData dataBaseData, Locale forcedLanguage, boolean whitelistActivated) {
+        this.dataBaseData = dataBaseData;
+        this.forcedLanguage = forcedLanguage;
+        this.whitelistActivated = whitelistActivated;
+    }
+
+    public ConfigData() {
+        this(new DataBaseData(), Locale.ENGLISH, false);
+    }
+
+    public final DataBaseData getDataBaseData() {
         return dataBaseData;
     }
 
@@ -44,5 +63,9 @@ public class ConfigData {
 
     public boolean isWhitelistActivated() {
         return whitelistActivated;
+    }
+
+    public void setWhitelistActivated(boolean whitelistActivated) {
+        this.whitelistActivated = whitelistActivated;
     }
 }

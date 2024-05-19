@@ -27,7 +27,6 @@ package de.jvstvshd.velocitypunishment.listener;
 import com.velocitypowered.api.event.ResultedEvent;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.LoginEvent;
-import com.velocitypowered.api.event.player.PlayerChatEvent;
 import com.velocitypowered.api.proxy.ProxyServer;
 import de.chojo.sadu.base.QueryFactory;
 import de.jvstvshd.velocitypunishment.VelocityPunishmentPlugin;
@@ -60,11 +59,6 @@ public final class ConnectListener extends QueryFactory {
     }
 
     @Subscribe
-    public void onChat(PlayerChatEvent event) {
-
-    }
-
-    @Subscribe
     public void onConnect(LoginEvent event) throws Exception {
         if (plugin.whitelistActive()) {
             plugin.getLogger().info("Whitelist is activated.");
@@ -82,7 +76,7 @@ public final class ConnectListener extends QueryFactory {
             punishments = plugin.getPunishmentManager().getPunishments(event.getPlayer().getUniqueId(), service, StandardPunishmentType.BAN,
                     StandardPunishmentType.PERMANENT_BAN, StandardPunishmentType.MUTE, StandardPunishmentType.PERMANENT_MUTE).get(10, TimeUnit.SECONDS);
         } catch (Exception e) {
-            plugin.getLogger().error("Cannot retrieve punishment for player " + event.getPlayer().getUsername() + " (" + event.getPlayer().getUniqueId() + ")", e);
+            plugin.getLogger().error("Cannot retrieve punishment for player {} ({})", event.getPlayer().getUsername(), event.getPlayer().getUniqueId(), e);
             event.setResult(ResultedEvent.ComponentResult.denied(plugin.getMessageProvider().internalError(event.getPlayer(), true)));
             return;
         }

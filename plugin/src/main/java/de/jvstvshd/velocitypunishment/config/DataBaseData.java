@@ -24,15 +24,47 @@
 
 package de.jvstvshd.velocitypunishment.config;
 
-@SuppressWarnings({"FieldCanBeLocal", "FieldMayBeFinal"})
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import de.chojo.sadu.databases.*;
+
+import java.util.Locale;
+
 public class DataBaseData {
-    private String host = "";
-    private String password = "";
-    private String username = "";
-    private String database = "";
-    private String port = "";
-    private int maxPoolSize = 3;
-    private int minIdle = 1;
+    private final String host;
+    private final String password;
+    private final String username;
+    private final String database;
+    private final String port;
+    @JsonProperty("sql-type")
+    @JsonAlias("sqlType")
+    private final String sqlType;
+
+    @JsonProperty("max-pool-size")
+    @JsonAlias("maxPoolSize")
+    private final int maxPoolSize;
+
+    @JsonProperty("min-idle")
+    @JsonAlias("minIdle")
+    private final int minIdle;
+
+    private final String postgresSchema;
+
+    public DataBaseData(String host, String password, String username, String database, String port, String sqlType, int maxPoolSize, int minIdle, String postgresSchema) {
+        this.host = host;
+        this.password = password;
+        this.username = username;
+        this.database = database;
+        this.port = port;
+        this.sqlType = sqlType;
+        this.maxPoolSize = maxPoolSize;
+        this.minIdle = minIdle;
+        this.postgresSchema = postgresSchema;
+    }
+
+    public DataBaseData() {
+        this("localhost", "password", "username", "database", "5432", "postgres", 10, 5, "punishment");
+    }
 
     public String getHost() {
         return host;
@@ -60,5 +92,24 @@ public class DataBaseData {
 
     public int getMinIdle() {
         return minIdle;
+    }
+
+    public String getSqlType() {
+        return sqlType;
+    }
+
+    public String getPostgresSchema() {
+        return postgresSchema;
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    public Database<?, ?> sqlType() {
+        return switch (sqlType.toLowerCase(Locale.ROOT)) {
+            case "mariadb" -> MariaDb.get();
+            case "mysql" -> MySql.get();
+            case "postgres", "postgresql" -> PostgreSql.get();
+            case "sqlite" -> SqLite.get();
+            default -> throw new IllegalStateException("Unexpected value: " + sqlType.toLowerCase(Locale.ROOT));
+        };
     }
 }

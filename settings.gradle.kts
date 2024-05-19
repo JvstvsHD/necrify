@@ -5,10 +5,12 @@ include("paper-extension")
 include("plugin-common")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
+/*
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
-            library("velocity-api", "com.velocitypowered", "velocity-api").version("3.2.0-SNAPSHOT")
+            library("velocity-api", "com.velocitypowered", "velocity-api").version("3.3.0-SNAPSHOT")
             library("luckperms-api", "net.luckperms", "api").version("5.4")
             library("jackson-databind", "com.fasterxml.jackson.core", "jackson-databind").version("2.13.4")
             library(
@@ -16,11 +18,12 @@ dependencyResolutionManagement {
                 "com.fasterxml.jackson.datatype",
                 "jackson-datatype-jsr310"
             ).version("2.13.4")
-            bundle("jackson", listOf("jackson-databind", "jackson-datatype-jsr310"))
+            library("jackson-yaml", "com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml").version("2.13.4")
+            bundle("jackson", listOf("jackson-yaml", "jackson-databind", "jackson-datatype-jsr310"))
 
             library("postgresql", "org.postgresql", "postgresql").version("42.5.0")
             library("hikari", "com.zaxxer", "HikariCP").version("5.0.1")
-            library("sadu", "de.chojo.sadu", "sadu").version("1.2.0")
+            library("sadu", "de.chojo.sadu", "sadu").version("1.4.1")
             bundle("database", listOf("postgresql", "hikari", "sadu"))
 
             val jUnitVersion = version("junit", "5.9.1")
@@ -31,4 +34,4 @@ dependencyResolutionManagement {
             library("brigadier", "com.mojang", "brigadier").version("1.0.17")
         }
     }
-}
+}*/

@@ -35,8 +35,12 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import com.zaxxer.hikari.HikariDataSource;
+import de.chojo.sadu.databases.Database;
 import de.chojo.sadu.databases.PostgreSql;
+import de.chojo.sadu.databases.SqLite;
 import de.chojo.sadu.datasource.DataSourceCreator;
+import de.chojo.sadu.datasource.stage.ConfigurationStage;
+import de.chojo.sadu.jdbc.RemoteJdbcConfig;
 import de.chojo.sadu.updater.SqlUpdater;
 import de.chojo.sadu.wrapper.QueryBuilderConfig;
 import de.jvstvshd.velocitypunishment.api.VelocityPunishment;
@@ -56,7 +60,8 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -68,11 +73,13 @@ public class VelocityPunishmentPlugin implements VelocityPunishment {
     private final Logger logger;
     private final ConfigurationManager configurationManager;
     private final ExecutorService service = Executors.newCachedThreadPool();
+    private final Path dataDirectory;
     public static final ChannelIdentifier MUTE_DATA_CHANNEL_IDENTIFIER = MinecraftChannelIdentifier.from(MuteData.MUTE_DATA_CHANNEL_IDENTIFIER);
     private PunishmentManager punishmentManager;
     private HikariDataSource dataSource;
     private PlayerResolver playerResolver;
     private MessageProvider messageProvider;
+
 
     private static final String MUTES_DISABLED_STRING = """
             Since 1.19.1, cancelling chat messages on proxy is not possible anymore. Therefore, we have to listen to the chat event on the actual game server. This means
@@ -92,14 +99,15 @@ public class VelocityPunishmentPlugin implements VelocityPunishment {
     public VelocityPunishmentPlugin(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
         this.server = server;
         this.logger = logger;
-        this.configurationManager = new ConfigurationManager(Paths.get(dataDirectory.toAbsolutePath().toString(), "config.json"));
+        this.configurationManager = new ConfigurationManager(dataDirectory.resolve("config.yml"));
         this.playerResolver = new DefaultPlayerResolver(server);
         this.communicator = new MessagingChannelCommunicator(server, logger);
+        this.dataDirectory = dataDirectory;
     }
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
-        Thread.setDefaultUncaughtExceptionHandler((t, e) -> logger.error("An error occurred in thread " + t.getName(), e));
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> logger.error("An error occurred in thread {}", t.getName(), e));
         try {
             configurationManager.load();
             if (configurationManager.getConfiguration().isWhitelistActivated()) {
@@ -114,9 +122,9 @@ public class VelocityPunishmentPlugin implements VelocityPunishment {
         punishmentManager = new DefaultPunishmentManager(server, dataSource, this);
         try {
             updateDatabase();
-            //initDataSource();
+            initDataSource();
         } catch (SQLException | IOException e) {
-            logger.error("Could not create table velocity_punishment in database " + dataSource.getDataSourceProperties().get("dataSource.databaseName"), e);
+            logger.error("Could not create table velocity_punishment in database {}", dataSource.getDataSourceProperties().get("dataSource.databaseName"), e);
         }
         setup(server.getCommandManager(), server.getEventManager());
         logger.info("Velocity Punishment Plugin v1.0.0 has been loaded");
@@ -139,28 +147,59 @@ public class VelocityPunishmentPlugin implements VelocityPunishment {
         commandManager.register(WhitelistCommand.whitelistCommand(this));
     }
 
+    @SuppressWarnings({"unchecked", "UnstableApiUsage"})
     private HikariDataSource createDataSource() {
         var dbData = configurationManager.getConfiguration().getDataBaseData();
-        //TODO add config option for sql type
-        return DataSourceCreator.create(PostgreSql.get())
-                .configure(jdbcConfig -> jdbcConfig.host(dbData.getHost())
-                        .port(dbData.getPort())
-                        .database(dbData.getDatabase())
-                        .user(dbData.getUsername())
-                        .password(dbData.getPassword())
-                        .applicationName("Velocity Punishment Plugin"))
-                .create().withMaximumPoolSize(dbData.getMaxPoolSize())
+        ConfigurationStage stage = switch (dbData.sqlType().name().toLowerCase()) {
+            case "sqlite" -> DataSourceCreator.create(SqLite.get())
+                    .configure(sqLiteJdbc -> sqLiteJdbc.path(dataDirectory.resolve("punishment.db")))
+                    .create();
+            case "postgresql" ->
+                    DataSourceCreator.create(PostgreSql.get()).configure(jdbcConfig -> jdbcConfig.host(dbData.getHost())
+
+                                    .port(dbData.getPort())
+                                    .database(dbData.getDatabase())
+                                    .user(dbData.getUsername())
+                                    .password(dbData.getPassword())
+                            )
+                            .create();
+
+            default ->
+                    DataSourceCreator.create((Database<RemoteJdbcConfig<?>, ?>) dbData.sqlType()).configure(jdbcConfig -> jdbcConfig.host(dbData.getHost())
+                                    .port(dbData.getPort())
+                                    .database(dbData.getDatabase())
+                                    .user(dbData.getUsername())
+                                    .password(dbData.getPassword()))
+                            .create();
+        };
+        return stage.withMaximumPoolSize(dbData.getMaxPoolSize())
                 .withMinimumIdle(dbData.getMinIdle())
                 .withPoolName("velocity-punishment-hikari")
+                .forSchema(dbData.getPostgresSchema())
                 .build();
     }
 
+    @SuppressWarnings("UnstableApiUsage")
     private void updateDatabase() throws IOException, SQLException {
-        //TODO config option for sql type
-        SqlUpdater.builder(dataSource, PostgreSql.get())
-                .setSchemas("punishment")
-                .execute();
+        if (configurationManager.getConfiguration().getDataBaseData().sqlType().name().equalsIgnoreCase("postgresql")) {
+            SqlUpdater.builder(dataSource, PostgreSql.get())
+                    .setSchemas(configurationManager.getConfiguration().getDataBaseData().getPostgresSchema())
+                    .execute();
+        } else {
+            logger.warn("Database type is not (yet) supported for automatic updates. Please update the database manually.");
+        }
+    }
 
+    private void initDataSource() throws SQLException {
+        try (Connection connection = dataSource.getConnection(); PreparedStatement statement =
+                connection.prepareStatement("CREATE TABLE IF NOT EXISTS velocity_punishment (uuid  VARCHAR (36), name VARCHAR (16), type VARCHAR (1000), expiration DATETIME (6), " +
+                        "reason VARCHAR (1000), punishment_id VARCHAR (36))")) {
+            statement.execute();
+        }
+        try (Connection connection = dataSource.getConnection(); PreparedStatement statement =
+                connection.prepareStatement("CREATE TABLE IF NOT EXISTS velocity_punishment_whitelist (uuid VARCHAR (36))")) {
+            statement.execute();
+        }
     }
 
     @Override
@@ -218,5 +257,9 @@ public class VelocityPunishmentPlugin implements VelocityPunishment {
 
     public boolean whitelistActive() {
         return configurationManager.getConfiguration().isWhitelistActivated();
+    }
+
+    public ConfigurationManager getConfig() {
+        return configurationManager;
     }
 }

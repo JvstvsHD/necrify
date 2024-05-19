@@ -1,7 +1,7 @@
 plugins {
     java
     id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("xyz.jpenilla.run-velocity") version "2.1.0"
+    id("xyz.jpenilla.run-velocity") version "2.3.0"
     `java-library`
 }
 
@@ -37,7 +37,7 @@ tasks {
         // Configure the Velocity version for our task.
         // This is the only required configuration besides applying the plugin.
         // Your plugin's jar (or shadowJar if present) will be used automatically.
-        velocityVersion("3.2.0-SNAPSHOT")
+        velocityVersion("3.3.0-SNAPSHOT")
     }
 
     val copyServerJar = task<Copy>("copyServerJar") {

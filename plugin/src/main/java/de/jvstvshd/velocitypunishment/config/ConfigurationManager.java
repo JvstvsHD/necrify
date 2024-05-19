@@ -25,6 +25,10 @@
 package de.jvstvshd.velocitypunishment.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.FileChannel;
@@ -33,13 +37,15 @@ import java.nio.file.Path;
 
 public class ConfigurationManager {
 
+    private final static Logger logger = LoggerFactory.getLogger(ConfigurationManager.class);
+
     private final Path path;
     private final ObjectMapper objectMapper;
-    private ConfigData configData;
+    private ConfigData configData = new ConfigData();
 
     public ConfigurationManager(Path path) {
         this.path = path;
-        this.objectMapper = new ObjectMapper();
+        this.objectMapper = new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
     }
 
     private void create() throws IOException {
@@ -53,12 +59,25 @@ public class ConfigurationManager {
         }
         try (FileChannel channel = FileChannel.open(path)) {
             if (channel.size() <= 0 || write) {
-                try (var writer = objectMapper.writerWithDefaultPrettyPrinter().writeValues(path.toFile())) {
-                    writer.write(new ConfigData());
-                }
+                migrateConfig();
+                save();
             }
         }
+    }
 
+    private void migrateConfig() {
+        var oldConfig = path.getParent().resolve("config.json");
+        if (!Files.exists(oldConfig)) {
+            return;
+        }
+        try {
+            var oldConfigData = new ObjectMapper().readValue(oldConfig.toFile(), ConfigData.class);
+            logger.info("Found old config file, migrating to new one....");
+            configData = oldConfigData;
+            logger.info("Successfully migrated old config file to {}", path.toAbsolutePath());
+        } catch (IOException e) {
+            logger.error("Could not migrate old config file.", e);
+        }
     }
 
     public void load() throws IOException {

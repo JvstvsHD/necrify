@@ -38,54 +38,81 @@ import de.jvstvshd.velocitypunishment.internal.Util;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 public class WhitelistCommand {
 
-    public static final List<String> options = ImmutableList.of("add", "remove");
+    public static final List<String> options = ImmutableList.of("add", "remove", "on", "off");
 
 
     public static BrigadierCommand whitelistCommand(VelocityPunishmentPlugin plugin) {
         var node = Util.permissibleCommand("whitelist", "velocitypunishment.command.whitelist")
-                .then(Util.playerArgument(plugin.getServer()).executes(context -> execute(context, plugin))
-                        .then(RequiredArgumentBuilder.<CommandSource, String>argument("option", StringArgumentType.word()).executes(context -> execute(context, plugin))
-                                .suggests((context, builder) -> {
-                                    for (String option : options) {
-                                        builder.suggest(option);
-                                    }
-                                    return builder.buildFuture();
-                                })));
+                .then(RequiredArgumentBuilder.<CommandSource, String>argument("option", StringArgumentType.word())
+                        .executes(context -> execute(context, plugin))
+                        .suggests((context, builder) -> {
+                            for (String option : options) {
+                                if (context.getArguments().containsKey("option") && !context.getArgument("option", String.class).isEmpty() &&
+                                        !option.startsWith(context.getArgument("option", String.class).toLowerCase(Locale.ROOT)))
+                                    continue;
+                                builder.suggest(option);
+                            }
+                            return builder.buildFuture();
+                        })
+                        .then(Util.playerArgument(plugin.getServer()).executes(context -> execute(context, plugin))));
         return new BrigadierCommand(node);
     }
 
     private static int execute(CommandContext<CommandSource> context, VelocityPunishmentPlugin plugin) {
         var source = context.getSource();
-        if (!plugin.whitelistActive()) {
-            source.sendMessage(Component.text("Whitelist is not active. You may activate it by setting 'whitelistActivated' in 'plugins/velocity-punishment/config.json' to true.", NamedTextColor.RED));
-            return Command.SINGLE_SUCCESS;
+        String player;
+        if (context.getArguments().containsKey("player")) {
+            player = context.getArgument("player", String.class);
+        } else {
+            player = null;
         }
-        var player = context.getArgument("player", String.class);
         if (context.getArguments().containsKey("option")) {
             var option = context.getArgument("option", String.class).toLowerCase();
             switch (option) {
-                case "add", "remove" ->
-                        plugin.getPlayerResolver().getOrQueryPlayerUuid(player, plugin.getService()).whenCompleteAsync((uuid, throwable) -> {
-                            if (Util.sendErrorMessageIfErrorOccurred(context, uuid, throwable, plugin)) return;
-                            var builder = QueryBuilder.builder(plugin.getDataSource())
-                                    .configure(QueryBuilderConfig.defaultConfig())
-                                    .query(option.equalsIgnoreCase("remove") ? "DELETE FROM velocity_punishment_whitelist WHERE uuid = ?;" :
-                                            "INSERT INTO velocity_punishment_whitelist (uuid) VALUES (?);")
-                                    .parameter(paramBuilder -> paramBuilder.setUuidAsString(uuid));
-                            if (option.equalsIgnoreCase("remove")) {
-                                builder.delete().send();
-                                plugin.getServer().getPlayer(uuid).ifPresent(pl -> pl.disconnect(Component.text("You have been blacklisted.").color(NamedTextColor.DARK_RED)));
-                            } else {
-                                builder.insert().send();
-                            }
-                        }, plugin.getService());
+                case "add", "remove" -> {
+                    if (player == null) {
+                        source.sendMessage(plugin.getMessageProvider().provide("command.whitelist.usage", source, true));
+                        return Command.SINGLE_SUCCESS;
+                    }
+                    plugin.getPlayerResolver().getOrQueryPlayerUuid(player, plugin.getService()).whenCompleteAsync((uuid, throwable) -> {
+                        if (Util.sendErrorMessageIfErrorOccurred(context, uuid, throwable, plugin)) return;
+                        var builder = QueryBuilder.builder(plugin.getDataSource())
+                                .configure(QueryBuilderConfig.defaultConfig())
+                                .query(option.equalsIgnoreCase("remove") ? "DELETE FROM velocity_punishment_whitelist WHERE uuid = ?;" :
+                                        "INSERT INTO velocity_punishment_whitelist (uuid) VALUES (?);")
+                                .parameter(paramBuilder -> paramBuilder.setUuidAsString(uuid));
+                        if (option.equalsIgnoreCase("remove")) {
+                            builder.delete().send();
+                            plugin.getServer().getPlayer(uuid).ifPresent(pl -> pl.disconnect(Component.text("You have been blacklisted.").color(NamedTextColor.DARK_RED)));
+                        } else {
+                            builder.insert().send();
+                        }
+                    }, plugin.getService());
+                }
+                case "on", "off" -> {
+                    var config = plugin.getConfig();
+                    config.getConfiguration().setWhitelistActivated(option.equals("on"));
+                    try {
+                        config.save();
+                        source.sendMessage(plugin.getMessageProvider().prefixed(source, Component.text("The whitelist is now " + option).color(NamedTextColor.GRAY)));
+                    } catch (IOException e) {
+                        source.sendMessage(plugin.getMessageProvider().internalError(source, true));
+                        plugin.getLogger().error("Could not save the configuration.", e);
+                    }
+                }
                 default ->
                         source.sendMessage(plugin.getMessageProvider().provide("command.whitelist.usage", source, true));
             }
+            return Command.SINGLE_SUCCESS;
+        }
+        if (player == null) {
+            source.sendMessage(plugin.getMessageProvider().provide("command.whitelist.usage", source, true));
             return Command.SINGLE_SUCCESS;
         }
         plugin.getPlayerResolver().getOrQueryPlayerUuid(player, plugin.getService()).whenCompleteAsync((uuid, throwable) -> {

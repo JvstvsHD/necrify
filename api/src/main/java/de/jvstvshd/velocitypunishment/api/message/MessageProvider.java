@@ -50,4 +50,13 @@ public interface MessageProvider {
 
     @NotNull
     Component provide(String key, CommandSource source, boolean withPrefix, Component... args);
+
+    @NotNull
+    default Component prefixed(CommandSource source, Component... args) {
+        var comp = prefix(source);
+        for (Component arg : args) {
+            comp = comp.append(arg);
+        }
+        return comp;
+    }
 }
