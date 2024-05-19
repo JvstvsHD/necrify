@@ -1,4 +1,4 @@
-rootProject.name = "velocity-punishment"
+rootProject.name = "necrify"
 include("api")
 include("plugin")
 include("paper-extension")
