@@ -39,17 +39,8 @@ tasks {
         // Your plugin's jar (or shadowJar if present) will be used automatically.
         velocityVersion("3.3.0-SNAPSHOT")
     }
-
-    val copyServerJar = task<Copy>("copyServerJar") {
-        from(shadowJar)
-        into(
-            project.findProperty("velocity-plugins-directory")?.toString() ?: projectDir.toPath().resolve("build/libs")
-                .toString()
-        )
-    }
     shadowJar {
         archiveBaseName.set("velocity-punishment")
-        finalizedBy(copyServerJar)
     }
     build {
         dependsOn(shadowJar)
