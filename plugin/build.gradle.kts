@@ -39,6 +39,7 @@ tasks {
         // Your plugin's jar (or shadowJar if present) will be used automatically.
         velocityVersion("3.3.0-SNAPSHOT")
     }
+    //df
     shadowJar {
         archiveBaseName.set("velocity-punishment")
     }
