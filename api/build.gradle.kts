@@ -2,7 +2,7 @@ plugins {
     java
 }
 
-version = "1.0.1"
+version = rootProject.version
 description = "An convenient API to handle various punishments on Velocity."
 
 repositories {
