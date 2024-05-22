@@ -127,7 +127,7 @@ public class NecrifyPlugin implements VelocityPunishment {
             logger.error("Could not create table velocity_punishment in database {}", dataSource.getDataSourceProperties().get("dataSource.databaseName"), e);
         }
         setup(server.getCommandManager(), server.getEventManager());
-        logger.info("Velocity Punishment Plugin v1.2.0-SNAPSHOT has been loaded");
+        logger.info("Velocity Punishment Plugin v1.2.0-SNAPSHOT has been loaded. This is only a dev build and thus may be unstable.");
     }
 
     private void setup(CommandManager commandManager, EventManager eventManager) {
