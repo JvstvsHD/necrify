@@ -33,20 +33,20 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VelocityPunishmentPaperPlugin extends JavaPlugin {
+public class NecrifyPaperPlugin extends JavaPlugin {
 
     private final List<MuteInformation> cachedMutes = new ArrayList<>();
 
     @Override
     public void onEnable() {
-        getLogger().info("VelocityPunishmentPaperPlugin has been enabled!");
+        getLogger().info("NecrifyPaperPlugin has been enabled!");
         getServer().getMessenger().registerIncomingPluginChannel(this, MuteData.MUTE_DATA_CHANNEL_IDENTIFIER, new MessagingChannelListener(this));
         getServer().getPluginManager().registerEvents(new ChatListener(this), this);
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("VelocityPunishmentPaperPlugin has been disabled!");
+        getLogger().info("NecrifyPaperPlugin has been disabled!");
     }
 
     public List<MuteInformation> cachedMutes() {

@@ -43,7 +43,7 @@ import de.chojo.sadu.datasource.stage.ConfigurationStage;
 import de.chojo.sadu.jdbc.RemoteJdbcConfig;
 import de.chojo.sadu.updater.SqlUpdater;
 import de.chojo.sadu.wrapper.QueryBuilderConfig;
-import de.jvstvshd.necrify.api.VelocityPunishment;
+import de.jvstvshd.necrify.api.Necrify;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.PunishmentManager;
 import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
@@ -67,7 +67,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Plugin(id = "velocity-punishment", name = "Velocity Punishment Plugin", version = "1.0.0-SNAPSHOT", description = "A simple punishment plugin for Velocity", authors = {"JvstvsHD"})
-public class NecrifyPlugin implements VelocityPunishment {
+public class NecrifyPlugin implements Necrify {
 
     private final ProxyServer server;
     private final Logger logger;
@@ -84,7 +84,7 @@ public class NecrifyPlugin implements VelocityPunishment {
     private static final String MUTES_DISABLED_STRING = """
             Since 1.19.1, cancelling chat messages on proxy is not possible anymore. Therefore, we have to listen to the chat event on the actual game server. This means
             that there has to be a spigot/paper extension to this plugin which is not yet available unless there's a possibility. Therefore all mute related features won't work at the moment.
-            If you use 1.19 or lower you will not be affected by this.The progress of the extension can be found here: https://github.com/JvstvsHD/velocity-punishment/issues/6""".replace("\n", " ");
+            If you use 1.19 or lower you will not be affected by this.The progress of the extension can be found here: https://github.com/JvstvsHD/necrify/issues/6""".replace("\n", " ");
     private final MessagingChannelCommunicator communicator;
 
     /**
@@ -127,7 +127,7 @@ public class NecrifyPlugin implements VelocityPunishment {
             logger.error("Could not create table velocity_punishment in database {}", dataSource.getDataSourceProperties().get("dataSource.databaseName"), e);
         }
         setup(server.getCommandManager(), server.getEventManager());
-        logger.info("Velocity Punishment Plugin v1.2.0-SNAPSHOT has been loaded");
+        logger.info("Velocity Punishment Plugin v1.2.0-SNAPSHOT has been loaded. This is only a dev build and thus may be unstable.");
     }
 
     private void setup(CommandManager commandManager, EventManager eventManager) {

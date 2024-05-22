@@ -37,7 +37,7 @@ import java.util.concurrent.ExecutorService;
  * @author JvstvsHD
  * @version 1.0.0
  */
-public interface VelocityPunishment {
+public interface Necrify {
 
     PunishmentManager getPunishmentManager();
 

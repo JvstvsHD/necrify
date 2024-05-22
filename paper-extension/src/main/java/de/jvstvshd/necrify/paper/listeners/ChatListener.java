@@ -24,7 +24,7 @@
 
 package de.jvstvshd.necrify.paper.listeners;
 
-import de.jvstvshd.necrify.paper.VelocityPunishmentPaperPlugin;
+import de.jvstvshd.necrify.paper.NecrifyPaperPlugin;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -34,9 +34,9 @@ import java.util.stream.Collectors;
 
 public class ChatListener implements Listener {
 
-    private final VelocityPunishmentPaperPlugin plugin;
+    private final NecrifyPaperPlugin plugin;
 
-    public ChatListener(VelocityPunishmentPaperPlugin plugin) {
+    public ChatListener(NecrifyPaperPlugin plugin) {
         this.plugin = plugin;
     }
 
