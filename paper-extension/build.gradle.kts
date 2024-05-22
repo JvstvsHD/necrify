@@ -5,7 +5,7 @@ plugins {
     id("net.minecrell.plugin-yml.bukkit") version "0.5.3"
 }
 
-group = "de.jvstvshd.velocitypunishment"
+group = "de.jvstvshd.necrify"
 version = rootProject.version
 
 repositories {
@@ -22,13 +22,8 @@ dependencies {
 }
 
 tasks {
-    val copyServerJar = task<Copy>("copyServerJar") {
-        from(shadowJar)
-        into(project.findProperty("plugins-directory") ?: "build/libs")
-    }
     shadowJar {
-        archiveBaseName.set("velocity-punishment-paper-extension")
-        finalizedBy(copyServerJar)
+        archiveFileName.set("${rootProject.name}-Paper-${project.version}.jar")
     }
     build {
         dependsOn(shadowJar)
@@ -40,9 +35,9 @@ tasks.getByName<Test>("test") {
 }
 
 bukkit {
-    main = "de.jvstvshd.velocitypunishment.paper.VelocityPunishmentPaperPlugin"
-    name = "velocity-punishment-paper-extension"
+    main = "de.jvstvshd.necrify.paper.NecrifyPaperPlugin"
+    name = "Necrify paper-extension"
     version = rootProject.version.toString()
-    description = "A paper plugin complementing the velocity-punishment plugin for velocity for imposing mutes."
+    description = "A paper plugin complementing the Necrify plugin for velocity for imposing mutes."
     apiVersion = "1.19"
 }

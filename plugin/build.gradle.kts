@@ -6,7 +6,7 @@ plugins {
 }
 
 version = rootProject.version
-description = "A plugin handling all your needs for punishments on Velocity, based on the velocity-punishment-api."
+description = "A plugin handling all your needs for punishments on Velocity, based on the necrify-api."
 
 repositories {
     mavenCentral()
@@ -40,7 +40,8 @@ tasks {
         velocityVersion("3.3.0-SNAPSHOT")
     }
     shadowJar {
-        archiveBaseName.set("velocity-punishment")
+        archiveFileName.set("${rootProject.name}-Velocity-${project.version}.jar")
+        archiveBaseName.set("necrify")
     }
     build {
         dependsOn(shadowJar)

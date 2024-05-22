@@ -27,16 +27,16 @@ package de.jvstvshd.necrify.paper.listeners;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.io.ByteStreams;
 import de.jvstvshd.necrify.common.plugin.MuteData;
-import de.jvstvshd.necrify.paper.VelocityPunishmentPaperPlugin;
+import de.jvstvshd.necrify.paper.NecrifyPaperPlugin;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
 
 public class MessagingChannelListener implements PluginMessageListener {
 
-    private final VelocityPunishmentPaperPlugin plugin;
+    private final NecrifyPaperPlugin plugin;
 
-    public MessagingChannelListener(VelocityPunishmentPaperPlugin plugin) {
+    public MessagingChannelListener(NecrifyPaperPlugin plugin) {
         this.plugin = plugin;
     }
 

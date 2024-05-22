@@ -1,4 +1,5 @@
 import org.cadixdev.gradle.licenser.Licenser
+import java.util.*
 
 plugins {
     `maven-publish`
@@ -6,7 +7,7 @@ plugins {
     id("org.cadixdev.licenser") version "0.6.1"
 }
 
-group = "de.jvstvshd.velocitypunishment"
+group = "de.jvstvshd.necrify"
 version = "1.2.0-SNAPSHOT"
 
 subprojects {
@@ -58,14 +59,14 @@ subprojects {
                 }
                 publications {
                     create<MavenPublication>(rootProject.name) {
-                        groupId = rootProject.group.toString().toLowerCase()
-                        artifactId = "velocity-punishment-${project.name}"
+                        groupId = rootProject.group.toString().lowercase(Locale.getDefault())
+                        artifactId = "necrify-${project.name}"
                         version = project.version.toString()
 
                         pom {
                             name.set(project.name)
                             description.set(project.description)
-                            url.set("https://github.com/JvstvsHD/velocity-punishment")
+                            url.set("https://github.com/JvstvsHD/necrify")
 
                             developers {
                                 developer {
@@ -81,8 +82,8 @@ subprojects {
                             }
 
                             scm {
-                                connection.set("scm:git:git://github.com/JvstvsHD/velocity-punishment.git")
-                                url.set("https://github.com/JvstvsHD/velocity-punishment/tree/main")
+                                connection.set("scm:git:git://github.com/JvstvsHD/necrify.git")
+                                url.set("https://github.com/JvstvsHD/necrify/tree/main")
                             }
                         }
                     }

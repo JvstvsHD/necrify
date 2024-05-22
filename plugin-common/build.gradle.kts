@@ -3,7 +3,7 @@ plugins {
     `java-library`
 }
 
-group = "de.jvstvshd.velocitypunishment"
+group = "de.jvstvshd.necrify"
 version = rootProject.version
 
 repositories {
