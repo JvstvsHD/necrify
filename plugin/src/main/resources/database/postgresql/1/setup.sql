@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS velocity_punishment
+CREATE TABLE IF NOT EXISTS necrify_punishment
 (
     uuid          VARCHAR(36),
     name          VARCHAR(16),
@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS velocity_punishment
     punishment_id VARCHAR(36)
 );
 
-CREATE TABLE IF NOT EXISTS velocity_punishment_whitelist
+CREATE TABLE IF NOT EXISTS necrify_whitelist
 (
     uuid VARCHAR(36)
 );

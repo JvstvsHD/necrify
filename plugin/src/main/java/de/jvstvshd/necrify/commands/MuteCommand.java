@@ -1,7 +1,7 @@
 /*
- * This file is part of Velocity Punishment, which is licensed under the MIT license.
+ * This file is part of Necrify (formerly Velocity Punishment), which is licensed under the MIT license.
  *
- * Copyright (c) 2022 JvstvsHD
+ * Copyright (c) 2022-2024 JvstvsHD
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@ import static de.jvstvshd.necrify.internal.Util.copyComponent;
 public class MuteCommand {
 
     public static BrigadierCommand muteCommand(NecrifyPlugin plugin) {
-        var node = Util.permissibleCommand("mute", "velocitypunishment.command.mute")
+        var node = Util.permissibleCommand("mute", "necrify.command.mute")
                 .then(Util.playerArgument(plugin.getServer()).executes(context -> execute(context, plugin))
                         .then(Util.reasonArgument.executes(context -> execute(context, plugin))));
         return new BrigadierCommand(node);
@@ -62,14 +62,14 @@ public class MuteCommand {
             try {
                 punishmentManager.createPermanentMute(uuid, reason).punish().whenComplete((mute, t) -> {
                     if (t != null) {
-                        plugin.getLogger().error("An error occurred while creating a mute for player " + player + " (" + uuid + ")", t);
-                        source.sendMessage(plugin.getMessageProvider().internalError(source, true));
+                        plugin.getLogger().error("An error occurred while creating a mute for player {} ({})", player, uuid, t);
+                        source.sendMessage(plugin.getMessageProvider().internalError());
                     } else {
                         String uuidString = uuid.toString().toLowerCase();
-                        source.sendMessage(plugin.getMessageProvider().provide("command.mute.success", source, true, copyComponent(player, plugin.getMessageProvider(), source).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD),
-                                copyComponent(uuidString, plugin.getMessageProvider(), source).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD),
+                        source.sendMessage(plugin.getMessageProvider().provide("command.mute.success", copyComponent(player, plugin.getMessageProvider()).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD),
+                                copyComponent(uuidString, plugin.getMessageProvider()).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD),
                                 reason).color(NamedTextColor.GREEN));
-                        source.sendMessage(plugin.getMessageProvider().provide("commands.general.punishment.id", source, true, copyComponent(mute.getPunishmentUuid().toString().toLowerCase(), plugin.getMessageProvider(), source).color(NamedTextColor.YELLOW)));
+                        source.sendMessage(plugin.getMessageProvider().provide("commands.general.punishment.id", copyComponent(mute.getPunishmentUuid().toString().toLowerCase(), plugin.getMessageProvider()).color(NamedTextColor.YELLOW)));
                     }
                 });
             } catch (PunishmentException e) {

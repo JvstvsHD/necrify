@@ -1,7 +1,7 @@
 /*
- * This file is part of Velocity Punishment, which is licensed under the MIT license.
+ * This file is part of Necrify (formerly Velocity Punishment), which is licensed under the MIT license.
  *
- * Copyright (c) 2022 JvstvsHD
+ * Copyright (c) 2022-2024 JvstvsHD
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@ import java.util.Optional;
 public class KickCommand {
 
     public static BrigadierCommand kickCommand(NecrifyPlugin plugin) {
-        var node = Util.permissibleCommand("kick", "velocitypunishment.command.kick")
+        var node = Util.permissibleCommand("kick", "necrify.command.kick")
                 .then(Util.playerArgument(plugin.getServer()).executes(context -> execute(context, plugin))
                         .then(Util.reasonArgument.executes(context -> execute(context, plugin))));
         return new BrigadierCommand(node);
@@ -54,18 +54,18 @@ public class KickCommand {
             try {
                 playerOptional = plugin.getServer().getPlayer(Util.parseUuid(playerArgument));
             } catch (Exception e) {
-                source.sendMessage(plugin.getMessageProvider().internalError(source, true));
+                source.sendMessage(plugin.getMessageProvider().internalError());
                 return 0;
             }
         }
         if (playerOptional.isEmpty()) {
-            source.sendMessage(plugin.getMessageProvider().provide("commands.general.not-found", source, true, Component.text(playerArgument).color(NamedTextColor.YELLOW)));
+            source.sendMessage(plugin.getMessageProvider().provide("commands.general.not-found", Component.text(playerArgument).color(NamedTextColor.YELLOW)));
             return 0;
         }
         var player = playerOptional.get();
         Component reason = PunishmentHelper.parseReason(context);
         player.disconnect(reason);
-        source.sendMessage(plugin.getMessageProvider().provide("command.kick.success", source, true, Component.text(player.getUsername()).color(NamedTextColor.YELLOW), reason));
+        source.sendMessage(plugin.getMessageProvider().provide("command.kick.success", Component.text(player.getUsername()).color(NamedTextColor.YELLOW), reason));
         return Command.SINGLE_SUCCESS;
     }
 }

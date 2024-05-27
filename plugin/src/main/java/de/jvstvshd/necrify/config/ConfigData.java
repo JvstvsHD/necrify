@@ -1,7 +1,7 @@
 /*
- * This file is part of Velocity Punishment, which is licensed under the MIT license.
+ * This file is part of Necrify (formerly Velocity Punishment), which is licensed under the MIT license.
  *
- * Copyright (c) 2022 JvstvsHD
+ * Copyright (c) 2022-2024 JvstvsHD
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,17 +35,16 @@ public class ConfigData {
     @JsonAlias("dataBaseData")
     private final DataBaseData dataBaseData;
 
-    @JsonProperty("forced-language")
-    @JsonAlias("forcedLanguage")
-    private final Locale forcedLanguage;
+    @JsonProperty("default-language")
+    private final Locale defaultLanguage;
 
     @JsonProperty("whitelist-activated")
     @JsonAlias("whitelistActivated")
     private boolean whitelistActivated;
 
-    public ConfigData(DataBaseData dataBaseData, Locale forcedLanguage, boolean whitelistActivated) {
+    public ConfigData(DataBaseData dataBaseData, Locale defaultLanguage, boolean whitelistActivated) {
         this.dataBaseData = dataBaseData;
-        this.forcedLanguage = forcedLanguage;
+        this.defaultLanguage = defaultLanguage;
         this.whitelistActivated = whitelistActivated;
     }
 
@@ -57,8 +56,8 @@ public class ConfigData {
         return dataBaseData;
     }
 
-    public Locale getForcedLanguage() {
-        return forcedLanguage;
+    public Locale getDefaultLanguage() {
+        return defaultLanguage;
     }
 
     public boolean isWhitelistActivated() {

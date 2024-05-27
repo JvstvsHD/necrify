@@ -1,7 +1,7 @@
 /*
- * This file is part of Velocity Punishment, which is licensed under the MIT license.
+ * This file is part of Necrify (formerly Velocity Punishment), which is licensed under the MIT license.
  *
- * Copyright (c) 2022 JvstvsHD
+ * Copyright (c) 2022-2024 JvstvsHD
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -80,7 +80,7 @@ public class Util {
             //noinspection ResultOfMethodCallIgnored
             QueryBuilder.builder(plugin.getDataSource(), SuggestionsBuilder.class)
                     .configure(QueryBuilderConfig.defaultConfig())
-                    .query("SELECT name FROM velocity_punishment WHERE name LIKE ?")
+                    .query("SELECT name FROM necrify_punishment WHERE name LIKE ?")
                     .parameter(paramBuilder -> paramBuilder.setString(input + "%"))
                     .readRow(row -> builder.suggest(row.getString("name")));
             plugin.getServer().getAllPlayers().stream().map(Player::getUsername).forEach(builder::suggest);
@@ -102,9 +102,9 @@ public class Util {
         }
     }
 
-    public static TextComponent copyComponent(String text, MessageProvider provider, CommandSource source) {
+    public static TextComponent copyComponent(String text, MessageProvider provider) {
         return Component.text(text).clickEvent(ClickEvent.suggestCommand(text))
-                .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(provider.provide("commands.general.copy", source).color(NamedTextColor.GREEN)));
+                .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(provider.provide("commands.general.copy").color(NamedTextColor.GREEN)));
     }
 
     public static <T> CompletableFuture<T> executeAsync(Callable<T> task, Executor service) {
@@ -151,12 +151,12 @@ public class Util {
         var source = context.getSource();
         var player = context.getArgument("player", String.class);
         if (throwable != null) {
-            source.sendMessage(plugin.getMessageProvider().internalError(source, true));
-            plugin.getLogger().error("Cannot retrieve player uuid for " + player, throwable);
+            source.sendMessage(plugin.getMessageProvider().internalError());
+            plugin.getLogger().error("Cannot retrieve player uuid for {}", player, throwable);
             return true;
         }
         if (uuid == null) {
-            source.sendMessage(Component.translatable().args(Component.text(player).color(NamedTextColor.YELLOW)).key("commands.general.not-found").color(NamedTextColor.RED));
+            source.sendMessage(Component.translatable().arguments(Component.text(player).color(NamedTextColor.YELLOW)).key("commands.general.not-found").color(NamedTextColor.RED));
             return true;
         }
         return false;
@@ -176,7 +176,7 @@ public class Util {
 
     public static void sendErrorMessage(CommandContext<CommandSource> context, Throwable throwable) {
         var source = context.getSource();
-        if (!source.hasPermission("velocitypunishment.command.debug")) {
+        if (!source.hasPermission("necrify.command.debug")) {
             source.sendMessage(MiniMessage.miniMessage().deserialize("<red>An error occurred.</red>"));
             return;
         }

@@ -1,7 +1,7 @@
 /*
- * This file is part of Velocity Punishment, which is licensed under the MIT license.
+ * This file is part of Necrify (formerly Velocity Punishment), which is licensed under the MIT license.
  *
- * Copyright (c) 2022 JvstvsHD
+ * Copyright (c) 2022-2024 JvstvsHD
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,6 @@
 
 package de.jvstvshd.necrify.message;
 
-import com.velocitypowered.api.command.CommandSource;
-import com.velocitypowered.api.proxy.Player;
 import de.jvstvshd.necrify.NecrifyPlugin;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.config.ConfigData;
@@ -36,45 +34,49 @@ import net.kyori.adventure.translation.GlobalTranslator;
 import net.kyori.adventure.translation.TranslationRegistry;
 import net.kyori.adventure.translation.Translator;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.PropertyResourceBundle;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
 
 public class ResourceBundleMessageProvider implements MessageProvider {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResourceBundleMessageProvider.class);
+    private static final Component PREFIX = MiniMessage.miniMessage().deserialize("<grey>[<gradient:#ff1c08:#ff3f2e>Necrify</gradient>]</grey> ");
+
     private final ConfigData configData;
-    private final LocaleProvider localeProvider;
-    private static List<PropertyResourceBundle> bundles; //temporary workaround for avoiding legacy color codes
 
     static {
         try {
-            var registry = TranslationRegistry.create(Key.key("velocity-punishment"));
+            var registry = TranslationRegistry.create(Key.key("necrify"));
             registry.defaultLocale(Locale.ENGLISH);
-            var baseDir = Path.of("plugins", "velocity-punishment", "translations");
+            var baseDir = Path.of("plugins", "necrify", "translations");
             if (!Files.exists(baseDir)) {
                 Files.createDirectories(baseDir);
             }
             try (Stream<Path> paths = Files.list(baseDir)) {
-                var bundles = new ArrayList<PropertyResourceBundle>();
                 paths.filter(path -> path.getFileName().toString().endsWith(".properties")).forEach(path -> {
                     PropertyResourceBundle resource;
                     try {
                         resource = new PropertyResourceBundle(Files.newInputStream(path));
-                        bundles.add(resource);
                         var locale = locale(path.getFileName().toString());//Objects.requireNonNull(Translator.parseLocale(path.getFileName().toString().substring(0, path.getFileName().toString().length() - ".properties".length())));
                         registry.registerAll(locale, resource, false);
+
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        LOGGER.error("An error occurred while loading translation file {}", path.getFileName(), e);
                     }
                 });
-                ResourceBundleMessageProvider.bundles = Collections.unmodifiableList(bundles);
                 try (JarFile jar = new JarFile(new File(NecrifyPlugin.class.getProtectionDomain().getCodeSource().getLocation().toURI()))) {
                     for (JarEntry translationEntry : jar.stream().filter(jarEntry -> jarEntry.getName().toLowerCase().contains("translations") && !jarEntry.isDirectory()).toList()) {
                         var path = Path.of(baseDir.toString(), translationEntry.getName().split("/")[1]);
@@ -88,24 +90,12 @@ public class ResourceBundleMessageProvider implements MessageProvider {
             }
             GlobalTranslator.translator().addSource(registry);
         } catch (IOException | URISyntaxException e) {
-            e.printStackTrace();
+            LOGGER.error("An error occurred while loading translations", e);
         }
     }
 
     public ResourceBundleMessageProvider(@NotNull ConfigData configData) {
         this.configData = configData;
-        this.localeProvider = new LocaleProvider(configData);
-    }
-
-    @Override
-    public @NotNull Component prefix() {
-        return standard("prefix", Locale.ROOT);
-    }
-
-    private Component standard(String key, CommandSource source) {
-        var configLocale = configData.getForcedLanguage();
-        var locale = configLocale == null ? localeProvider.provideLocale(source) : configLocale;
-        return standard(key, locale);
     }
 
     private static Locale locale(String fileName) {
@@ -113,92 +103,38 @@ public class ResourceBundleMessageProvider implements MessageProvider {
     }
 
     @Override
-    public @NotNull
-    Component internalError(CommandSource source) {
-        return standard("error.internal", source);
+    public @NotNull Component provide(@NotNull String key, @Nullable Locale locale, Component... args) {
+        return GlobalTranslator.render(provide(key, args), orDefault(locale));
     }
 
     @Override
-    public @NotNull
-    Component prefix(CommandSource source) {
-        return standard("prefix", source);
-    }
-
-
-    @Override
-    public @NotNull
-    Component provide(String key, CommandSource source, Component... args) {
-        return GlobalTranslator.render(Component.translatable(key, args), localeProvider.provideLocale(source));
-    }
-
-    @Override
-    public @NotNull
-    Component provide(String key, Component... args) {
+    public @NotNull Component provide(@NotNull String key, Component... args) {
         Objects.requireNonNull(key, "key may not be null");
-        var translatable = Component.translatable(key, args);
-        if (configData.getForcedLanguage() != null) {
-            return GlobalTranslator.render(translatable, configData.getForcedLanguage());
-        }
-        return translatable;
-    }
-
-
-    private Component withPrefix(Component message, CommandSource source) {
-        Objects.requireNonNull(message);
-        return Component.text().append(prefix(source), message).build();
+        return prefixed(Component.translatable(key, args));
     }
 
     @Override
-    public @NotNull
-    Component internalError(CommandSource source, boolean withPrefix) {
-        if (withPrefix) {
-            return withPrefix(internalError(source), source);
-        }
-        return internalError(source);
+    public @NotNull Component internalError(@Nullable Locale locale) {
+        return provide("error.internal", locale);
     }
 
     @Override
-    public @NotNull
-    Component provide(String key, CommandSource source, boolean withPrefix, Component... args) {
-        if (withPrefix) {
-            return withPrefix(provide(key, source, args), source);
-        }
-        return provide(key, source, args);
+    public @NotNull Component internalError() {
+        return provide("error.internal");
     }
 
-    private Component standard(String key, Locale locale) {
-        if (locale == null) {
-            locale = Locale.ENGLISH;
-        }
-        //temporary workaround for avoiding legacy color codes
-        //TODO: replace with complete MiniMessage support
-        Locale finalLocale = locale;
-        var resourceBundle = bundles.stream().filter(bundle -> finalLocale.getISO3Language().equals(Objects.requireNonNullElse(Translator.parseLocale(bundle.getString("locale")), Locale.UK).getISO3Language()))
-                .findFirst().orElseThrow(() -> new IllegalStateException("No bundle found for locale " + finalLocale));
-        return MiniMessage.miniMessage().deserialize(resourceBundle.getString(key));
-        /*var rendered = GlobalTranslator.render(Component.translatable(key), locale);
-        if (rendered instanceof TextComponent textComponent) {
-            return LegacyComponentSerializer.legacyAmpersand().deserialize(textComponent.content());
-        }
-        return rendered;*/
+    @Override
+    public @NotNull Component prefix() {
+        return PREFIX;
     }
 
-    public static class LocaleProvider {
-        private final ConfigData configData;
+    @Override
+    public boolean autoPrefixed() {
+        return true;
+    }
 
-        public LocaleProvider(ConfigData configData) {
-            this.configData = configData;
-        }
-
-        public Locale provideLocale(CommandSource source) {
-            if (configData.getForcedLanguage() != null) {
-                return configData.getForcedLanguage();
-            }
-            if (source instanceof Player player) {
-                var effectiveLocale = player.getEffectiveLocale();
-                return effectiveLocale == null ? Locale.getDefault() : effectiveLocale;
-            }
-            return Locale.getDefault();
-        }
+    @NotNull
+    private Locale orDefault(@Nullable Locale input) {
+        return input == null ? configData.getDefaultLanguage() : input;
     }
 }

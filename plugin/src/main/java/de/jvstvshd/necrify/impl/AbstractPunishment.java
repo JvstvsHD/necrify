@@ -1,7 +1,7 @@
 /*
- * This file is part of Velocity Punishment, which is licensed under the MIT license.
+ * This file is part of Necrify (formerly Velocity Punishment), which is licensed under the MIT license.
  *
- * Copyright (c) 2022 JvstvsHD
+ * Copyright (c) 2022-2024 JvstvsHD
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,12 +49,12 @@ public abstract class AbstractPunishment extends QueryFactory implements Punishm
     private final PlayerResolver playerResolver;
     private final MessageProvider messageProvider;
 
-    protected final static String APPLY_PUNISHMENT = "INSERT INTO velocity_punishment" +
+    protected final static String APPLY_PUNISHMENT = "INSERT INTO necrify_punishment" +
             " (uuid, name, type, expiration, reason, punishment_id) VALUES (?, ?, ?, ?, ?, ?)";
     protected final static String APPLY_CANCELLATION
-            = "DELETE FROM velocity_punishment WHERE punishment_id = ?";
-    protected final static String APPLY_CHANGE = "UPDATE velocity_punishment SET reason = ?, expiration = ?, permanent = ? WHERE punishment_id = ?";
-    private boolean validity;
+            = "DELETE FROM necrify_punishment WHERE punishment_id = ?";
+    protected final static String APPLY_CHANGE = "UPDATE necrify_punishment SET reason = ?, expiration = ?, permanent = ? WHERE punishment_id = ?";
+    private final boolean validity;
 
     public AbstractPunishment(UUID playerUuid, Component reason, DataSource dataSource, PlayerResolver playerResolver, DefaultPunishmentManager punishmentManager, ExecutorService service, MessageProvider messageProvider) {
         this(playerUuid, reason, dataSource, service, punishmentManager, UUID.randomUUID(), playerResolver, messageProvider);
@@ -113,6 +113,7 @@ public abstract class AbstractPunishment extends QueryFactory implements Punishm
         return LegacyComponentSerializer.legacy(LegacyComponentSerializer.SECTION_CHAR).serialize(component);
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isValid() {
         return validity;
     }

@@ -1,7 +1,7 @@
 /*
- * This file is part of Velocity Punishment, which is licensed under the MIT license.
+ * This file is part of Necrify (formerly Velocity Punishment), which is licensed under the MIT license.
  *
- * Copyright (c) 2022 JvstvsHD
+ * Copyright (c) 2022-2024 JvstvsHD
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -52,7 +52,7 @@ public class PunishmentCommand {
     private final static List<String> PUNISHMENT_OPTIONS = ImmutableList.of("cancel", "remove", "info", "change");
 
     public static BrigadierCommand punishmentCommand(NecrifyPlugin plugin) {
-        var node = Util.permissibleCommand("punishment", "velocitypunishment.command.punishment")
+        var node = Util.permissibleCommand("punishment", "necrify.command.punishment")
                 .then(LiteralArgumentBuilder.<CommandSource>literal("playerinfo")
                         .then(Util.punishmentRemoveArgument(plugin).executes(context -> executePlayerInfo(context, plugin))))
                 .then(RequiredArgumentBuilder.<CommandSource, String>argument("punishment ID", StringArgumentType.word())
@@ -70,13 +70,13 @@ public class PunishmentCommand {
             if (Util.sendErrorMessageIfErrorOccurred(context, uuid, throwable, plugin)) return;
             punishmentManager.getPunishments(uuid, plugin.getService()).whenComplete((punishments, t) -> {
                 if (t != null) {
-                    source.sendMessage(plugin.getMessageProvider().internalError(source, true));
-                    plugin.getLogger().error("An error occurred while getting punishments for player " + uuid, t);
+                    source.sendMessage(plugin.getMessageProvider().internalError());
+                    plugin.getLogger().error("An error occurred while getting punishments for player {}", uuid, t);
                     return;
                 }
-                source.sendMessage(plugin.getMessageProvider().provide("command.punishment.punishments", source, true, Component.text(punishments.size())).color(NamedTextColor.AQUA));
+                source.sendMessage(plugin.getMessageProvider().provide("command.punishment.punishments", Component.text(punishments.size())).color(NamedTextColor.AQUA));
                 for (Punishment punishment : punishments) {
-                    Component component = PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider(), source)
+                    Component component = PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider())
                             .clickEvent(ClickEvent.suggestCommand(punishment.getPunishmentUuid().toString().toLowerCase(Locale.ROOT)))
                             .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(plugin.getMessageProvider().provide("commands.general.copy")
                                     .color(NamedTextColor.GREEN)));
@@ -94,23 +94,23 @@ public class PunishmentCommand {
         try {
             uuid = Util.parseUuid(uuidString);
         } catch (IllegalArgumentException e) {
-            source.sendMessage(plugin.getMessageProvider().provide("command.punishment.uuid-parse-error", source, true, Component.text(uuidString).color(NamedTextColor.YELLOW)).color(NamedTextColor.RED));
+            source.sendMessage(plugin.getMessageProvider().provide("command.punishment.uuid-parse-error", Component.text(uuidString).color(NamedTextColor.YELLOW)).color(NamedTextColor.RED));
             return 0;
         }
         String option = context.getArgument("option", String.class);
         if (!PUNISHMENT_OPTIONS.contains(option)) {
-            source.sendMessage(plugin.getMessageProvider().provide("command.punishment.unknown-option", source, true, Component.text(option).color(NamedTextColor.YELLOW)).color(NamedTextColor.RED));
+            source.sendMessage(plugin.getMessageProvider().provide("command.punishment.unknown-option", Component.text(option).color(NamedTextColor.YELLOW)).color(NamedTextColor.RED));
             return 0;
         }
         plugin.getPunishmentManager().getPunishment(uuid, plugin.getService()).whenCompleteAsync((optional, throwable) -> {
             if (throwable != null) {
-                plugin.getLogger().error("An error occurred while getting punishment " + uuid, throwable);
-                source.sendMessage(plugin.getMessageProvider().internalError(source, true));
+                plugin.getLogger().error("An error occurred while getting punishment {}", uuid, throwable);
+                source.sendMessage(plugin.getMessageProvider().internalError());
                 return;
             }
             Punishment punishment;
             if (optional.isEmpty()) {
-                source.sendMessage(plugin.getMessageProvider().provide("command.punishment.unknown-punishment-id", source, true,
+                source.sendMessage(plugin.getMessageProvider().provide("command.punishment.unknown-punishment-id",
                         Component.text(uuid.toString().toLowerCase(Locale.ROOT)).color(NamedTextColor.YELLOW)).color(NamedTextColor.RED));
                 return;
             }
@@ -120,19 +120,19 @@ public class PunishmentCommand {
                     try {
                         punishment.cancel().whenCompleteAsync((unused, t) -> {
                             if (t != null) {
-                                plugin.getLogger().error("An error occurred while cancelling punishment " + uuid, t);
-                                source.sendMessage(plugin.getMessageProvider().internalError(source, true));
+                                plugin.getLogger().error("An error occurred while cancelling punishment {}", uuid, t);
+                                source.sendMessage(plugin.getMessageProvider().internalError());
                                 return;
                             }
-                            source.sendMessage(plugin.getMessageProvider().provide("punishment.remove", source, true).color(NamedTextColor.GREEN));
+                            source.sendMessage(plugin.getMessageProvider().provide("punishment.remove").color(NamedTextColor.GREEN));
                         });
                     } catch (PunishmentException e) {
-                        plugin.getLogger().error("An error occurred while cancelling punishment " + uuid, e);
+                        plugin.getLogger().error("An error occurred while cancelling punishment {}", uuid, e);
                         Util.sendErrorMessage(context, e);
                     }
                 }
                 case "info" ->
-                        source.sendMessage(PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider(), source));
+                        source.sendMessage(PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider()));
                 case "change" -> source.sendMessage(Component.text("Soon (TM)"));
             }
         });

@@ -1,7 +1,7 @@
 /*
- * This file is part of Velocity Punishment, which is licensed under the MIT license.
+ * This file is part of Necrify (formerly Velocity Punishment), which is licensed under the MIT license.
  *
- * Copyright (c) 2022 JvstvsHD
+ * Copyright (c) 2022-2024 JvstvsHD
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,6 @@ package de.jvstvshd.necrify.internal;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.velocitypowered.api.command.CommandSource;
-import com.velocitypowered.api.command.SimpleCommand;
 import de.jvstvshd.necrify.NecrifyPlugin;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.message.MessageProvider;
@@ -44,55 +43,33 @@ import java.util.concurrent.CompletableFuture;
 
 public class PunishmentHelper {
 
-    /**
-     * Instantiates a new punishment helper.
-     *
-     * @deprecated This class is not meant to be instantiated and should only be used statically.
-     */
-    @Deprecated(forRemoval = true)
-    public PunishmentHelper() {
+    private PunishmentHelper() {
+        throw new IllegalStateException("Utility class");
     }
 
-    public static Component buildPunishmentData(Punishment punishment, MessageProvider provider, CommandSource source) {
+    public static Component buildPunishmentData(Punishment punishment, MessageProvider provider) {
         return Component.text()
-                .append(provider.provide("helper.type", source, true).color(NamedTextColor.AQUA),
+                .append(provider.provide("helper.type").color(NamedTextColor.AQUA),
                         Component.text(punishment.getType().getName()).color(NamedTextColor.YELLOW),
                         Component.newline(),
-                        provider.provide("helper.reason", source, true).color(NamedTextColor.AQUA),
+                        provider.provide("helper.reason").color(NamedTextColor.AQUA),
                         punishment.getReason(),
                         Component.newline(),
                         punishment instanceof TemporalPunishment temporalPunishment ?
-                                buildPunishmentDataTemporal(temporalPunishment, provider, source) : Component.text(""),
+                                buildPunishmentDataTemporal(temporalPunishment, provider) : Component.text(""),
                         Component.newline()
                 )
                 .build();
     }
 
-    public static Component buildPunishmentDataTemporal(TemporalPunishment punishment, MessageProvider provider, CommandSource source) {
+    public static Component buildPunishmentDataTemporal(TemporalPunishment punishment, MessageProvider provider) {
         return punishment.isPermanent() ? Component.text("permanent").color(NamedTextColor.RED) : Component.text()
-                .append(provider.provide("helper.temporal.duration", source, true).color(NamedTextColor.AQUA),
+                .append(provider.provide("helper.temporal.duration").color(NamedTextColor.AQUA),
                         Component.text(punishment.getDuration().remainingDuration()).color(NamedTextColor.YELLOW),
                         Component.newline(),
-                        provider.provide("helper.temporal.end", source, true).color(NamedTextColor.AQUA),
+                        provider.provide("helper.temporal.end").color(NamedTextColor.AQUA),
                         Component.text(punishment.getDuration().expirationAsString()).color(NamedTextColor.YELLOW))
-                /*Component.newline(),
-                Component.text("initial duration: ").color(NamedTextColor.AQUA),
-                Component.text(punishment.getDuration().getInitialDuration()).color(NamedTextColor.YELLOW))*/
                 .build();
-    }
-
-    @Deprecated(forRemoval = true)
-    public static Optional<PunishmentDuration> parseDuration(int argumentIndex, SimpleCommand.Invocation invocation, MessageProvider provider) {
-        try {
-            return Optional.ofNullable(PunishmentDuration.parse(invocation.arguments()[argumentIndex]));
-        } catch (IllegalArgumentException e) {
-            invocation.source().sendMessage(Component.text().append(Component.text("Cannot parse duration: ").color(NamedTextColor.RED),
-                    Component.text(e.getMessage()).color(NamedTextColor.YELLOW)));
-            return Optional.empty();
-        } catch (Exception e) {
-            invocation.source().sendMessage(provider.internalError(invocation.source(), true));
-            throw new RuntimeException(e);
-        }
     }
 
     public static Optional<PunishmentDuration> parseDuration(CommandContext<CommandSource> context, MessageProvider provider) {
@@ -106,21 +83,9 @@ public class PunishmentHelper {
                     Component.text(e.getMessage()).color(NamedTextColor.YELLOW)));
             return Optional.empty();
         } catch (Exception e) {
-            context.getSource().sendMessage(provider.internalError(context.getSource(), true));
+            context.getSource().sendMessage(provider.internalError());
             throw new RuntimeException(e);
         }
-    }
-
-    @Deprecated(forRemoval = true)
-    public static TextComponent parseComponent(int startIndex, SimpleCommand.Invocation invocation, TextComponent def) {
-        if (invocation.arguments().length == startIndex) {
-            return def;
-        }
-        StringBuilder builder = new StringBuilder();
-        for (int i = startIndex; i < invocation.arguments().length; i++) {
-            builder.append(invocation.arguments()[i]).append(" ");
-        }
-        return LegacyComponentSerializer.legacyAmpersand().deserialize(builder.toString());
     }
 
     public static CompletableFuture<UUID> getPlayerUuid(CommandContext<CommandSource> context, NecrifyPlugin plugin) {

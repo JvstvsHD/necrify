@@ -1,7 +1,7 @@
 /*
- * This file is part of Velocity Punishment, which is licensed under the MIT license.
+ * This file is part of Necrify (formerly Velocity Punishment), which is licensed under the MIT license.
  *
- * Copyright (c) 2022 JvstvsHD
+ * Copyright (c) 2022-2024 JvstvsHD
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -81,11 +81,11 @@ public class DefaultBan extends AbstractTemporalPunishment implements Ban {
             return Component.text("INVALID").decorate(TextDecoration.BOLD).color(NamedTextColor.DARK_RED);
         }
         if (isPermanent()) {
-            return getMessageProvider().provide("punishment.ban.permanent.full-reason", source, true, getReason());
+            return getMessageProvider().provide("punishment.ban.permanent.full-reason", getReason());
         } else {
             var until = Component.text(getDuration().expiration().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                     .color(NamedTextColor.YELLOW);
-            return getMessageProvider().provide("punishment.ban.temp.full-reason", source, true,
+            return getMessageProvider().provide("punishment.ban.temp.full-reason",
                     Component.text(getDuration().remainingDuration()).color(NamedTextColor.YELLOW), getReason(), until);
 
         }

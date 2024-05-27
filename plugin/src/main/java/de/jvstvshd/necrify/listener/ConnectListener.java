@@ -1,7 +1,7 @@
 /*
- * This file is part of Velocity Punishment, which is licensed under the MIT license.
+ * This file is part of Necrify (formerly Velocity Punishment), which is licensed under the MIT license.
  *
- * Copyright (c) 2022 JvstvsHD
+ * Copyright (c) 2022-2024 JvstvsHD
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -62,7 +62,7 @@ public final class ConnectListener extends QueryFactory {
     public void onConnect(LoginEvent event) throws Exception {
         if (plugin.whitelistActive()) {
             plugin.getLogger().info("Whitelist is activated.");
-            builder(Boolean.class).query("SELECT * FROM velocity_punishment_whitelist WHERE uuid = ?;")
+            builder(Boolean.class).query("SELECT * FROM necrify_punishment_whitelist WHERE uuid = ?;")
                     .parameter(paramBuilder -> paramBuilder.setUuidAsString(event.getPlayer().getUniqueId()))
                     .readRow(row -> true)
                     .first().thenAcceptAsync(whitelisted -> {
@@ -77,7 +77,7 @@ public final class ConnectListener extends QueryFactory {
                     StandardPunishmentType.PERMANENT_BAN, StandardPunishmentType.MUTE, StandardPunishmentType.PERMANENT_MUTE).get(10, TimeUnit.SECONDS);
         } catch (Exception e) {
             plugin.getLogger().error("Cannot retrieve punishment for player {} ({})", event.getPlayer().getUsername(), event.getPlayer().getUniqueId(), e);
-            event.setResult(ResultedEvent.ComponentResult.denied(plugin.getMessageProvider().internalError(event.getPlayer(), true)));
+            event.setResult(ResultedEvent.ComponentResult.denied(plugin.getMessageProvider().internalError()));
             return;
         }
         List<Ban> bans = new ArrayList<>();
@@ -107,7 +107,7 @@ public final class ConnectListener extends QueryFactory {
         } else {
             ban.cancel().whenCompleteAsync((unused, t) -> {
                 if (t != null) {
-                    plugin.getLogger().error("An error occurred while cancelling ban " + ban.getPunishmentUuid().toString().toLowerCase(), t);
+                    plugin.getLogger().error("An error occurred while cancelling ban {}", ban.getPunishmentUuid().toString().toLowerCase(), t);
                     return;
                 }
                 proxyServer.getConsoleCommandSource().sendMessage(Component.text()

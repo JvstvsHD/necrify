@@ -1,7 +1,7 @@
 /*
- * This file is part of Velocity Punishment, which is licensed under the MIT license.
+ * This file is part of Necrify (formerly Velocity Punishment), which is licensed under the MIT license.
  *
- * Copyright (c) 2022 JvstvsHD
+ * Copyright (c) 2022-2024 JvstvsHD
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,7 @@ public class WhitelistCommand {
 
 
     public static BrigadierCommand whitelistCommand(NecrifyPlugin plugin) {
-        var node = Util.permissibleCommand("whitelist", "velocitypunishment.command.whitelist")
+        var node = Util.permissibleCommand("whitelist", "necrify.command.whitelist")
                 .then(RequiredArgumentBuilder.<CommandSource, String>argument("option", StringArgumentType.word())
                         .executes(context -> execute(context, plugin))
                         .suggests((context, builder) -> {
@@ -77,15 +77,15 @@ public class WhitelistCommand {
             switch (option) {
                 case "add", "remove" -> {
                     if (player == null) {
-                        source.sendMessage(plugin.getMessageProvider().provide("command.whitelist.usage", source, true));
+                        source.sendMessage(plugin.getMessageProvider().provide("command.whitelist.usage"));
                         return Command.SINGLE_SUCCESS;
                     }
                     plugin.getPlayerResolver().getOrQueryPlayerUuid(player, plugin.getService()).whenCompleteAsync((uuid, throwable) -> {
                         if (Util.sendErrorMessageIfErrorOccurred(context, uuid, throwable, plugin)) return;
                         var builder = QueryBuilder.builder(plugin.getDataSource())
                                 .configure(QueryBuilderConfig.defaultConfig())
-                                .query(option.equalsIgnoreCase("remove") ? "DELETE FROM velocity_punishment_whitelist WHERE uuid = ?;" :
-                                        "INSERT INTO velocity_punishment_whitelist (uuid) VALUES (?);")
+                                .query(option.equalsIgnoreCase("remove") ? "DELETE FROM necrify_whitelist WHERE uuid = ?;" :
+                                        "INSERT INTO necrify_whitelist (uuid) VALUES (?);")
                                 .parameter(paramBuilder -> paramBuilder.setUuidAsString(uuid));
                         if (option.equalsIgnoreCase("remove")) {
                             builder.delete().send();
@@ -100,31 +100,30 @@ public class WhitelistCommand {
                     config.getConfiguration().setWhitelistActivated(option.equals("on"));
                     try {
                         config.save();
-                        source.sendMessage(plugin.getMessageProvider().prefixed(source, Component.text("The whitelist is now " + option).color(NamedTextColor.GRAY)));
+                        source.sendMessage(plugin.getMessageProvider().prefixed(Component.text("The whitelist is now " + option).color(NamedTextColor.GRAY)));
                     } catch (IOException e) {
-                        source.sendMessage(plugin.getMessageProvider().internalError(source, true));
+                        source.sendMessage(plugin.getMessageProvider().internalError());
                         plugin.getLogger().error("Could not save the configuration.", e);
                     }
                 }
-                default ->
-                        source.sendMessage(plugin.getMessageProvider().provide("command.whitelist.usage", source, true));
+                default -> source.sendMessage(plugin.getMessageProvider().provide("command.whitelist.usage"));
             }
             return Command.SINGLE_SUCCESS;
         }
         if (player == null) {
-            source.sendMessage(plugin.getMessageProvider().provide("command.whitelist.usage", source, true));
+            source.sendMessage(plugin.getMessageProvider().provide("command.whitelist.usage"));
             return Command.SINGLE_SUCCESS;
         }
         plugin.getPlayerResolver().getOrQueryPlayerUuid(player, plugin.getService()).whenCompleteAsync((uuid, throwable) -> {
             if (Util.sendErrorMessageIfErrorOccurred(context, uuid, throwable, plugin)) return;
             QueryBuilder.builder(plugin.getDataSource(), Boolean.class)
                     .configure(QueryBuilderConfig.defaultConfig())
-                    .query("SELECT uuid FROM velocity_punishment_whitelist WHERE uuid = ?;")
+                    .query("SELECT uuid FROM necrify_whitelist WHERE uuid = ?;")
                     .parameter(paramBuilder -> paramBuilder.setUuidAsString(uuid))
                     .readRow(rs -> true).first().thenAcceptAsync(aBoolean -> {
-                        var whitelisted = aBoolean.isPresent() ? plugin.getMessageProvider().provide("whitelist.status.whitelisted", source) :
-                                plugin.getMessageProvider().provide("whitelist.status.disallowed", source);
-                        source.sendMessage(plugin.getMessageProvider().provide("command.whitelist.status", source, true, Component.text(player).color(NamedTextColor.YELLOW), whitelisted.color(NamedTextColor.YELLOW)));
+                        var whitelisted = aBoolean.isPresent() ? plugin.getMessageProvider().provide("whitelist.status.whitelisted") :
+                                plugin.getMessageProvider().provide("whitelist.status.disallowed");
+                        source.sendMessage(plugin.getMessageProvider().provide("command.whitelist.status", Component.text(player).color(NamedTextColor.YELLOW), whitelisted.color(NamedTextColor.YELLOW)));
                     });
         }, plugin.getService());
         return Command.SINGLE_SUCCESS;

@@ -1,7 +1,7 @@
 /*
- * This file is part of Velocity Punishment, which is licensed under the MIT license.
+ * This file is part of Necrify (formerly Velocity Punishment), which is licensed under the MIT license.
  *
- * Copyright (c) 2022 JvstvsHD
+ * Copyright (c) 2022-2024 JvstvsHD
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -66,7 +66,7 @@ import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Plugin(id = "velocity-punishment", name = "Velocity Punishment Plugin", version = "1.0.0-SNAPSHOT", description = "A simple punishment plugin for Velocity", authors = {"JvstvsHD"})
+@Plugin(id = "necrify", name = "Necrify", version = "1.0.0-SNAPSHOT", description = "A simple punishment plugin for Velocity", authors = {"JvstvsHD"})
 public class NecrifyPlugin implements Necrify {
 
     private final ProxyServer server;
@@ -90,7 +90,7 @@ public class NecrifyPlugin implements Necrify {
     /**
      * Since 1.19.1, cancelling chat messages on proxy is not possible anymore. Therefore, we have to listen to the chat event on the actual game server. This means
      * that there has to be a spigot/paper extension to this plugin which is not yet available unless there's a possibility. Therefore all mute related features are disabled for now.
-     * If you use 1.19 or lower you will not be affected by this.The progress of the extension can be found <a href=https://github.com/JvstvsHD/velocity-punishment/issues/6>here</a>.
+     * If you use 1.19 or lower you will not be affected by this.The progress of the extension can be found <a href=https://github.com/JvstvsHD/necrify/issues/6>here</a>.
      * For this reason, every mute related feature is deprecated and marked as for removal until this extension is available.
      */
     public static final Component MUTES_DISABLED = Component.text(MUTES_DISABLED_STRING);
@@ -124,7 +124,7 @@ public class NecrifyPlugin implements Necrify {
             updateDatabase();
             initDataSource();
         } catch (SQLException | IOException e) {
-            logger.error("Could not create table velocity_punishment in database {}", dataSource.getDataSourceProperties().get("dataSource.databaseName"), e);
+            logger.error("Could not create table necrify_punishment in database {}", dataSource.getDataSourceProperties().get("dataSource.databaseName"), e);
         }
         setup(server.getCommandManager(), server.getEventManager());
         logger.info("Velocity Punishment Plugin v1.2.0-SNAPSHOT has been loaded. This is only a dev build and thus may be unstable.");
@@ -174,7 +174,7 @@ public class NecrifyPlugin implements Necrify {
         };
         return stage.withMaximumPoolSize(dbData.getMaxPoolSize())
                 .withMinimumIdle(dbData.getMinIdle())
-                .withPoolName("velocity-punishment-hikari")
+                .withPoolName("necrify-hikari")
                 .forSchema(dbData.getPostgresSchema())
                 .build();
     }
@@ -192,12 +192,12 @@ public class NecrifyPlugin implements Necrify {
 
     private void initDataSource() throws SQLException {
         try (Connection connection = dataSource.getConnection(); PreparedStatement statement =
-                connection.prepareStatement("CREATE TABLE IF NOT EXISTS velocity_punishment (uuid  VARCHAR (36), name VARCHAR (16), type VARCHAR (1000), expiration DATETIME (6), " +
+                connection.prepareStatement("CREATE TABLE IF NOT EXISTS necrify_punishment (uuid  VARCHAR (36), name VARCHAR (16), type VARCHAR (1000), expiration DATETIME (6), " +
                         "reason VARCHAR (1000), punishment_id VARCHAR (36))")) {
             statement.execute();
         }
         try (Connection connection = dataSource.getConnection(); PreparedStatement statement =
-                connection.prepareStatement("CREATE TABLE IF NOT EXISTS velocity_punishment_whitelist (uuid VARCHAR (36))")) {
+                connection.prepareStatement("CREATE TABLE IF NOT EXISTS necrify_whitelist (uuid VARCHAR (36))")) {
             statement.execute();
         }
     }

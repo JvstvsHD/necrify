@@ -1,7 +1,7 @@
 /*
- * This file is part of Velocity Punishment, which is licensed under the MIT license.
+ * This file is part of Necrify (formerly Velocity Punishment), which is licensed under the MIT license.
  *
- * Copyright (c) 2022 JvstvsHD
+ * Copyright (c) 2022-2024 JvstvsHD
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 public interface PunishmentDuration extends Comparable<PunishmentDuration> {
 
     /**
-     * Parses a string to a {@link PunishmentDuration} using {@link Parser}. More information about how a duration will be parsed can be found <a href="https://github.com/JvstvsHD/VelocityPunishment#duration">here</a>.
+     * Parses a string to a {@link PunishmentDuration} using {@link Parser}. More information about how a duration will be parsed can be found <a href="https://github.com/JvstvsHD/Necrify#duration">here</a>.
      *
      * @param source the source string.
      * @return the parsed duration

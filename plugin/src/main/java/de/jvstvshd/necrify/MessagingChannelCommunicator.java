@@ -1,7 +1,7 @@
 /*
- * This file is part of Velocity Punishment, which is licensed under the MIT license.
+ * This file is part of Necrify (formerly Velocity Punishment), which is licensed under the MIT license.
  *
- * Copyright (c) 2022 JvstvsHD
+ * Copyright (c) 2022-2024 JvstvsHD
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -113,7 +113,7 @@ public class MessagingChannelCommunicator {
                                 messageQueue.get(registeredServer).remove(message);
                             }
                         } catch (JsonProcessingException e) {
-                            logger.error("Could not send message to server " + registeredServer.getServerInfo().getName(), e);
+                            logger.error("Could not send message to server {}", registeredServer.getServerInfo().getName(), e);
                         }
                     }
                 })

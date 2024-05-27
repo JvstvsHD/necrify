@@ -1,7 +1,7 @@
 /*
- * This file is part of Velocity Punishment, which is licensed under the MIT license.
+ * This file is part of Necrify (formerly Velocity Punishment), which is licensed under the MIT license.
  *
- * Copyright (c) 2022 JvstvsHD
+ * Copyright (c) 2022-2024 JvstvsHD
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -63,7 +63,7 @@ public class DataBaseData {
     }
 
     public DataBaseData() {
-        this("localhost", "password", "username", "database", "5432", "postgres", 10, 5, "punishment");
+        this("localhost", "password", "username", "database", "5432", "sqlite", 10, 5, "punishment");
     }
 
     public String getHost() {

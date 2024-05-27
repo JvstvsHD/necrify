@@ -1,7 +1,7 @@
 /*
- * This file is part of Velocity Punishment, which is licensed under the MIT license.
+ * This file is part of Necrify (formerly Velocity Punishment), which is licensed under the MIT license.
  *
- * Copyright (c) 2022 JvstvsHD
+ * Copyright (c) 2022-2024 JvstvsHD
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,7 +49,7 @@ import static de.jvstvshd.necrify.internal.Util.copyComponent;
 public class TempmuteCommand {
 
     public static BrigadierCommand tempmuteCommand(NecrifyPlugin plugin) {
-        var node = Util.permissibleCommand("tempmute", "velocitypunishment.command.tempmute")
+        var node = Util.permissibleCommand("tempmute", "necrify.command.tempmute")
                 .then(Util.playerArgument(plugin.getServer())
                         .then(Util.durationArgument.executes(context -> execute(context, plugin))
                                 .then(Util.reasonArgument.executes(context -> execute(context, plugin)))));
@@ -70,21 +70,21 @@ public class TempmuteCommand {
             try {
                 plugin.getPunishmentManager().createMute(uuid, reason, duration).punish().whenComplete((ban, t) -> {
                     if (t != null) {
-                        source.sendMessage(plugin.getMessageProvider().internalError(source, true));
-                        plugin.getLogger().error("An error occurred while creating a ban for player " + player + " (" + uuid + ")", t);
+                        source.sendMessage(plugin.getMessageProvider().internalError());
+                        plugin.getLogger().error("An error occurred while creating a ban for player {} ({})", player, uuid, t);
                         return;
                     }
                     String until = duration.expiration().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"));
                     String uuidString = uuid.toString().toLowerCase();
-                    source.sendMessage(plugin.getMessageProvider().provide("command.tempmute.success", source, true,
-                            copyComponent(player, plugin.getMessageProvider(), source).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD),
-                            copyComponent(uuidString, plugin.getMessageProvider(), source).color(NamedTextColor.RED).decorate(TextDecoration.BOLD),
+                    source.sendMessage(plugin.getMessageProvider().provide("command.tempmute.success",
+                            copyComponent(player, plugin.getMessageProvider()).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD),
+                            copyComponent(uuidString, plugin.getMessageProvider()).color(NamedTextColor.RED).decorate(TextDecoration.BOLD),
                             reason,
                             Component.text(until).color(NamedTextColor.GREEN)).color(NamedTextColor.GREEN));
-                    source.sendMessage(plugin.getMessageProvider().provide("commands.general.punishment.id", source, true, Component.text(ban.getPunishmentUuid().toString().toLowerCase()).color(NamedTextColor.YELLOW)));
+                    source.sendMessage(plugin.getMessageProvider().provide("commands.general.punishment.id", Component.text(ban.getPunishmentUuid().toString().toLowerCase()).color(NamedTextColor.YELLOW)));
                 });
             } catch (PunishmentException e) {
-                plugin.getLogger().error("An error occurred while creating a ban for player " + player + " (" + uuid + ")", e);
+                plugin.getLogger().error("An error occurred while creating a ban for player {} ({})", player, uuid, e);
                 Util.sendErrorMessage(context, e);
             }
         }, plugin.getService());

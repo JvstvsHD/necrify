@@ -1,8 +1,8 @@
-# Velocity Punishment
+# Necrify
 
-Velocity punishment is a punishment plugin designed for
-[velocity](https://velocitypowered.com).<br>
-<b>Please not that this plugin is in its development stage at the moment and has not been release fully yet.</b>
+Necrify is a punishment plugin designed for currently
+[Velocity](https://velocitypowered.com) (and
+maybe [Paper/BungeeCord in the future](https://github.com/users/JvstvsHD/projects/5)).<br>
 
 ## Table of contents
 
@@ -15,19 +15,22 @@ Velocity punishment is a punishment plugin designed for
 
 ## Plugin installation
 
-1. [Download the latest version of the plugin](https://github.com/JvstvsHD/VelocityPunishment/releases/latest)
+1. [Download the latest version of the plugin](https://github.com/JvstvsHD/necrify/releases/latest) or download dev
+   builds [here](https://ci.jvstvshd.de/job/Necrify/) (may be unstable or not working)
 2. Put the downloaded file into the ```plugins``` folder of your server.
 3. (Re-)Start the server.
 
 ## Mutes
 
-With the 1.19.1, minecraft's chat system was
+With the 1.19.1, Minecraft's chat system got
 changed ([detailed explanation](https://gist.github.com/kennytv/ed783dd244ca0321bbd882c347892874)).
-Since then, it is no longer possible to deny chat messages in the ChatEvent of Velocity due to the signed chat messages.
+Since then, it is no longer possible to block chat messages in the ChatEvent of Velocity due to the signed chat
+messages.
 This is why the chat listener does not block any messages anymore which means mutes are effectively useless. A solution
 to this problem is developing an extension plugin for the actual game servers where cancelling these messages is still
-possible.<br>
-Related issue: #6<br>
+possible. Downloads for this paper plugin are found in
+the [releases](https://github.com/JvstvsHD/necrify/releases/latest) and also
+as [dev builds](https://ci.jvstvshd.de/job/Necrify/) on Jenkins.<br>
 For further information about 1.19.1, please refer to
 the [official release notes](https://www.minecraft.net/en-us/article/minecraft-java-edition-1-19-1)
 
@@ -79,7 +82,7 @@ repositories {
 }
 
 depenencies {
-   implementation("de.jvstvshd.punishment.velocity:api:{version}")
+   implementation("de.jvstvshd.necrify:api:{version}")
 }
 ```
 
@@ -91,7 +94,7 @@ repositories {
 }
 
 dependencies {
-   implementation 'de.jvstvshd.punishment.velocity:api:{version}'
+   implementation 'de.jvstvshd.necrify:api:{version}'
 }
 ```
 
@@ -101,7 +104,7 @@ dependencies {
 
 <dependencies>
    <dependency>
-      <groupId>de.jvstvshd.punishment.velocity</groupId>
+      <groupId>de.jvstvshd.necrify</groupId>
       <artifactId>api</artifactId>
       <version>{version}</version>
    </dependency>
@@ -116,7 +119,7 @@ If the [plugin](#plugin-installation) is used, you can obtain an instance of the
 
 ```java
     try {
-        VelocityPunishment api = (VelocityPunishment) server.getPluginManager().getPlugin("velocity-punishment").orElseThrow().getInstance().orElseThrow();
+        Necrify api = (Necrify) server.getPluginManager().getPlugin("necrify").orElseThrow().getInstance().orElseThrow();
     } catch(NoSuchElementException e) {
         logger.error("Punishment API is not available");
     }
@@ -124,7 +127,7 @@ If the [plugin](#plugin-installation) is used, you can obtain an instance of the
 
 #### Punishing a player
 
-All punishments are imposed via the punishment manager (obtainable via VelocityPunishment#getPunishmentManager). For
+All punishments are imposed via the punishment manager (obtainable via Necrify#getPunishmentManager). For
 example, banning a player could be done this way:
 
 ```java

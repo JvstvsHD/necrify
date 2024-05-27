@@ -1,7 +1,7 @@
 /*
- * This file is part of Velocity Punishment, which is licensed under the MIT license.
+ * This file is part of Necrify (formerly Velocity Punishment), which is licensed under the MIT license.
  *
- * Copyright (c) 2022 JvstvsHD
+ * Copyright (c) 2022-2024 JvstvsHD
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -52,10 +52,7 @@ public class DefaultPlayerResolver implements PlayerResolver {
     @Override
     public Optional<String> getPlayerName(@NotNull UUID uuid) {
         Optional<Player> optional = proxyServer.getPlayer(uuid);
-        if (optional.isEmpty()) {
-            return Optional.empty();
-        }
-        return Optional.ofNullable(optional.get().getUsername());
+        return optional.map(Player::getUsername);
     }
 
     @Override
@@ -86,9 +83,7 @@ public class DefaultPlayerResolver implements PlayerResolver {
     @Override
     public Optional<UUID> getPlayerUuid(@NotNull String name) {
         Optional<Player> optional = proxyServer.getPlayer(name);
-        if (optional.isEmpty())
-            return Optional.empty();
-        return Optional.ofNullable(optional.get().getUniqueId());
+        return optional.map(Player::getUniqueId);
     }
 
     @Override

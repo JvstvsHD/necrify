@@ -1,7 +1,7 @@
 /*
- * This file is part of Velocity Punishment, which is licensed under the MIT license.
+ * This file is part of Necrify (formerly Velocity Punishment), which is licensed under the MIT license.
  *
- * Copyright (c) 2022 JvstvsHD
+ * Copyright (c) 2022-2024 JvstvsHD
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ import java.util.UUID;
 
 public class MuteData {
 
-    public static final String MUTE_DATA_CHANNEL_IDENTIFIER = "velocitypunishment:mutedata";
+    public static final String MUTE_DATA_CHANNEL_IDENTIFIER = "necrify:mutedata";
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().registerModule(new JavaTimeModule());
     public static final int ADD = 0;
     public static final int REMOVE = 1;
