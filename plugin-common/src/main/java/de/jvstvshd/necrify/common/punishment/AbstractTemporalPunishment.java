@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package de.jvstvshd.necrify.impl;
+package de.jvstvshd.necrify.common.punishment;
 
 import de.jvstvshd.necrify.api.PunishmentException;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
@@ -30,27 +30,26 @@ import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.punishment.TemporalPunishment;
-import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
-import de.jvstvshd.necrify.common.plugin.MuteData;
+import de.jvstvshd.necrify.api.user.NecrifyUser;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
 
 import javax.sql.DataSource;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public abstract class AbstractTemporalPunishment extends AbstractPunishment implements TemporalPunishment {
 
     private final PunishmentDuration duration;
 
-    public AbstractTemporalPunishment(UUID playerUuid, Component reason, DataSource dataSource, PlayerResolver playerResolver, DefaultPunishmentManager punishmentManager, ExecutorService service, PunishmentDuration duration, MessageProvider messageProvider) {
-        super(playerUuid, reason, dataSource, playerResolver, punishmentManager, service, messageProvider);
+    public AbstractTemporalPunishment(NecrifyUser user, Component reason, DataSource dataSource, ExecutorService service, PunishmentDuration duration, MessageProvider messageProvider) {
+        super(user, reason, dataSource, service, messageProvider);
         this.duration = duration;
     }
 
-    public AbstractTemporalPunishment(UUID playerUuid, Component reason, DataSource dataSource, ExecutorService service, DefaultPunishmentManager punishmentManager, UUID punishmentUuid, PlayerResolver playerResolver, PunishmentDuration duration, MessageProvider messageProvider) {
-        super(playerUuid, reason, dataSource, service, punishmentManager, punishmentUuid, playerResolver, messageProvider);
+    public AbstractTemporalPunishment(NecrifyUser user, Component reason, DataSource dataSource, ExecutorService service, UUID punishmentUuid, PunishmentDuration duration, MessageProvider messageProvider) {
+        super(user, reason, dataSource, service, punishmentUuid, messageProvider);
         this.duration = duration;
     }
 
@@ -78,7 +77,7 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
     }
 
     @Override
-    public CompletableFuture<Punishment> change(PunishmentDuration newDuration, Component newReason) throws PunishmentException {
+    public CompletableFuture<Punishment> change(@NotNull PunishmentDuration newDuration, Component newReason) throws PunishmentException {
         if (!getType().isBan() && !getType().isMute()) {
             throw new IllegalStateException("only bans and mutes can be changed");
         }
@@ -90,10 +89,10 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
                 .send()
                 .thenApply(result -> {
                     if (getType().isBan()) {
-                        return new DefaultBan(getPlayerUuid(), newReason, getDataSource(), getPlayerResolver(), getPunishmentManager(), getService(), newDuration, getMessageProvider());
+                        return new NecrifyBan(getUser(), newReason, getDataSource(), getService(), newDuration, getMessageProvider());
                     } else if (getType().isMute()) {
-                        var newMute = new DefaultMute(getPlayerUuid(), newReason, getDataSource(), getPlayerResolver(), getPunishmentManager(), getService(), newDuration, getMessageProvider());
-                        newMute.queueMute(MuteData.UPDATE);
+                        var newMute = new NecrifyMute(getUser(), newReason, getDataSource(), getService(), newDuration, getMessageProvider());
+                        //newMute.queueMute(MuteData.UPDATE);
                         return newMute;
                     } else {
                         throw new IllegalStateException("punishment type is not a ban or mute");
@@ -120,9 +119,8 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
         return executeAsync(() -> {
             builder()
                     .query(APPLY_PUNISHMENT)
-                    .parameter(paramBuilder -> paramBuilder.setUuidAsString(getPlayerUuid())
-                            .setString(getPlayerResolver().getOrQueryPlayerName(getPlayerUuid(),
-                                    Executors.newSingleThreadExecutor()).join().toLowerCase())
+                    .parameter(paramBuilder -> paramBuilder.setUuidAsString(getUser().getUuid())
+                            .setString(getUser().getUsername())
                             .setString(getType().getName())
                             .setTimestamp(duration.expirationAsTimestamp())
                             .setString(convertReason(getReason()))

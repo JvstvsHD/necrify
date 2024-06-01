@@ -24,7 +24,7 @@
 
 package de.jvstvshd.necrify.api;
 
-public class PunishmentException extends Exception {
+public class PunishmentException extends RuntimeException {
 
     public PunishmentException() {
         super();

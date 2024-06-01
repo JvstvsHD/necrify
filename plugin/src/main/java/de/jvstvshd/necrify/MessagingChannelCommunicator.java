@@ -66,7 +66,7 @@ public class MessagingChannelCommunicator {
      * @throws JsonProcessingException if the mute data could not be serialized
      */
     public void queueMute(Mute mute, Player mutedPlayer, int type) throws Exception {
-        var muteData = from(mute, type, m -> m.createFullReason(mutedPlayer));
+        var muteData = from(mute, type, m -> m.createFullReason(null));
         queueMute(muteData);
     }
 
@@ -93,7 +93,7 @@ public class MessagingChannelCommunicator {
     }
 
     private MuteData from(Mute mute, int type, Function<Mute, Component> reason) {
-        return new MuteData(mute.getUuid(), LegacyComponentSerializer.legacySection().serialize(reason.apply(mute)), mute.getDuration().expiration(), type, mute.getPunishmentUuid());
+        return new MuteData(mute.getUser().getUuid(), LegacyComponentSerializer.legacySection().serialize(reason.apply(mute)), mute.getDuration().expiration(), type, mute.getPunishmentUuid());
     }
 
     @SuppressWarnings("UnstableApiUsage")

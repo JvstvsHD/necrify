@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    api(libs.bundles.database)
+    //api(libs.bundles.database)
     api(projects.pluginCommon)
     annotationProcessor(libs.velocity.api)
     compileOnly(libs.velocity.api)

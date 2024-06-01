@@ -25,7 +25,6 @@
 package de.jvstvshd.necrify.api.punishment;
 
 import de.jvstvshd.necrify.api.PunishmentException;
-import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import net.kyori.adventure.text.Component;
 
 import java.util.concurrent.CompletableFuture;
@@ -35,7 +34,7 @@ import java.util.concurrent.CompletableFuture;
  * Unsupported operations:
  * <ul>
  *     <li>{@link Punishment#cancel()}</li>
- *     <li>{@link Punishment#change(PunishmentDuration, Component)}</li>
+ *     <li>{@link Punishment#change(Component)}</li>
  * </ul>
  *
  * @see com.velocitypowered.api.proxy.Player#disconnect(Component)
@@ -49,11 +48,11 @@ public interface Kick extends Punishment {
 
     @Override
     default CompletableFuture<Punishment> cancel() throws PunishmentException {
-        throw new UnsupportedOperationException("Cannot annul kick since a kick lasts only one moment");
+        throw new UnsupportedOperationException("kick lasts only one moment");
     }
 
     @Override
-    default CompletableFuture<Punishment> change(PunishmentDuration newDuration, Component newReason) throws PunishmentException {
-        throw new UnsupportedOperationException("Cannot change a kick lasts only one moment");
+    default CompletableFuture<Punishment> change(Component newReason) throws PunishmentException {
+        throw new UnsupportedOperationException("kick lasts only one moment");
     }
 }

@@ -30,6 +30,7 @@ import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
 import de.jvstvshd.necrify.internal.Util;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
@@ -41,6 +42,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
+@Deprecated(since = "1.2.0", forRemoval = true)
+@ApiStatus.ScheduledForRemoval(inVersion = "2.0.0")
 public class DefaultPlayerResolver implements PlayerResolver {
 
     private final ProxyServer proxyServer;

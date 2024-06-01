@@ -143,10 +143,6 @@ public class Util {
         return origin.toString().toLowerCase().replace("-", "");
     }
 
-    public static UUID trimmedUuid(UUID origin) {
-        return UUID.fromString(trimUuid(origin));
-    }
-
     public static boolean sendErrorMessageIfErrorOccurred(CommandContext<CommandSource> context, UUID uuid, Throwable throwable, NecrifyPlugin plugin) {
         var source = context.getSource();
         var player = context.getArgument("player", String.class);

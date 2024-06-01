@@ -22,28 +22,32 @@
  * SOFTWARE.
  */
 
-package de.jvstvshd.necrify.api.punishment.util;
+package de.jvstvshd.necrify.impl;
 
+import de.jvstvshd.necrify.api.message.MessageProvider;
+import de.jvstvshd.necrify.api.punishment.Punishment;
+import de.jvstvshd.necrify.api.user.NecrifyUser;
+import de.jvstvshd.necrify.common.punishment.NecrifyKick;
 import net.kyori.adventure.text.Component;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Locale;
+import javax.sql.DataSource;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
-public interface ReasonHolder {
+public class VelocityKick extends NecrifyKick {
 
-    /**
-     * @return the reason of this punishment as as component
-     */
-    @NotNull
-    Component getReason();
+    public VelocityKick(NecrifyUser user, Component reason, DataSource dataSource, ExecutorService service, UUID punishmentUuid, MessageProvider messageProvider) {
+        super(user, reason, dataSource, service, punishmentUuid, messageProvider);
+    }
 
-    /**
-     * Creates the full reason inclusive when the ban ends (or that the ban is permanent).
-     *
-     * @param locale the locale to use for the reason (or null for the default locale); current behavior is not using this.
-     * @return the full reason with all information.
-     */
-    @NotNull
-    Component createFullReason(@Nullable Locale locale);
+    @Override
+    public CompletableFuture<Punishment> punish() {
+        if (!(getUser() instanceof VelocityUser))
+            throw new IllegalStateException("Cannot kick user: User is not a VelocityUser.");
+        var player = ((VelocityUser) getUser()).getPlayer();
+        if (player != null)
+            player.disconnect(createFullReason(null));
+        return CompletableFuture.completedFuture(this);
+    }
 }

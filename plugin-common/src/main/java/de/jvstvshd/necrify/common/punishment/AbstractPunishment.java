@@ -22,15 +22,16 @@
  * SOFTWARE.
  */
 
-package de.jvstvshd.necrify.impl;
+package de.jvstvshd.necrify.common.punishment;
 
 
 import de.chojo.sadu.base.QueryFactory;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
-import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
+import de.jvstvshd.necrify.api.user.NecrifyUser;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.jetbrains.annotations.NotNull;
 
 import javax.sql.DataSource;
 import java.util.UUID;
@@ -43,10 +44,8 @@ public abstract class AbstractPunishment extends QueryFactory implements Punishm
     private final Component reason;
     private final DataSource dataSource;
     private final ExecutorService service;
-    private final UUID playerUuid;
+    private final NecrifyUser user;
     private final UUID punishmentUuid;
-    private final DefaultPunishmentManager punishmentManager;
-    private final PlayerResolver playerResolver;
     private final MessageProvider messageProvider;
 
     protected final static String APPLY_PUNISHMENT = "INSERT INTO necrify_punishment" +
@@ -56,19 +55,17 @@ public abstract class AbstractPunishment extends QueryFactory implements Punishm
     protected final static String APPLY_CHANGE = "UPDATE necrify_punishment SET reason = ?, expiration = ?, permanent = ? WHERE punishment_id = ?";
     private final boolean validity;
 
-    public AbstractPunishment(UUID playerUuid, Component reason, DataSource dataSource, PlayerResolver playerResolver, DefaultPunishmentManager punishmentManager, ExecutorService service, MessageProvider messageProvider) {
-        this(playerUuid, reason, dataSource, service, punishmentManager, UUID.randomUUID(), playerResolver, messageProvider);
+    public AbstractPunishment(NecrifyUser user, Component reason, DataSource dataSource, ExecutorService service, MessageProvider messageProvider) {
+        this(user, reason, dataSource, service, UUID.randomUUID(), messageProvider);
     }
 
-    public AbstractPunishment(UUID playerUuid, Component reason, DataSource dataSource, ExecutorService service, DefaultPunishmentManager punishmentManager, UUID punishmentUuid, PlayerResolver playerResolver, MessageProvider messageProvider) {
+    public AbstractPunishment(NecrifyUser user, Component reason, DataSource dataSource, ExecutorService service, UUID punishmentUuid, MessageProvider messageProvider) {
         super(dataSource);
         this.reason = reason;
         this.dataSource = dataSource;
         this.service = service;
-        this.playerUuid = playerUuid;
-        this.punishmentManager = punishmentManager;
+        this.user = user;
         this.punishmentUuid = punishmentUuid;
-        this.playerResolver = playerResolver;
         this.validity = true;
         this.messageProvider = messageProvider;
     }
@@ -77,7 +74,7 @@ public abstract class AbstractPunishment extends QueryFactory implements Punishm
         return dataSource;
     }
 
-    public Component getReason() {
+    public @NotNull Component getReason() {
         return reason;
     }
 
@@ -97,12 +94,8 @@ public abstract class AbstractPunishment extends QueryFactory implements Punishm
         return future;
     }
 
-    public UUID getPlayerUuid() {
-        return playerUuid;
-    }
-
-    public DefaultPunishmentManager getPunishmentManager() {
-        return punishmentManager;
+    public NecrifyUser getUser() {
+        return user;
     }
 
     public UUID getPunishmentUuid() {
@@ -110,7 +103,7 @@ public abstract class AbstractPunishment extends QueryFactory implements Punishm
     }
 
     protected String convertReason(Component component) {
-        return LegacyComponentSerializer.legacy(LegacyComponentSerializer.SECTION_CHAR).serialize(component);
+        return MiniMessage.miniMessage().serialize(component);
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -124,10 +117,11 @@ public abstract class AbstractPunishment extends QueryFactory implements Punishm
                 "reason=" + reason +
                 ", dataSource=" + dataSource +
                 ", service=" + service +
-                ", playerUuid=" + playerUuid +
+                ", user=" + user +
                 ", punishmentUuid=" + punishmentUuid +
-                ", punishmentManager=" + punishmentManager +
-                '}';
+                ", messageProvider=" + messageProvider +
+                ", validity=" + validity +
+                "} " + super.toString();
     }
 
     protected void checkValidity() {
@@ -136,16 +130,12 @@ public abstract class AbstractPunishment extends QueryFactory implements Punishm
         }
     }
 
-    public PlayerResolver getPlayerResolver() {
-        return playerResolver;
-    }
-
     public MessageProvider getMessageProvider() {
         return messageProvider;
     }
 
     @Override
     public UUID getUuid() {
-        return playerUuid;
+        return punishmentUuid;
     }
 }

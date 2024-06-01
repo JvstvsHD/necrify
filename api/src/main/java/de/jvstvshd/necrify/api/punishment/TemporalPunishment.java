@@ -24,7 +24,13 @@
 
 package de.jvstvshd.necrify.api.punishment;
 
+import de.jvstvshd.necrify.api.PunishmentException;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
+import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * An interface containing some methods to only punish a player for a defined duration.
@@ -44,4 +50,20 @@ public interface TemporalPunishment extends Punishment {
      * @see PunishmentDuration#isPermanent()
      */
     boolean isPermanent();
+
+    /**
+     * Changes the duration and reason of this punishment. This method can be used if a player created an appeal an it was accepted.
+     *
+     * @param newDuration the new duration of this punishment
+     * @param newReason   the new reason which should be displayed to the player, or null if it should remain the same
+     * @return a {@link CompletableFuture} containing the new punishment
+     * @see #cancel()
+     * @see #change(Component)
+     */
+    CompletableFuture<Punishment> change(@NotNull PunishmentDuration newDuration, @Nullable Component newReason) throws PunishmentException;
+
+    @Override
+    default CompletableFuture<Punishment> change(Component newReason) throws PunishmentException {
+        return change(getDuration(), newReason);
+    }
 }

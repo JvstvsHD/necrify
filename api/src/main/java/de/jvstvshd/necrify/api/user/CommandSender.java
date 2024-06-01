@@ -22,28 +22,14 @@
  * SOFTWARE.
  */
 
-package de.jvstvshd.necrify.api.punishment.util;
+package de.jvstvshd.necrify.api.user;
 
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Locale;
+public interface CommandSender {
 
-public interface ReasonHolder {
+    void sendMessage(@NotNull Component message);
 
-    /**
-     * @return the reason of this punishment as as component
-     */
-    @NotNull
-    Component getReason();
-
-    /**
-     * Creates the full reason inclusive when the ban ends (or that the ban is permanent).
-     *
-     * @param locale the locale to use for the reason (or null for the default locale); current behavior is not using this.
-     * @return the full reason with all information.
-     */
-    @NotNull
-    Component createFullReason(@Nullable Locale locale);
+    boolean hasPermission(@NotNull String permission);
 }

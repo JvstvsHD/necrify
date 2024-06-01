@@ -26,32 +26,102 @@ package de.jvstvshd.necrify.api;
 
 import com.velocitypowered.api.proxy.ProxyServer;
 import de.jvstvshd.necrify.api.message.MessageProvider;
+import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.PunishmentManager;
 import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
+import de.jvstvshd.necrify.api.user.UserManager;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
 /**
  * Core part of the velocity punishment api. Used to get and/or set components belonging to this api.
+ * Example:<br>
+ * <pre>{@code
+ *     //Obtain an instance of Necrify's UserManager
+ *     UserManager userManager = necrify.getUserManager();
+ *     //Necrify User, obtained via player name
+ *     NecrifyUser user = userManager.loadUser("username");
+ *     //Alternatively, obtain the user via the player's uuid
+ *     NecrifyUser user = userManager.loadUser("uuid");
+ *     //You can also use the #get methods to obtain the user instance of either an online player or a cached player.
+ *     //parse the duration of the punishment from a string in the format [number, ranging from 0 to Long.MAX_VALUE] and one char for s [second], m[minute], h[our], d[ay].
+ *     PunishmentDuration duration = PunishmentDuration.parse("1d");
+ *     //Create a reason as an adventure component.
+ *     Component reason = Component.text("You are banned from this server!").color(NamedTextColor.RED);
+ *     //Create the ban (or another punishment) with the corresponding method(s).
+ *     Ban ban = user.ban(reason, duration);
+ *     //You can now use this punishment instance for further operations:
+ *     //Change the punishment
  *
+ *
+ * }</pre>
  * @author JvstvsHD
  * @version 1.0.0
  */
 public interface Necrify {
 
+    /**
+     * @deprecated Will be removed with {@link PunishmentManager}.
+     */
+    @Deprecated(since = "1.2.0", forRemoval = true)
+    @ApiStatus.ScheduledForRemoval(inVersion = "2.0.0")
     PunishmentManager getPunishmentManager();
 
+    /**
+     * @deprecated Will be removed with {@link PunishmentManager}.
+     */
+    @Deprecated(since = "1.2.0", forRemoval = true)
+    @ApiStatus.ScheduledForRemoval(inVersion = "2.0.0")
     void setPunishmentManager(PunishmentManager punishmentManager);
 
+    /**
+     * @deprecated Will be removed with {@link PunishmentManager}.
+     */
+    @Deprecated(since = "1.2.0", forRemoval = true)
+    @ApiStatus.ScheduledForRemoval(inVersion = "2.0.0")
     PlayerResolver getPlayerResolver();
 
+    /**
+     * @deprecated Will be removed with {@link PunishmentManager}.
+     */
+    @Deprecated(since = "1.2.0", forRemoval = true)
+    @ApiStatus.ScheduledForRemoval(inVersion = "2.0.0")
     void setPlayerResolver(PlayerResolver playerResolver);
 
+    /**
+     * @deprecated Will be removed with multi-platform support.
+     */
+    @Deprecated(since = "1.2.0", forRemoval = true)
+    @ApiStatus.ScheduledForRemoval(inVersion = "2.0.0")
     ProxyServer getServer();
 
+    @NotNull
     ExecutorService getService();
 
+    @NotNull
     MessageProvider getMessageProvider();
 
-    void setMessageProvider(MessageProvider messageProvider);
+    void setMessageProvider(@NotNull MessageProvider messageProvider);
+
+    @NotNull
+    UserManager getUserManager();
+
+    void setUserManager(@NotNull UserManager userManager);
+
+    /**
+     * Retrieves a punishment by its id.
+     *
+     * @param punishmentId the id of the punishment.
+     * @param <T>          the type of the punishment.
+     * @return a future containing the punishment or {@link Optional#empty()} if not found.
+     * @since 1.2.0
+     */
+    default <T extends Punishment> CompletableFuture<Optional<T>> getPunishment(@NotNull UUID punishmentId) {
+        return getPunishmentManager().getPunishment(punishmentId, getService());
+    }
 }

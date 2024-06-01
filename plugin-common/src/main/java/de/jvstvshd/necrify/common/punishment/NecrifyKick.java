@@ -22,40 +22,25 @@
  * SOFTWARE.
  */
 
-package de.jvstvshd.necrify.impl;
+package de.jvstvshd.necrify.common.punishment;
 
-import com.velocitypowered.api.command.CommandSource;
-import com.velocitypowered.api.proxy.Player;
-import de.jvstvshd.necrify.api.PunishmentException;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Kick;
-import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.PunishmentType;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
-import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
+import de.jvstvshd.necrify.api.user.NecrifyUser;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
 
 import javax.sql.DataSource;
-import java.util.Optional;
+import java.util.Locale;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
-public class DefaultKick extends AbstractPunishment implements Kick {
+public abstract class NecrifyKick extends AbstractPunishment implements Kick {
 
-    public DefaultKick(UUID playerUuid, Component reason, DataSource dataSource, ExecutorService service, DefaultPunishmentManager punishmentManager, UUID punishmentUuid, PlayerResolver playerResolver, MessageProvider messageProvider) {
-        super(playerUuid, reason, dataSource, service, punishmentManager, punishmentUuid, playerResolver, messageProvider);
-    }
-
-    @Override
-    public CompletableFuture<Punishment> punish() throws PunishmentException {
-        Optional<Player> optPlayer = getPunishmentManager().getServer().getPlayer(getPlayerUuid());
-        if (optPlayer.isEmpty())
-            throw new IllegalArgumentException("Invalid player was not found. This could be because " +
-                    "a) this player does not exist (wrong uuid)\n" +
-                    "b) the player is not online and so can't be kicked.");
-        optPlayer.get().disconnect(getReason());
-        return CompletableFuture.completedFuture(null);
+    public NecrifyKick(NecrifyUser user, Component reason, DataSource dataSource, ExecutorService service, UUID punishmentUuid, MessageProvider messageProvider) {
+        super(user, reason, dataSource, service, punishmentUuid, messageProvider);
     }
 
     @Override
@@ -64,7 +49,7 @@ public class DefaultKick extends AbstractPunishment implements Kick {
     }
 
     @Override
-    public Component createFullReason(CommandSource source) {
+    public @NotNull Component createFullReason(Locale locale) {
         return getReason();
     }
 }

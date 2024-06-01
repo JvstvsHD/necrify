@@ -32,10 +32,12 @@ import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.TemporalPunishment;
+import de.jvstvshd.necrify.api.user.NecrifyUser;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -88,6 +90,11 @@ public class PunishmentHelper {
         }
     }
 
+    /**
+     * @deprecated in favor of the new User API, use {@link #getUser(CommandContext, NecrifyPlugin)} instead.
+     */
+    @Deprecated(since = "1.2.0", forRemoval = true)
+    @ApiStatus.ScheduledForRemoval(inVersion = "2.0.0")
     public static CompletableFuture<UUID> getPlayerUuid(CommandContext<CommandSource> context, NecrifyPlugin plugin) {
         var argument = context.getArgument("player", String.class);
         if (argument.length() <= 16) {
@@ -95,6 +102,21 @@ public class PunishmentHelper {
         } else if (argument.length() <= 36) {
             try {
                 return CompletableFuture.completedFuture(Util.parseUuid(argument));
+            } catch (IllegalArgumentException e) {
+                return CompletableFuture.completedFuture(null);
+            }
+        } else {
+            return CompletableFuture.completedFuture(null);
+        }
+    }
+
+    public static CompletableFuture<NecrifyUser> getUser(CommandContext<CommandSource> context, NecrifyPlugin plugin) {
+        var argument = context.getArgument("player", String.class);
+        if (argument.length() <= 16) {
+            return plugin.getUserManager().loadUser(argument);
+        } else if (argument.length() <= 36) {
+            try {
+                return plugin.getUserManager().loadUser(Util.parseUuid(argument));
             } catch (IllegalArgumentException e) {
                 return CompletableFuture.completedFuture(null);
             }

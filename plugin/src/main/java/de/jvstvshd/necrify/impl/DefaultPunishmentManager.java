@@ -32,9 +32,15 @@ import de.chojo.sadu.wrapper.util.Row;
 import de.jvstvshd.necrify.NecrifyPlugin;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.punishment.*;
+import de.jvstvshd.necrify.api.user.NecrifyUser;
+import de.jvstvshd.necrify.common.punishment.NecrifyBan;
+import de.jvstvshd.necrify.common.punishment.NecrifyMute;
 import de.jvstvshd.necrify.internal.Util;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -46,6 +52,8 @@ import java.util.concurrent.Executors;
 
 import static de.jvstvshd.necrify.internal.Util.executeAsync;
 
+@Deprecated(since = "1.2.0", forRemoval = true)
+@ApiStatus.ScheduledForRemoval(inVersion = "2.0.0")
 public class DefaultPunishmentManager extends QueryFactory implements PunishmentManager {
 
     protected static final String QUERY_PUNISHMENT_WITH_ID = "SELECT uuid, name, type, expiration, reason FROM necrify_punishment WHERE punishment_id = ?";
@@ -65,12 +73,76 @@ public class DefaultPunishmentManager extends QueryFactory implements Punishment
 
     @Override
     public Ban createBan(UUID player, Component reason, PunishmentDuration duration) {
-        return new DefaultBan(player, reason, dataSource, plugin.getPlayerResolver(), this, service, duration, plugin.getMessageProvider());
+        return new NecrifyBan(getUser(player), reason, dataSource, service, duration, plugin.getMessageProvider());
     }
 
     @Override
     public Mute createMute(UUID player, Component reason, PunishmentDuration duration) {
-        return new DefaultMute(player, reason, dataSource, plugin.getPlayerResolver(), this, service, duration, plugin.getMessageProvider());
+        return new NecrifyMute(getUser(player), reason, dataSource, service, duration, plugin.getMessageProvider());
+    }
+
+    //temporary workaround so that this class still functions
+    private NecrifyUser getUser(UUID uuid) {
+        return new NecrifyUser() {
+
+            private String name = null;
+
+            @Override
+            public @NotNull UUID getUuid() {
+                return uuid;
+            }
+
+            @Override
+            public @NotNull String getUsername() {
+                if (name != null) return name;
+                return name = plugin.getPlayerResolver().getOrQueryPlayerName(uuid, service).join();
+            }
+
+            @Override
+            public @NotNull Ban ban(@Nullable Component reason, @NotNull PunishmentDuration duration) {
+                return createBan(uuid, reason, duration);
+            }
+
+            @Override
+            public @NotNull Ban banPermanent(@Nullable Component reason) {
+                return createPermanentBan(uuid, reason);
+            }
+
+            @Override
+            public @NotNull Mute mute(@Nullable Component reason, @NotNull PunishmentDuration duration) {
+                return createMute(uuid, reason, duration);
+            }
+
+            @Override
+            public @NotNull Mute mutePermanent(@Nullable Component reason) {
+                return createPermanentMute(uuid, reason);
+            }
+
+            @Override
+            public @NotNull Kick kick(@Nullable Component reason) {
+                return null;
+            }
+
+            @Override
+            public @NotNull <T extends Punishment> List<T> getPunishments(PunishmentType... types) {
+                return List.of();
+            }
+
+            @Override
+            public @NotNull CompletableFuture<String> queryUsername(boolean update) {
+                return null;
+            }
+
+            @Override
+            public void sendMessage(@NotNull Component message) {
+
+            }
+
+            @Override
+            public boolean hasPermission(@NotNull String permission) {
+                return false;
+            }
+        };
     }
 
     @SuppressWarnings("unchecked")
@@ -96,13 +168,14 @@ public class DefaultPunishmentManager extends QueryFactory implements Punishment
         final Component reason = LegacyComponentSerializer.legacySection().deserialize(row.getString(2));
         final UUID punishmentUuid = Util.parseUuid(row.getString(3));
         Punishment punishment;
+        var user = getUser(uuid);
         switch (type) {
             case BAN, PERMANENT_BAN ->
-                    punishment = new DefaultBan(uuid, reason, dataSource, service, this, punishmentUuid, plugin.getPlayerResolver(), duration, plugin.getMessageProvider());
+                    punishment = new NecrifyBan(user, reason, dataSource, service, punishmentUuid, duration, plugin.getMessageProvider());
             case MUTE, PERMANENT_MUTE ->
-                    punishment = new DefaultMute(uuid, reason, dataSource, service, this, punishmentUuid, plugin.getPlayerResolver(), duration, plugin.getMessageProvider());
+                    punishment = new NecrifyMute(user, reason, dataSource, service, punishmentUuid, duration, plugin.getMessageProvider());
             case KICK ->
-                    punishment = new DefaultKick(uuid, reason, dataSource, service, this, punishmentUuid, plugin.getPlayerResolver(), plugin.getMessageProvider());
+                    punishment = new VelocityKick(user, reason, dataSource, service, punishmentUuid, plugin.getMessageProvider());
             default -> throw new UnsupportedOperationException("unhandled punishment type: " + type.getName());
         }
         return punishment;
@@ -129,13 +202,15 @@ public class DefaultPunishmentManager extends QueryFactory implements Punishment
             duration = PunishmentDuration.fromTimestamp(timestamp);
         }
         final Component reason = LegacyComponentSerializer.legacySection().deserialize(row.getString(reasonIndex));
+        var user = getUser(uuid);
         return (T) switch (type) {
             case BAN, PERMANENT_BAN ->
-                    new DefaultBan(uuid, reason, dataSource, service, this, punishmentUuid, plugin.getPlayerResolver(), duration, plugin.getMessageProvider());
+                    new NecrifyBan(user, reason, dataSource, service, punishmentUuid, duration, plugin.getMessageProvider());
             case MUTE, PERMANENT_MUTE ->
-                    new DefaultMute(uuid, reason, dataSource, service, this, punishmentUuid, plugin.getPlayerResolver(), duration, plugin.getMessageProvider());
+                    new NecrifyMute(user, reason, dataSource, service, punishmentUuid, duration, plugin.getMessageProvider());
             case KICK ->
-                    new DefaultKick(uuid, reason, dataSource, service, this, punishmentUuid, plugin.getPlayerResolver(), plugin.getMessageProvider());
+                    new VelocityKick(user, reason, dataSource, service, punishmentUuid, plugin.getMessageProvider());
+            default -> throw new UnsupportedOperationException("unhandled punishment type: " + type.getName());
         };
     }
 

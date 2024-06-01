@@ -29,6 +29,7 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,7 +41,11 @@ import java.util.concurrent.Executor;
  * An interface for managing punishments.
  *
  * @see Punishment
+ * @deprecated This interface's functionality will be superseded by the new
+ * <a href="https://github.com/users/JvstvsHD/projects/5/views/1?pane=issue&itemId=65367115">NecrifyUser</a>.
  */
+@Deprecated(since = "1.2.0", forRemoval = true)
+@ApiStatus.ScheduledForRemoval(inVersion = "2.0.0")
 public interface PunishmentManager {
 
     /**
@@ -107,6 +112,7 @@ public interface PunishmentManager {
      * @param service      an {@link Executor} which will be used to perform async operations
      * @param <T>          the type of punishment
      * @return an {@link Optional} containing the queried punishment or {@link Optional#empty()} if it was not found
+     * @deprecated This method is deprecated and will be removed in 2.0.0. Use {@link de.jvstvshd.necrify.api.Necrify#getPunishment(UUID)} instead.
      */
     <T extends Punishment> CompletableFuture<Optional<T>> getPunishment(UUID punishmentId, Executor service);
 

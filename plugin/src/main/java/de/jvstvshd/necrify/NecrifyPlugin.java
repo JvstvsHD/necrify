@@ -45,8 +45,10 @@ import de.chojo.sadu.updater.SqlUpdater;
 import de.chojo.sadu.wrapper.QueryBuilderConfig;
 import de.jvstvshd.necrify.api.Necrify;
 import de.jvstvshd.necrify.api.message.MessageProvider;
+import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.PunishmentManager;
 import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
+import de.jvstvshd.necrify.api.user.UserManager;
 import de.jvstvshd.necrify.commands.*;
 import de.jvstvshd.necrify.common.plugin.MuteData;
 import de.jvstvshd.necrify.config.ConfigurationManager;
@@ -63,6 +65,9 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -79,6 +84,7 @@ public class NecrifyPlugin implements Necrify {
     private HikariDataSource dataSource;
     private PlayerResolver playerResolver;
     private MessageProvider messageProvider;
+    private UserManager userManager;
 
 
     private static final String MUTES_DISABLED_STRING = """
@@ -222,13 +228,14 @@ public class NecrifyPlugin implements Necrify {
         this.playerResolver = playerResolver;
     }
 
+    @SuppressWarnings("removal")
     @Override
     public ProxyServer getServer() {
         return server;
     }
 
     @Override
-    public ExecutorService getService() {
+    public @NotNull ExecutorService getService() {
         return service;
     }
 
@@ -237,7 +244,7 @@ public class NecrifyPlugin implements Necrify {
     }
 
     @Override
-    public MessageProvider getMessageProvider() {
+    public @NotNull MessageProvider getMessageProvider() {
         return messageProvider;
     }
 
@@ -247,7 +254,7 @@ public class NecrifyPlugin implements Necrify {
     }
 
     @Override
-    public void setMessageProvider(MessageProvider messageProvider) {
+    public void setMessageProvider(@NotNull MessageProvider messageProvider) {
         this.messageProvider = messageProvider;
     }
 
@@ -261,5 +268,20 @@ public class NecrifyPlugin implements Necrify {
 
     public ConfigurationManager getConfig() {
         return configurationManager;
+    }
+
+    @Override
+    public @NotNull UserManager getUserManager() {
+        return userManager;
+    }
+
+    @Override
+    public void setUserManager(@NotNull UserManager userManager) {
+        this.userManager = userManager;
+    }
+
+    @Override
+    public <T extends Punishment> CompletableFuture<Optional<T>> getPunishment(@NotNull UUID punishmentId) {
+        return Necrify.super.getPunishment(punishmentId);
     }
 }

@@ -25,8 +25,8 @@
 package de.jvstvshd.necrify.api.punishment;
 
 import de.jvstvshd.necrify.api.PunishmentException;
-import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.punishment.util.ReasonHolder;
+import de.jvstvshd.necrify.api.user.NecrifyUser;
 import net.kyori.adventure.text.Component;
 
 import java.time.LocalDateTime;
@@ -35,22 +35,8 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Super interface for all sort of punishments..<br>
- * To punish a player, use one of the methods starting with "create" from the {@link PunishmentManager}.<br>
- * Example:<br>
- * <pre>{@code
- *     //punishment manager, for example DefaultPunishmentManager
- *     PunishmentManager punishmentManager;
- *     //the uuid of the player, for example either from Player#getUniqueId() or from PlayerResolver#getOrQueryPlayerUuid(String, Executor)
- *     UUID playerUuid;
- *     //parse the duration of the punishment from a string in the format [number, ranging from 0 to Long.MAX_VALUE] and one char for s [second], m[minute], h[our], d[ay].
- *     PunishmentDuration duration = PunishmentDuration.parse("1d");
- *     //Create a reason as an adventure component.
- *     Component reason = Component.text("You are banned from this server!");
- *     //Create the ban (or another punishment) with the corresponding method(s).
- *     Ban ban = punishmentManager.createBan(playerUuid, reason, duration);
- *     //Execute Punishment#punish() to perform the punishment finally.
- *     ban.punish();
- * }</pre>
+ * To punish a player, obtain a {@link NecrifyUser} instance from {@link de.jvstvshd.necrify.api.user.UserManager} and
+ * select an adequate method (e.g. {@link NecrifyUser#banPermanent(Component)}) for the punishment you wish.<br>
  */
 public interface Punishment extends ReasonHolder {
 
@@ -65,25 +51,27 @@ public interface Punishment extends ReasonHolder {
      * Punishes the player finally.
      *
      * @return a {@link CompletableFuture} containing the exerted punishment
+     * @throws PunishmentException if the punishment could not be exerted
      */
-    CompletableFuture<Punishment> punish() throws PunishmentException;
+    CompletableFuture<Punishment> punish();
 
     /**
      * Cancels this punishment thus allowing the player e.g. to join the server
      *
      * @return a {@link CompletableFuture} containing the cancelled punishment
+     * @throws PunishmentException if the punishment could not be cancelled
      */
-    CompletableFuture<Punishment> cancel() throws PunishmentException;
+    CompletableFuture<Punishment> cancel();
 
     /**
      * Changes the duration and reason of this punishment. This method can be used if a player created an appeal an it was accepted.
      *
-     * @param newDuration the new duration of this punishment
      * @param newReason   the new reason which should be displayed to the player
      * @return a {@link CompletableFuture} containing the new punishment
+     * @throws PunishmentException if the punishment could not be changed
      * @see #cancel()
      */
-    CompletableFuture<Punishment> change(PunishmentDuration newDuration, Component newReason) throws PunishmentException;
+    CompletableFuture<Punishment> change(Component newReason);
 
     /**
      * Returns the type of this punishment. By default, this is a field from {@link StandardPunishmentType}.
@@ -101,6 +89,13 @@ public interface Punishment extends ReasonHolder {
     /**
      * @return the uuid of the punished player.
      * @since 1.0.1
+     * @deprecated Consider using {@link #getUser()} instead.
      */
     UUID getUuid();
+
+    /**
+     * @return the user this punishment is affecting
+     * @since 1.2.0
+     */
+    NecrifyUser getUser();
 }

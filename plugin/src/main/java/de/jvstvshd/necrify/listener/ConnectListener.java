@@ -33,7 +33,7 @@ import de.jvstvshd.necrify.NecrifyPlugin;
 import de.jvstvshd.necrify.api.punishment.Ban;
 import de.jvstvshd.necrify.api.punishment.Mute;
 import de.jvstvshd.necrify.api.punishment.Punishment;
-import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
+import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.plugin.MuteData;
 import de.jvstvshd.necrify.internal.Util;
 import net.kyori.adventure.text.Component;
@@ -59,7 +59,7 @@ public final class ConnectListener extends QueryFactory {
     }
 
     @Subscribe
-    public void onConnect(LoginEvent event) throws Exception {
+    public void onConnect(LoginEvent event) {
         if (plugin.whitelistActive()) {
             plugin.getLogger().info("Whitelist is activated.");
             builder(Boolean.class).query("SELECT * FROM necrify_punishment_whitelist WHERE uuid = ?;")
@@ -72,9 +72,14 @@ public final class ConnectListener extends QueryFactory {
                     });
         }
         List<Punishment> punishments;
+        NecrifyUser user;
         try {
-            punishments = plugin.getPunishmentManager().getPunishments(event.getPlayer().getUniqueId(), service, StandardPunishmentType.BAN,
-                    StandardPunishmentType.PERMANENT_BAN, StandardPunishmentType.MUTE, StandardPunishmentType.PERMANENT_MUTE).get(10, TimeUnit.SECONDS);
+            user = plugin.getUserManager().loadUser(event.getPlayer().getUniqueId()).get(10, TimeUnit.SECONDS);
+            if (user == null) {
+                //user is not in the database, therefore he has never been punished, so he can join
+                return;
+            }
+            punishments = user.getPunishments();
         } catch (Exception e) {
             plugin.getLogger().error("Cannot retrieve punishment for player {} ({})", event.getPlayer().getUsername(), event.getPlayer().getUniqueId(), e);
             event.setResult(ResultedEvent.ComponentResult.denied(plugin.getMessageProvider().internalError()));
@@ -102,7 +107,7 @@ public final class ConnectListener extends QueryFactory {
         if (ban == null)
             return;
         if (ban.isOngoing()) {
-            Component deny = ban.createFullReason(event.getPlayer());
+            Component deny = ban.createFullReason(event.getPlayer().getEffectiveLocale());
             event.setResult(ResultedEvent.ComponentResult.denied(deny));
         } else {
             ban.cancel().whenCompleteAsync((unused, t) -> {

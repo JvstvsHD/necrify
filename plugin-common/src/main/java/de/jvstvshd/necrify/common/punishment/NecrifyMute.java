@@ -22,37 +22,37 @@
  * SOFTWARE.
  */
 
-package de.jvstvshd.necrify.impl;
+package de.jvstvshd.necrify.common.punishment;
 
-import com.velocitypowered.api.command.CommandSource;
-import com.velocitypowered.api.proxy.Player;
 import de.jvstvshd.necrify.api.PunishmentException;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.message.MessageProvider;
-import de.jvstvshd.necrify.api.punishment.Ban;
+import de.jvstvshd.necrify.api.punishment.Mute;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
-import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
+import de.jvstvshd.necrify.api.user.NecrifyUser;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.jetbrains.annotations.NotNull;
 
 import javax.sql.DataSource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Optional;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
-public class DefaultBan extends AbstractTemporalPunishment implements Ban {
 
-    public DefaultBan(UUID playerUuid, Component reason, DataSource dataSource, PlayerResolver playerResolver, DefaultPunishmentManager punishmentManager, ExecutorService service, PunishmentDuration duration, MessageProvider messageProvider) {
-        super(playerUuid, reason, dataSource, playerResolver, punishmentManager, service, duration, messageProvider);
+public class NecrifyMute extends AbstractTemporalPunishment implements Mute {
+
+    public NecrifyMute(NecrifyUser user, Component reason, DataSource dataSource, ExecutorService service, PunishmentDuration duration, MessageProvider messageProvider) {
+        super(user, reason, dataSource, service, duration, messageProvider);
     }
 
-    public DefaultBan(UUID playerUuid, Component reason, DataSource dataSource, ExecutorService service, DefaultPunishmentManager punishmentManager, UUID punishmentUuid, PlayerResolver playerResolver, PunishmentDuration duration, MessageProvider messageProvider) {
-        super(playerUuid, reason, dataSource, service, punishmentManager, punishmentUuid, playerResolver, duration, messageProvider);
+    public NecrifyMute(NecrifyUser user, Component reason, DataSource dataSource, ExecutorService service, UUID punishmentUuid, PunishmentDuration duration, MessageProvider messageProvider) {
+        super(user, reason, dataSource, service, punishmentUuid, duration, messageProvider);
     }
 
     @Override
@@ -63,41 +63,48 @@ public class DefaultBan extends AbstractTemporalPunishment implements Ban {
     @Override
     public CompletableFuture<Punishment> punish() throws PunishmentException {
         var punishment = super.punish();
-        tryKick();
+        //queueMute(MuteData.ADD);
         return punishment;
     }
 
-    private void tryKick() {
-        Optional<Player> optionalPlayer = getPunishmentManager().getServer().getPlayer(getPlayerUuid());
-        if (optionalPlayer.isEmpty())
-            return;
-        var reason = createFullReason(optionalPlayer.get());
-        optionalPlayer.get().disconnect(reason);
-    }
-
     @Override
-    public Component createFullReason(CommandSource source) {
-        if (!isValid()) {
-            return Component.text("INVALID").decorate(TextDecoration.BOLD).color(NamedTextColor.DARK_RED);
-        }
-        if (isPermanent()) {
-            return getMessageProvider().provide("punishment.ban.permanent.full-reason", getReason());
-        } else {
-            var until = Component.text(getDuration().expiration().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
-                    .color(NamedTextColor.YELLOW);
-            return getMessageProvider().provide("punishment.ban.temp.full-reason",
-                    Component.text(getDuration().remainingDuration()).color(NamedTextColor.YELLOW), getReason(), until);
-
-        }
-    }
-
-    @Override
-    public boolean isPermanent() {
-        return getDuration().isPermanent();
+    public CompletableFuture<Punishment> cancel() throws PunishmentException {
+        var punishment = super.cancel();
+        //queueMute(MuteData.REMOVE);
+        return punishment;
     }
 
     @Override
     public StandardPunishmentType getType() {
-        return getDuration().isPermanent() ? StandardPunishmentType.PERMANENT_BAN : StandardPunishmentType.BAN;
+        return isPermanent() ? StandardPunishmentType.PERMANENT_MUTE : StandardPunishmentType.MUTE;
     }
+
+    @Override
+    public boolean isPermanent() {
+        checkValidity();
+        return getDuration().isPermanent();
+    }
+
+    @Override
+    public @NotNull Component createFullReason(Locale source) {
+        if (!isValid()) {
+            return Component.text("INVALID").decorate(TextDecoration.BOLD).color(NamedTextColor.DARK_RED);
+        }
+        if (isPermanent()) {
+            return getMessageProvider().provide("punishment.mute.permanent.full-reason", getReason());
+        } else {
+            var until = Component.text(getDuration().expiration().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                    .color(NamedTextColor.YELLOW);
+            return getMessageProvider().provide("punishment.mute.temp.full-reason", Component.text(getDuration().remainingDuration()).color(NamedTextColor.YELLOW), getReason(), until);
+        }
+    }
+
+    /*void queueMute(int type) {
+        try {
+            getPunishmentManager().plugin().communicator().queueMute((Mute) this, type);
+        } catch (Exception e) {
+            getPunishmentManager().plugin().getLogger().error("Could not queue mute", e);
+        }
+    }*/
+
 }
