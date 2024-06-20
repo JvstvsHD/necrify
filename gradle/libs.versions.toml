@@ -16,6 +16,7 @@ mariadb = "3.4.0"
 sqlite = "3.45.3.0"
 mysql = "8.4.0"
 adventure = "4.17.0"
+cloud = "2.0.0-rc.2"
 
 [libraries]
 
@@ -36,9 +37,12 @@ sqlite = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqlite" }
 mysql = { group = "com.mysql", name = "mysql-connector-j", version.ref = "mysql" }
 adventure-api = { group = "net.kyori", name = "adventure-api", version.ref = "adventure" }
 adventure-text-minimessage = { group = "net.kyori", name = "adventure-text-minimessage", version.ref = "adventure" }
+cloud-core = { group = "org.incendo", name = "cloud-core", version.ref = "cloud" }
+cloud-annotations = { group = "org.incendo", name = "cloud-annotations", version.ref = "cloud" }
 
 [bundles]
 
 database = ["postgresql", "hikari", "sadu", "mariadb", "sqlite", "mysql"]
 jackson = ["jackson-databind", "jackson-yaml", "jackson-datatype-jsr310"]
 adventure = ["adventure-api", "adventure-text-minimessage"]
+cloud = ["cloud-core", "cloud-annotations"]
