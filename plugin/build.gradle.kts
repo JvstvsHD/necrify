@@ -10,7 +10,6 @@ description = "A plugin handling all your needs for punishments on Velocity, bas
 
 repositories {
     mavenCentral()
-    maven("https://eldonexus.de/repository/maven-public")
 }
 
 dependencies {
