@@ -1,6 +1,6 @@
 {
   "baseBranches": [
-    "master"
+    "1.2-dev"
   ],
   "dependencyDashboard": true,
   "labels": [
