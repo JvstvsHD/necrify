@@ -16,7 +16,7 @@ mariadb = "3.4.0"
 sqlite = "3.45.3.0"
 mysql = "8.4.0"
 adventure = "4.17.0"
-cloud = "2.0.0-rc.2"
+cloud = "2.0.0-SNAPSHOT"
 
 [libraries]
 
