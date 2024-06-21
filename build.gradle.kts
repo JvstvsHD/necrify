@@ -1,5 +1,4 @@
 import org.cadixdev.gradle.licenser.Licenser
-import org.gradle.kotlin.dsl.support.delegates.ProjectDelegate
 import java.util.*
 
 plugins {
@@ -60,10 +59,10 @@ subprojects {
                 }
                 publications {
                     create<MavenPublication>(rootProject.name) {
-                        from((this as ProjectDelegate).components["java"])
+                        from(this@subprojects.components["java"])
                         groupId = rootProject.group.toString().lowercase(Locale.getDefault())
                         artifactId = "necrify-${project.name}"
-                        (this as MavenPublication).version = project.version.toString()
+                        version = project.version.toString()
 
                         pom {
                             name.set(project.name)
