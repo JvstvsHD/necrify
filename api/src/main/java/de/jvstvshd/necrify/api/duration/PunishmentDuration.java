@@ -86,7 +86,6 @@ public interface PunishmentDuration extends Comparable<PunishmentDuration> {
      *
      * @param millis how long (in milliseconds) the punishment should last
      * @return the converted duration
-     * @throws IllegalArgumentException if the expiration date is in the past
      */
     static PunishmentDuration fromMillis(long millis) {
         return fromDuration(Duration.ofMillis(millis));
@@ -97,10 +96,8 @@ public interface PunishmentDuration extends Comparable<PunishmentDuration> {
      * into the future from a given point in time. It is absolute as soon as a punishment is enforced.
      * @param duration how long the punishment should last
      * @return the converted duration
-     * @throws IllegalArgumentException if the expiration date is in the past
      */
     static PunishmentDuration fromDuration(Duration duration) {
-        if (duration.isNegative()) throw new IllegalArgumentException("Expiration date must be in the future.");
         var rpd = new RelativePunishmentDuration(duration);
         if (rpd.isPermanent())
             return PermanentPunishmentDuration.PERMANENT;

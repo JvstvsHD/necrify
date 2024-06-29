@@ -45,7 +45,6 @@ public class MessagingChannelListener implements PluginMessageListener {
     public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, byte @NotNull [] message) {
         var input = ByteStreams.newDataInput(message);
         var content = input.readUTF();
-        System.out.println("Received message from channel " + channel + ", message: " + content);
         MuteData data;
         try {
             data = MuteData.OBJECT_MAPPER.readValue(content, MuteData.class);

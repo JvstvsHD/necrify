@@ -26,7 +26,11 @@ package de.jvstvshd.necrify.velocity.config;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import de.chojo.sadu.databases.*;
+import de.chojo.sadu.core.databases.Database;
+import de.chojo.sadu.mariadb.databases.MariaDb;
+import de.chojo.sadu.mysql.databases.MySql;
+import de.chojo.sadu.postgresql.databases.PostgreSql;
+import de.chojo.sadu.sqlite.databases.SqLite;
 
 import java.util.Locale;
 

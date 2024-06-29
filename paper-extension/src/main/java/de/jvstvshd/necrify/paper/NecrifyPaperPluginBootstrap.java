@@ -22,51 +22,24 @@
  * SOFTWARE.
  */
 
-package de.jvstvshd.necrify.api.punishment;
+package de.jvstvshd.necrify.paper;
 
-import java.util.HashMap;
-import java.util.Map;
+import io.papermc.paper.plugin.bootstrap.BootstrapContext;
+import io.papermc.paper.plugin.bootstrap.PluginBootstrap;
+import io.papermc.paper.plugin.bootstrap.PluginProviderContext;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
-public enum StandardPunishmentType implements PunishmentType {
+@SuppressWarnings("ALL")
+public class NecrifyPaperPluginBootstrap implements PluginBootstrap {
 
-    BAN(false, "BAN", 1),
-    PERMANENT_BAN(true, "PERMANENT_BAN", 2),
-    MUTE(false, "MUTE", 3),
-    PERMANENT_MUTE(true, "PERMANENT_MUTE", 4),
-    KICK(false, "KICK", 5);
+    @Override
+    public void bootstrap(@NotNull BootstrapContext bootstrapContext) {
 
-    private final static Map<Integer, StandardPunishmentType> BY_ID = new HashMap<>();
-
-    static {
-        for (StandardPunishmentType type : values()) {
-            BY_ID.put(type.id, type);
-        }
-    }
-
-    private final boolean isPermanent;
-    private final String typeString;
-    private final int id;
-
-    StandardPunishmentType(boolean isPermanent, String typeString, int id) {
-        this.isPermanent = isPermanent;
-        this.typeString = typeString;
-        this.id = id;
-    }
-
-    public boolean isPermanent() {
-        return isPermanent;
     }
 
     @Override
-    public String getName() {
-        return typeString;
-    }
-
-    public static StandardPunishmentType getById(int id) {
-        return BY_ID.get(id);
-    }
-
-    public int getId() {
-        return id;
+    public @NotNull JavaPlugin createPlugin(@NotNull PluginProviderContext context) {
+        return new NecrifyPaperPlugin();
     }
 }

@@ -31,8 +31,6 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.velocitypowered.api.command.BrigadierCommand;
 import com.velocitypowered.api.command.CommandSource;
-import de.chojo.sadu.wrapper.QueryBuilder;
-import de.chojo.sadu.wrapper.QueryBuilderConfig;
 import de.jvstvshd.necrify.velocity.NecrifyPlugin;
 import de.jvstvshd.necrify.velocity.internal.Util;
 import net.kyori.adventure.text.Component;
@@ -50,8 +48,7 @@ public class WhitelistCommand {
     public static BrigadierCommand whitelistCommand(NecrifyPlugin plugin) {
         var node = Util.permissibleCommand("whitelist", "necrify.command.whitelist")
                 .then(RequiredArgumentBuilder.<CommandSource, String>argument("option", StringArgumentType.word())
-                        .executes(context -> execute(context, plugin))
-                        .suggests((context, builder) -> {
+                        .executes(context -> execute(context, plugin)).suggests((context, builder) -> {
                             for (String option : options) {
                                 if (context.getArguments().containsKey("option") && !context.getArgument("option", String.class).isEmpty() &&
                                         !option.startsWith(context.getArgument("option", String.class).toLowerCase(Locale.ROOT)))
@@ -59,8 +56,7 @@ public class WhitelistCommand {
                                 builder.suggest(option);
                             }
                             return builder.buildFuture();
-                        })
-                        .then(Util.playerArgument(plugin.getServer()).executes(context -> execute(context, plugin))));
+                        }).then(Util.playerArgument(plugin.getServer()).executes(context -> execute(context, plugin))));
         return new BrigadierCommand(node);
     }
 
@@ -80,19 +76,14 @@ public class WhitelistCommand {
                         source.sendMessage(plugin.getMessageProvider().provide("command.whitelist.usage"));
                         return Command.SINGLE_SUCCESS;
                     }
-                    plugin.getPlayerResolver().getOrQueryPlayerUuid(player, plugin.getService()).whenCompleteAsync((uuid, throwable) -> {
-                        if (Util.sendErrorMessageIfErrorOccurred(context, uuid, throwable, plugin)) return;
-                        var builder = QueryBuilder.builder(plugin.getDataSource())
-                                .configure(QueryBuilderConfig.defaultConfig())
-                                .query(option.equalsIgnoreCase("remove") ? "DELETE FROM necrify_whitelist WHERE uuid = ?;" :
-                                        "INSERT INTO necrify_whitelist (uuid) VALUES (?);")
-                                .parameter(paramBuilder -> paramBuilder.setUuidAsString(uuid));
-                        if (option.equalsIgnoreCase("remove")) {
-                            builder.delete().send();
-                            plugin.getServer().getPlayer(uuid).ifPresent(pl -> pl.disconnect(Component.text("You have been blacklisted.").color(NamedTextColor.DARK_RED)));
-                        } else {
-                            builder.insert().send();
-                        }
+                    plugin.getUserManager().loadOrCreateUser(player).whenCompleteAsync((user, throwable) -> {
+                        if (Util.sendErrorMessageIfErrorOccurred(context, throwable, plugin)) return;
+                        user.ifPresentOrElse(necrifyUser -> {
+                            necrifyUser.setWhitelisted(option.equals("add"));
+                            source.sendMessage(plugin.getMessageProvider().provide("command.whitelist.success"));
+                        }, () -> source.sendMessage(plugin.getMessageProvider().provide("commands.general.not-found",
+                                Component.text(player).color(NamedTextColor.YELLOW))));
+
                     }, plugin.getService());
                 }
                 case "on", "off" -> {
@@ -100,10 +91,19 @@ public class WhitelistCommand {
                     config.getConfiguration().setWhitelistActivated(option.equals("on"));
                     try {
                         config.save();
-                        source.sendMessage(plugin.getMessageProvider().prefixed(Component.text("The whitelist is now " + option).color(NamedTextColor.GRAY)));
+                        var state = option.equals("on") ? "enabled" : "disabled";
+                        source.sendMessage(plugin.getMessageProvider().provide("command.whitelist." + state));
                     } catch (IOException e) {
                         source.sendMessage(plugin.getMessageProvider().internalError());
                         plugin.getLogger().error("Could not save the configuration.", e);
+                    }
+                    if (option.equals("on")) {
+                        plugin.getServer().getAllPlayers().stream().map(p -> plugin.getUserManager().loadUser(p.getUniqueId())).forEach(cf -> {
+                            cf.whenComplete((optionalUser, throwable) -> optionalUser.ifPresent(user -> {
+                                if (!user.isWhitelisted())
+                                    user.kick(plugin.getMessageProvider().provide("whitelist.removed"));
+                            }));
+                        });
                     }
                 }
                 default -> source.sendMessage(plugin.getMessageProvider().provide("command.whitelist.usage"));
@@ -114,17 +114,13 @@ public class WhitelistCommand {
             source.sendMessage(plugin.getMessageProvider().provide("command.whitelist.usage"));
             return Command.SINGLE_SUCCESS;
         }
-        plugin.getPlayerResolver().getOrQueryPlayerUuid(player, plugin.getService()).whenCompleteAsync((uuid, throwable) -> {
-            if (Util.sendErrorMessageIfErrorOccurred(context, uuid, throwable, plugin)) return;
-            QueryBuilder.builder(plugin.getDataSource(), Boolean.class)
-                    .configure(QueryBuilderConfig.defaultConfig())
-                    .query("SELECT uuid FROM necrify_whitelist WHERE uuid = ?;")
-                    .parameter(paramBuilder -> paramBuilder.setUuidAsString(uuid))
-                    .readRow(rs -> true).first().thenAcceptAsync(aBoolean -> {
-                        var whitelisted = aBoolean.isPresent() ? plugin.getMessageProvider().provide("whitelist.status.whitelisted") :
-                                plugin.getMessageProvider().provide("whitelist.status.disallowed");
-                        source.sendMessage(plugin.getMessageProvider().provide("command.whitelist.status", Component.text(player).color(NamedTextColor.YELLOW), whitelisted.color(NamedTextColor.YELLOW)));
-                    });
+        plugin.getUserManager().loadOrCreateUser(player).whenCompleteAsync((user, throwable) -> {
+            if (Util.sendErrorMessageIfErrorOccurred(context, throwable, plugin)) return;
+            user.ifPresentOrElse(necrifyUser -> {
+                var whitelisted = necrifyUser.isWhitelisted() ? plugin.getMessageProvider().provide("whitelist.status.whitelisted") : plugin.getMessageProvider().provide("whitelist.status.disallowed");
+                source.sendMessage(plugin.getMessageProvider().provide("command.whitelist.status",
+                        Component.text(player).color(NamedTextColor.YELLOW), whitelisted.color(NamedTextColor.YELLOW)));
+            }, () -> source.sendMessage(plugin.getMessageProvider().provide("commands.general.not-found", Component.text(player).color(NamedTextColor.YELLOW))));
         }, plugin.getService());
         return Command.SINGLE_SUCCESS;
     }

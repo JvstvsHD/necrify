@@ -2,7 +2,7 @@ plugins {
     java
     `java-library`
     id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("net.minecrell.plugin-yml.bukkit") version "0.5.3"
+    id("net.minecrell.plugin-yml.paper") version "0.6.0"
 }
 
 group = "de.jvstvshd.necrify"
@@ -21,6 +21,12 @@ dependencies {
     api(projects.pluginCommon)
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
 tasks {
     shadowJar {
         archiveFileName.set("${rootProject.name}-Paper-${project.version}.jar")
@@ -34,10 +40,12 @@ tasks.getByName<Test>("test") {
     useJUnitPlatform()
 }
 
-bukkit {
+paper {
     main = "de.jvstvshd.necrify.paper.NecrifyPaperPlugin"
-    name = "Necrify paper-extension"
+    name = "necrify-paper"
     version = rootProject.version.toString()
     description = "A paper plugin complementing the Necrify plugin for velocity for imposing mutes."
-    apiVersion = "1.19"
+    apiVersion = "1.20"
+    bootstrapper = "de.jvstvshd.necrify.paper.NecrifyPaperPluginBootstrap"
+    loader = "de.jvstvshd.necrify.paper.NecrifyPaperPluginLoader"
 }

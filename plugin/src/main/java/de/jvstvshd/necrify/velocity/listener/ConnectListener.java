@@ -28,7 +28,6 @@ import com.velocitypowered.api.event.ResultedEvent;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.proxy.ProxyServer;
-import de.chojo.sadu.base.QueryFactory;
 import de.jvstvshd.necrify.api.punishment.Ban;
 import de.jvstvshd.necrify.api.punishment.Mute;
 import de.jvstvshd.necrify.api.punishment.Punishment;
@@ -45,14 +44,13 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public final class ConnectListener extends QueryFactory {
+public final class ConnectListener {
     private final NecrifyPlugin plugin;
     private final ExecutorService service;
     private final ProxyServer proxyServer;
 
     public ConnectListener(NecrifyPlugin plugin,
                            ExecutorService service, ProxyServer proxyServer) {
-        super(plugin.getDataSource());
         this.plugin = plugin;
         this.service = service;
         this.proxyServer = proxyServer;
@@ -60,31 +58,28 @@ public final class ConnectListener extends QueryFactory {
 
     @Subscribe
     public void onConnect(LoginEvent event) {
-        if (plugin.whitelistActive()) {
-            plugin.getLogger().info("Whitelist is activated.");
-            builder(Boolean.class).query("SELECT * FROM necrify_punishment_whitelist WHERE uuid = ?;")
-                    .parameter(paramBuilder -> paramBuilder.setUuidAsString(event.getPlayer().getUniqueId()))
-                    .readRow(row -> true)
-                    .first().thenAcceptAsync(whitelisted -> {
-                        if (whitelisted.isEmpty()) {
-                            event.setResult(ResultedEvent.ComponentResult.denied(Component.text("WHITELIST").color(NamedTextColor.DARK_RED)));
-                        }
-                    });
-        }
-        List<Punishment> punishments;
         NecrifyUser user;
         try {
-            user = plugin.getUserManager().loadUser(event.getPlayer().getUniqueId()).get(10, TimeUnit.SECONDS);
-            if (user == null) {
-                //user is not in the database, therefore he has never been punished, so he can join
+            var userResult = plugin.getUserManager().loadOrCreateUser(event.getPlayer().getUniqueId()).get(10, TimeUnit.SECONDS);
+            if (userResult.isEmpty()) {
+                //there is no user instance for the joined player in the database, therefore he has never been punished, so he can join
                 return;
             }
-            punishments = user.getPunishments();
+            user = userResult.get();
         } catch (Exception e) {
-            plugin.getLogger().error("Cannot retrieve punishment for player {} ({})", event.getPlayer().getUsername(), event.getPlayer().getUniqueId(), e);
+            plugin.getLogger().error("Cannot retrieve user instance for player {} ({})", event.getPlayer().getUsername(), event.getPlayer().getUniqueId(), e);
             event.setResult(ResultedEvent.ComponentResult.denied(plugin.getMessageProvider().internalError()));
             return;
         }
+        List<Punishment> punishments = new ArrayList<>(user.getPunishments());
+        if (plugin.whitelistActive()) {
+            if (!user.isWhitelisted()) {
+                event.setResult(ResultedEvent.ComponentResult.denied(Component.translatable("whitelist.blacklisted").color(NamedTextColor.DARK_RED)));
+                return;
+            }
+        }
+        punishments.stream().filter(punishment -> !punishment.isOngoing()).forEach(Punishment::cancel);
+        punishments.removeIf(punishment -> !punishment.isOngoing());
         List<Ban> bans = new ArrayList<>();
         List<Mute> mutes = new ArrayList<>();
         for (Punishment punishment : punishments) {
@@ -95,7 +90,7 @@ public final class ConnectListener extends QueryFactory {
         }
         for (Mute mute : mutes) {
             try {
-                plugin.communicator().queueMute(mute, event.getPlayer(), MuteData.ADD);
+                plugin.communicator().queueMute(mute, MuteData.ADD);
             } catch (Exception e) {
                 plugin.getLogger().error("Cannot send mute to bungee", e);
             }
@@ -106,22 +101,8 @@ public final class ConnectListener extends QueryFactory {
         final Ban ban = Util.getLongestPunishment(bans);
         if (ban == null)
             return;
-        if (ban.isOngoing()) {
-            Component deny = ban.createFullReason(event.getPlayer().getEffectiveLocale());
-            event.setResult(ResultedEvent.ComponentResult.denied(deny));
-        } else {
-            ban.cancel().whenCompleteAsync((unused, t) -> {
-                if (t != null) {
-                    plugin.getLogger().error("An error occurred while cancelling ban {}", ban.getPunishmentUuid().toString().toLowerCase(), t);
-                    return;
-                }
-                proxyServer.getConsoleCommandSource().sendMessage(Component.text()
-                        .append(Component.text("Ban ").color(NamedTextColor.GREEN),
-                                Component.text("'" + ban.getPunishmentUuid().toString().toLowerCase() + "'")
-                                        .color(NamedTextColor.YELLOW),
-                                Component.text("was cancelled.").color(NamedTextColor.GREEN)));
-            }, service);
-        }
+        Component deny = ban.createFullReason(event.getPlayer().getEffectiveLocale());
+        event.setResult(ResultedEvent.ComponentResult.denied(deny));
     }
 
     public NecrifyPlugin plugin() {

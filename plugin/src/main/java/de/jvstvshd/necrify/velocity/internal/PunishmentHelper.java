@@ -36,7 +36,7 @@ import de.jvstvshd.necrify.velocity.NecrifyPlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Optional;
@@ -110,7 +110,7 @@ public class PunishmentHelper {
         }
     }
 
-    public static CompletableFuture<NecrifyUser> getUser(CommandContext<CommandSource> context, NecrifyPlugin plugin) {
+    public static CompletableFuture<Optional<NecrifyUser>> getUser(CommandContext<CommandSource> context, NecrifyPlugin plugin) {
         var argument = context.getArgument("player", String.class);
         if (argument.length() <= 16) {
             return plugin.getUserManager().loadUser(argument);
@@ -125,14 +125,14 @@ public class PunishmentHelper {
         }
     }
 
-    public static TextComponent parseReason(CommandContext<CommandSource> context, TextComponent def) {
+    public static Component parseReason(CommandContext<CommandSource> context, TextComponent def) {
         if (!context.getArguments().containsKey("reason")) {
             return def;
         }
-        return LegacyComponentSerializer.legacyAmpersand().deserialize(StringArgumentType.getString(context, "reason"));
+        return MiniMessage.miniMessage().deserialize(StringArgumentType.getString(context, "reason"));
     }
 
-    public static TextComponent parseReason(CommandContext<CommandSource> context) {
+    public static Component parseReason(CommandContext<CommandSource> context) {
         return parseReason(context, Component.text("No reason specified", NamedTextColor.RED));
     }
 }

@@ -29,13 +29,12 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
-import de.chojo.sadu.wrapper.QueryBuilder;
-import de.chojo.sadu.wrapper.QueryBuilderConfig;
+import de.chojo.sadu.queries.api.call.Call;
+import de.chojo.sadu.queries.api.query.Query;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.TemporalPunishment;
@@ -78,11 +77,9 @@ public class Util {
             var input = builder.getRemainingLowerCase();
             if (input.isBlank() || input.length() <= 2) return builder.build();
             //noinspection ResultOfMethodCallIgnored
-            QueryBuilder.builder(plugin.getDataSource(), SuggestionsBuilder.class)
-                    .configure(QueryBuilderConfig.defaultConfig())
-                    .query("SELECT name FROM necrify_punishment WHERE name LIKE ?")
-                    .parameter(paramBuilder -> paramBuilder.setString(input + "%"))
-                    .readRow(row -> builder.suggest(row.getString("name")));
+            Query.query("SELECT name FROM necrify_punishment WHERE name LIKE ?")
+                    .single(Call.of().bind(input + "%"))
+                    .map(row -> builder.suggest(row.getString("name")));
             plugin.getServer().getAllPlayers().stream().map(Player::getUsername).forEach(builder::suggest);
             return builder.build();
         }, plugin.getService()));
@@ -100,6 +97,22 @@ public class Util {
                     "(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})",
                     "$1-$2-$3-$4-$5"));
         }
+    }
+
+    public static Optional<UUID> fromString(String uuidString) {
+        UUID uuid;
+        try {
+            uuid = UUID.fromString(uuidString);
+        } catch (IllegalArgumentException e) {
+            try {
+                uuid = UUID.fromString(uuidString.replaceAll(
+                        "(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})",
+                        "$1-$2-$3-$4-$5"));
+            } catch (Exception ex) {
+                return Optional.empty();
+            }
+        }
+        return Optional.of(uuid);
     }
 
     public static TextComponent copyComponent(String text, MessageProvider provider) {
@@ -153,6 +166,17 @@ public class Util {
         }
         if (uuid == null) {
             source.sendMessage(Component.translatable().arguments(Component.text(player).color(NamedTextColor.YELLOW)).key("commands.general.not-found").color(NamedTextColor.RED));
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean sendErrorMessageIfErrorOccurred(CommandContext<CommandSource> context, Throwable throwable, NecrifyPlugin plugin) {
+        var source = context.getSource();
+        var player = context.getArgument("player", String.class);
+        if (throwable != null) {
+            source.sendMessage(plugin.getMessageProvider().internalError());
+            plugin.getLogger().error("Cannot retrieve player uuid for {}", player, throwable);
             return true;
         }
         return false;

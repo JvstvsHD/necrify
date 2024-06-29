@@ -81,7 +81,6 @@ public class NecrifyMute extends AbstractTemporalPunishment implements Mute {
 
     @Override
     public boolean isPermanent() {
-        checkValidity();
         return getDuration().isPermanent();
     }
 

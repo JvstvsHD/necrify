@@ -151,4 +151,43 @@ public interface NecrifyUser extends CommandSender {
      */
     @NotNull
     CompletableFuture<String> queryUsername(boolean update);
+
+    /**
+     * Checks whether the user is whitelisted. If the user is whitelisted and the server whitelist is active,
+     * they are able to join the server this system belongs to.
+     *
+     * @return true if the user is whitelisted, false otherwise.
+     */
+    boolean isWhitelisted();
+
+    /**
+     * Sets the user to be whitelisted. If the user is whitelisted and the server whitelist is active,
+     * they are able to join the server this system belongs to.
+     * <p>
+     * The user also gets kicked if they are online and get blacklisted if the whitelist is active.
+     *
+     * @param whitelisted true if the user is whitelisted, false otherwise.
+     */
+    void setWhitelisted(boolean whitelisted);
+
+    /**
+     * Method to add punishments to users. This method is only meant to be used until events are implemented.
+     *
+     * @param punishment the punishment to add.
+     */
+    @Deprecated(forRemoval = true)
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.2.0")
+    default void addPunishment(Punishment punishment) {
+    }
+
+    /**
+     * Method to remove punishments from users. This method is only meant to be used until events are implemented.
+     * This does not cancel the punishment, it only removes it from the user's punishment list.
+     *
+     * @param punishment the punishment to remove.
+     */
+    @Deprecated(forRemoval = true)
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.2.0")
+    default void removePunishment(Punishment punishment) {
+    }
 }

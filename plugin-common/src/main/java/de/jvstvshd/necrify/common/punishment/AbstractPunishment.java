@@ -25,12 +25,12 @@
 package de.jvstvshd.necrify.common.punishment;
 
 
-import de.chojo.sadu.base.QueryFactory;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
 import javax.sql.DataSource;
@@ -39,7 +39,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
-public abstract class AbstractPunishment extends QueryFactory implements Punishment {
+public abstract class AbstractPunishment implements Punishment {
 
     private final Component reason;
     private final DataSource dataSource;
@@ -48,10 +48,13 @@ public abstract class AbstractPunishment extends QueryFactory implements Punishm
     private final UUID punishmentUuid;
     private final MessageProvider messageProvider;
 
-    protected final static String APPLY_PUNISHMENT = "INSERT INTO necrify_punishment" +
-            " (uuid, name, type, expiration, reason, punishment_id) VALUES (?, ?, ?, ?, ?, ?)";
+    @Language("sql")
+    protected final static String APPLY_PUNISHMENT = "INSERT INTO punishment.necrify_punishment" +
+            " (uuid, type, expiration, reason, punishment_id) VALUES (?, ?, ?, ?, ?)";
+    @Language("sql")
     protected final static String APPLY_CANCELLATION
-            = "DELETE FROM necrify_punishment WHERE punishment_id = ?";
+            = "DELETE FROM punishment.necrify_punishment WHERE punishment_id = ?";
+    @Language("sql")
     protected final static String APPLY_CHANGE = "UPDATE necrify_punishment SET reason = ?, expiration = ?, permanent = ? WHERE punishment_id = ?";
     private final boolean validity;
 
@@ -60,7 +63,6 @@ public abstract class AbstractPunishment extends QueryFactory implements Punishm
     }
 
     public AbstractPunishment(NecrifyUser user, Component reason, DataSource dataSource, ExecutorService service, UUID punishmentUuid, MessageProvider messageProvider) {
-        super(dataSource);
         this.reason = reason;
         this.dataSource = dataSource;
         this.service = service;
@@ -122,6 +124,19 @@ public abstract class AbstractPunishment extends QueryFactory implements Punishm
                 ", messageProvider=" + messageProvider +
                 ", validity=" + validity +
                 "} " + super.toString();
+    }
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AbstractPunishment that)) return false;
+
+        return punishmentUuid.equals(that.punishmentUuid);
+    }
+
+    @Override
+    public int hashCode() {
+        return punishmentUuid.hashCode();
     }
 
     protected void checkValidity() {

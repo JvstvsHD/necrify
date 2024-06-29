@@ -32,9 +32,10 @@ import de.jvstvshd.necrify.api.PunishmentException;
 import de.jvstvshd.necrify.velocity.NecrifyPlugin;
 import de.jvstvshd.necrify.velocity.internal.PunishmentHelper;
 import de.jvstvshd.necrify.velocity.internal.Util;
-import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 
 /**
  * @see NecrifyPlugin#MUTES_DISABLED
@@ -51,12 +52,17 @@ public class MuteCommand {
     private static int execute(CommandContext<CommandSource> context, NecrifyPlugin plugin) {
         CommandSource source = context.getSource();
         source.sendMessage(NecrifyPlugin.MUTES_DISABLED);
+        if (!plugin.communicator().isSupportedEverywhere()) {
+            source.sendMessage(plugin.getMessageProvider()
+                    .prefixed(MiniMessage.miniMessage().deserialize("<red>It seems that not all servers run the mentioned paper extension. " +
+                            "Thus, the persecution of this mute cannot be granted in all cases.")));
+        }
         var player = context.getArgument("player", String.class);
         var playerResolver = plugin.getPlayerResolver();
         var punishmentManager = plugin.getPunishmentManager();
         playerResolver.getOrQueryPlayerUuid(player, plugin.getService()).whenCompleteAsync((uuid, throwable) -> {
             if (Util.sendErrorMessageIfErrorOccurred(context, uuid, throwable, plugin)) return;
-            TextComponent reason = PunishmentHelper.parseReason(context);
+            Component reason = PunishmentHelper.parseReason(context);
             try {
                 punishmentManager.createPermanentMute(uuid, reason).punish().whenComplete((mute, t) -> {
                     if (t != null) {
@@ -71,7 +77,7 @@ public class MuteCommand {
                     }
                 });
             } catch (PunishmentException e) {
-                plugin.getLogger().error("An error occurred while creating a mute for player " + player + " (" + uuid + ")", e);
+                plugin.getLogger().error("An error occurred while creating a mute for player {} ({})", player, uuid, e);
                 Util.sendErrorMessage(context, e);
             }
         }, plugin.getService());

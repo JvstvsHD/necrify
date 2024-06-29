@@ -24,6 +24,8 @@
 
 package de.jvstvshd.necrify.common.punishment;
 
+import de.chojo.sadu.queries.api.call.Call;
+import de.chojo.sadu.queries.api.query.Query;
 import de.jvstvshd.necrify.api.PunishmentException;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.message.MessageProvider;
@@ -31,6 +33,7 @@ import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.punishment.TemporalPunishment;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
+import de.jvstvshd.necrify.common.io.Adapters;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
@@ -81,32 +84,33 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
         if (!getType().isBan() && !getType().isMute()) {
             throw new IllegalStateException("only bans and mutes can be changed");
         }
-        return builder()
-                .query(APPLY_CHANGE)
-                .parameter(paramBuilder -> paramBuilder.setString(convertReason(newReason))
-                        .setTimestamp(newDuration.expirationAsTimestamp())
-                ).update()
-                .send()
-                .thenApply(result -> {
-                    if (getType().isBan()) {
-                        return new NecrifyBan(getUser(), newReason, getDataSource(), getService(), newDuration, getMessageProvider());
-                    } else if (getType().isMute()) {
-                        var newMute = new NecrifyMute(getUser(), newReason, getDataSource(), getService(), newDuration, getMessageProvider());
-                        //newMute.queueMute(MuteData.UPDATE);
-                        return newMute;
-                    } else {
-                        throw new IllegalStateException("punishment type is not a ban or mute");
-                    }
-                });
+        return executeAsync(() -> {
+            Query.query(APPLY_CHANGE)
+                    .single(Call.of()
+                            .bind(convertReason(newReason))
+                            .bind(newDuration.expirationAsTimestamp())
+                            .bind(newDuration.isPermanent())
+                            .bind(getPunishmentUuid(), Adapters.UUID_ADAPTER))
+                    .update();
+            if (getType().isBan()) {
+                return new NecrifyBan(getUser(), newReason, getDataSource(), getService(), newDuration, getMessageProvider());
+            } else if (getType().isMute()) {
+                return new NecrifyMute(getUser(), newReason, getDataSource(), getService(), newDuration, getMessageProvider());
+            } else {
+                throw new IllegalStateException("punishment type is not a ban or mute");
+            }
+        }, getService());
     }
 
     @Override
     public CompletableFuture<Punishment> cancel() throws PunishmentException {
-        return builder()
-                .query(APPLY_CANCELLATION)
-                .parameter(paramBuilder -> paramBuilder.setUuidAsString(getPunishmentUuid()))
-                .delete()
-                .send().thenApply(updateResult -> this);
+        return executeAsync(() -> {
+            Query.query(APPLY_CANCELLATION)
+                    .single(Call.of().bind(getPunishmentUuid(), Adapters.UUID_ADAPTER))
+                    .delete();
+            getUser().removePunishment(this);
+            return this;
+        }, getService());
     }
 
     @Override
@@ -117,16 +121,15 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
         checkValidity();
         var duration = getDuration().absolute();
         return executeAsync(() -> {
-            builder()
-                    .query(APPLY_PUNISHMENT)
-                    .parameter(paramBuilder -> paramBuilder.setUuidAsString(getUser().getUuid())
-                            .setString(getUser().getUsername())
-                            .setString(getType().getName())
-                            .setTimestamp(duration.expirationAsTimestamp())
-                            .setString(convertReason(getReason()))
-                            .setUuidAsString(getPunishmentUuid())
-                    ).insert()
-                    .sendSync();
+            Query.query(APPLY_PUNISHMENT)
+                    .single(Call.of()
+                            .bind(getUser().getUuid(), Adapters.UUID_ADAPTER)
+                            .bind(getType().getId())
+                            .bind(duration.expirationAsTimestamp())
+                            .bind(convertReason(getReason()))
+                            .bind(getPunishmentUuid(), Adapters.UUID_ADAPTER))
+                    .insert();
+            getUser().addPunishment(this);
             return this;
         }, getService());
     }

@@ -52,8 +52,6 @@ public class AbsolutePunishmentDuration implements PunishmentDuration {
     public static PunishmentDuration from(LocalDateTime ldt) {
         if (!ldt.isBefore(MAX))
             return PermanentPunishmentDuration.PERMANENT;
-        if (ldt.isBefore(LocalDateTime.now()))
-            throw new IllegalArgumentException("Expiration date must be in the future.");
         return new AbsolutePunishmentDuration(ldt);
     }
 

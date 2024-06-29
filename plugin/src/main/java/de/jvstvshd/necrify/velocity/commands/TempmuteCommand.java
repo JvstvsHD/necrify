@@ -34,7 +34,6 @@ import de.jvstvshd.necrify.velocity.NecrifyPlugin;
 import de.jvstvshd.necrify.velocity.internal.PunishmentHelper;
 import de.jvstvshd.necrify.velocity.internal.Util;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 
@@ -64,7 +63,7 @@ public class TempmuteCommand {
                 return;
             }
             PunishmentDuration duration = optDuration.get();
-            TextComponent reason = PunishmentHelper.parseReason(context);
+            Component reason = PunishmentHelper.parseReason(context);
             try {
                 plugin.getPunishmentManager().createMute(uuid, reason, duration).punish().whenComplete((ban, t) -> {
                     if (t != null) {

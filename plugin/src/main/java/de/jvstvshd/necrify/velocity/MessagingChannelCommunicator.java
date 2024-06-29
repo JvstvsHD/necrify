@@ -50,24 +50,13 @@ public class MessagingChannelCommunicator {
 
     private final ProxyServer server;
     private final Logger logger;
+    private final List<RegisteredServer> supportingServers;
+    private boolean supportedEverywhere = false;
 
     public MessagingChannelCommunicator(ProxyServer server, Logger logger) {
         this.server = server;
         this.logger = logger;
-    }
-
-    /**
-     * Tries to send the specified {@code muteData } to all registered servers. As a plugin message can only be sent if a player is connected to the server,
-     * the message will be queued if no player is connected to the server and will be sent as soon as a player connects to the server.
-     *
-     * @param mute        the mute data to send
-     * @param mutedPlayer the player who is muted
-     * @param type        the type of the mute ({@link MuteData#ADD}, {@link MuteData#REMOVE} or {@link MuteData#UPDATE})
-     * @throws JsonProcessingException if the mute data could not be serialized
-     */
-    public void queueMute(Mute mute, Player mutedPlayer, int type) throws Exception {
-        var muteData = from(mute, type, m -> m.createFullReason(null));
-        queueMute(muteData);
+        this.supportingServers = new ArrayList<>();
     }
 
     /**
@@ -122,8 +111,6 @@ public class MessagingChannelCommunicator {
 
     private boolean sendMessage(RegisteredServer server, MuteData muteData) throws JsonProcessingException {
         return server.sendPluginMessage(NecrifyPlugin.MUTE_DATA_CHANNEL_IDENTIFIER, serializeMuteData(muteData));
-
-
     }
 
     @SuppressWarnings("UnstableApiUsage")
@@ -132,5 +119,28 @@ public class MessagingChannelCommunicator {
         var serialized = MuteData.OBJECT_MAPPER.writeValueAsString(muteData);
         dataOutput.writeUTF(serialized);
         return dataOutput.toByteArray();
+    }
+
+    public synchronized List<RegisteredServer> testRecipients() {
+        byte[] message = new byte[]{0x00};
+        supportingServers.clear();
+        for (RegisteredServer allServer : server.getAllServers()) {
+            if (allServer.sendPluginMessage(NecrifyPlugin.MUTE_DATA_CHANNEL_IDENTIFIER, message)) {
+                supportingServers.add(allServer);
+            } else {
+                supportedEverywhere = false;
+            }
+        }
+        var servers = new ArrayList<>(server.getAllServers());
+        servers.removeIf(supportingServers::contains);
+        return servers;
+    }
+
+    public boolean isSupportedEverywhere() {
+        return supportedEverywhere;
+    }
+
+    public boolean isPlayerReachable(Player player) {
+        return player.getCurrentServer().map(serverConnection -> supportingServers.contains(serverConnection.getServer())).orElse(false);
     }
 }

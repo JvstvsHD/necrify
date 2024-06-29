@@ -26,11 +26,10 @@ subprojects {
     repositories {
         mavenCentral()
         maven("https://nexus.velocitypowered.com/repository/maven-public/")
-        maven("https://papermc.io/repo/repository/maven-public/")
+        maven("https://repo.papermc.io/repository/maven-public/")
     }
     tasks {
         gradle.projectsEvaluated {
-
             signing {
                 val signingKey = findProperty("signingKey")?.toString() ?: System.getenv("SIGNING_KEY")
                 val signingPassword = findProperty("signingPassword")?.toString() ?: System.getenv("SIGNING_PASSWORD")
@@ -97,6 +96,6 @@ subprojects {
 
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
-    sourceCompatibility = "17"
-    targetCompatibility = "17"
+    sourceCompatibility = "21"
+    targetCompatibility = "21"
 }

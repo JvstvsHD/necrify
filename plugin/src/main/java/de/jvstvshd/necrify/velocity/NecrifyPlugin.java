@@ -24,6 +24,9 @@
 
 package de.jvstvshd.necrify.velocity;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.common.base.Joiner;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.event.EventManager;
@@ -35,27 +38,32 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import com.zaxxer.hikari.HikariDataSource;
-import de.chojo.sadu.databases.Database;
-import de.chojo.sadu.databases.PostgreSql;
-import de.chojo.sadu.databases.SqLite;
+import de.chojo.sadu.core.databases.Database;
+import de.chojo.sadu.core.jdbc.RemoteJdbcConfig;
 import de.chojo.sadu.datasource.DataSourceCreator;
 import de.chojo.sadu.datasource.stage.ConfigurationStage;
-import de.chojo.sadu.jdbc.RemoteJdbcConfig;
+import de.chojo.sadu.postgresql.databases.PostgreSql;
+import de.chojo.sadu.queries.api.call.Call;
+import de.chojo.sadu.queries.api.query.Query;
+import de.chojo.sadu.queries.configuration.QueryConfiguration;
+import de.chojo.sadu.sqlite.databases.SqLite;
 import de.chojo.sadu.updater.SqlUpdater;
-import de.chojo.sadu.wrapper.QueryBuilderConfig;
 import de.jvstvshd.necrify.api.Necrify;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.PunishmentManager;
 import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
 import de.jvstvshd.necrify.api.user.UserManager;
+import de.jvstvshd.necrify.common.io.Adapters;
 import de.jvstvshd.necrify.common.plugin.MuteData;
 import de.jvstvshd.necrify.velocity.commands.*;
 import de.jvstvshd.necrify.velocity.config.ConfigurationManager;
 import de.jvstvshd.necrify.velocity.impl.DefaultPlayerResolver;
 import de.jvstvshd.necrify.velocity.impl.DefaultPunishmentManager;
+import de.jvstvshd.necrify.velocity.internal.Util;
 import de.jvstvshd.necrify.velocity.listener.ConnectListener;
 import de.jvstvshd.necrify.velocity.message.ResourceBundleMessageProvider;
+import de.jvstvshd.necrify.velocity.user.VelocityUser;
 import de.jvstvshd.necrify.velocity.user.VelocityUserManager;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
@@ -63,9 +71,8 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -78,7 +85,10 @@ public class NecrifyPlugin implements Necrify {
     private final ProxyServer server;
     private final Logger logger;
     private final ConfigurationManager configurationManager;
-    private final ExecutorService service = Executors.newCachedThreadPool();
+    private static final String MUTES_DISABLED_STRING = """
+            Since 1.19.1, cancelling chat messages on proxy is not possible anymore. Therefore, we have to listen to the chat event on the actual game server. This means
+            that there has to be a spigot/paper extension to this plugin which is not yet available unless there's a possibility. Therefore all mute related features won't work at the moment.
+            If you use 1.19 or lower you will not be affected by this.""".replace("\n", " ");
     private final Path dataDirectory;
     public static final ChannelIdentifier MUTE_DATA_CHANNEL_IDENTIFIER = MinecraftChannelIdentifier.from(MuteData.MUTE_DATA_CHANNEL_IDENTIFIER);
     private PunishmentManager punishmentManager;
@@ -86,12 +96,7 @@ public class NecrifyPlugin implements Necrify {
     private PlayerResolver playerResolver;
     private MessageProvider messageProvider;
     private UserManager userManager;
-
-
-    private static final String MUTES_DISABLED_STRING = """
-            Since 1.19.1, cancelling chat messages on proxy is not possible anymore. Therefore, we have to listen to the chat event on the actual game server. This means
-            that there has to be a spigot/paper extension to this plugin which is not yet available unless there's a possibility. Therefore all mute related features won't work at the moment.
-            If you use 1.19 or lower you will not be affected by this.The progress of the extension can be found here: https://github.com/JvstvsHD/necrify/issues/6""".replace("\n", " ");
+    private final ExecutorService service;
     private final MessagingChannelCommunicator communicator;
 
     /**
@@ -110,6 +115,7 @@ public class NecrifyPlugin implements Necrify {
         this.playerResolver = new DefaultPlayerResolver(server);
         this.communicator = new MessagingChannelCommunicator(server, logger);
         this.dataDirectory = dataDirectory;
+        this.service = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setUncaughtExceptionHandler((t, e) -> logger.error("An error occurred in thread {}", t.getName(), e)).build());
     }
 
     @Subscribe
@@ -124,23 +130,28 @@ public class NecrifyPlugin implements Necrify {
         } catch (IOException e) {
             logger.error("Could not load configuration", e);
         }
-        QueryBuilderConfig.setDefault(QueryBuilderConfig.builder().withExceptionHandler(e -> logger.error("An error occurred during a database request", e)).build());
         dataSource = createDataSource();
+        QueryConfiguration.setDefault(QueryConfiguration.builder(dataSource).setExceptionHandler(e -> logger.error("An error occurred during a database request", e)).build());
         punishmentManager = new DefaultPunishmentManager(server, dataSource, this);
-        this.userManager = new VelocityUserManager(playerResolver, dataSource, service, messageProvider, server, punishmentManager);
+        this.userManager = new VelocityUserManager(service, server, Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build(), Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build(), this);
         try {
             updateDatabase();
-            initDataSource();
         } catch (SQLException | IOException e) {
             logger.error("Could not create table necrify_punishment in database {}", dataSource.getDataSourceProperties().get("dataSource.databaseName"), e);
         }
         setup(server.getCommandManager(), server.getEventManager());
+        var notSupportedServers = communicator.testRecipients();
+        if (communicator.isSupportedEverywhere()) {
+            logger.warn("Persecution of mutes cannot be granted on the following servers as the required paper plugin is not installed: {}",
+                    Joiner.on(", ").join(notSupportedServers));
+        }
         logger.info("Velocity Punishment Plugin v1.2.0-SNAPSHOT has been loaded. This is only a dev build and thus may be unstable.");
     }
 
     private void setup(CommandManager commandManager, EventManager eventManager) {
         eventManager.register(this, communicator);
         eventManager.register(this, new ConnectListener(this, Executors.newCachedThreadPool(), server));
+        eventManager.register(this, userManager);
         logger.info(MUTES_DISABLED_STRING);
 
         commandManager.register(BanCommand.banCommand(this));
@@ -159,55 +170,27 @@ public class NecrifyPlugin implements Necrify {
     private HikariDataSource createDataSource() {
         var dbData = configurationManager.getConfiguration().getDataBaseData();
         ConfigurationStage stage = switch (dbData.sqlType().name().toLowerCase()) {
-            case "sqlite" -> DataSourceCreator.create(SqLite.get())
-                    .configure(sqLiteJdbc -> sqLiteJdbc.path(dataDirectory.resolve("punishment.db")))
-                    .create();
+            case "sqlite" ->
+                    DataSourceCreator.create(SqLite.get()).configure(sqLiteJdbc -> sqLiteJdbc.path(dataDirectory.resolve("punishment.db"))).create();
             case "postgresql" ->
                     DataSourceCreator.create(PostgreSql.get()).configure(jdbcConfig -> jdbcConfig.host(dbData.getHost())
 
-                                    .port(dbData.getPort())
-                                    .database(dbData.getDatabase())
-                                    .user(dbData.getUsername())
-                                    .password(dbData.getPassword())
-                            )
-                            .create();
+                            .port(dbData.getPort()).database(dbData.getDatabase()).user(dbData.getUsername()).password(dbData.getPassword())).create();
 
             default ->
-                    DataSourceCreator.create((Database<RemoteJdbcConfig<?>, ?>) dbData.sqlType()).configure(jdbcConfig -> jdbcConfig.host(dbData.getHost())
-                                    .port(dbData.getPort())
-                                    .database(dbData.getDatabase())
-                                    .user(dbData.getUsername())
-                                    .password(dbData.getPassword()))
-                            .create();
+                    DataSourceCreator.create((Database<RemoteJdbcConfig<?>, ?>) dbData.sqlType()).configure(jdbcConfig -> jdbcConfig.host(dbData.getHost()).port(dbData.getPort()).database(dbData.getDatabase()).user(dbData.getUsername()).password(dbData.getPassword())).create();
         };
-        return stage.withMaximumPoolSize(dbData.getMaxPoolSize())
-                .withMinimumIdle(dbData.getMinIdle())
-                .withPoolName("necrify-hikari")
-                .forSchema(dbData.getPostgresSchema())
-                .build();
+        return stage.withMaximumPoolSize(dbData.getMaxPoolSize()).withMinimumIdle(dbData.getMinIdle()).withPoolName("necrify-hikari").forSchema(dbData.getPostgresSchema()).build();
     }
 
     @SuppressWarnings("UnstableApiUsage")
     private void updateDatabase() throws IOException, SQLException {
         if (configurationManager.getConfiguration().getDataBaseData().sqlType().name().equalsIgnoreCase("postgresql")) {
-            SqlUpdater.builder(dataSource, PostgreSql.get())
-                    .setSchemas(configurationManager.getConfiguration().getDataBaseData().getPostgresSchema())
+            SqlUpdater.builder(dataSource, PostgreSql.get()).setSchemas(configurationManager.getConfiguration().getDataBaseData().getPostgresSchema())
                     //.preUpdateHook(new SqlVersion(1, 1), connection -> )
                     .execute();
         } else {
             logger.warn("Database type is not (yet) supported for automatic updates. Please update the database manually.");
-        }
-    }
-
-    private void initDataSource() throws SQLException {
-        try (Connection connection = dataSource.getConnection(); PreparedStatement statement =
-                connection.prepareStatement("CREATE TABLE IF NOT EXISTS necrify_punishment (uuid  VARCHAR (36), name VARCHAR (16), type VARCHAR (1000), expiration TIMESTAMP (6), " +
-                        "reason VARCHAR (1000), punishment_id VARCHAR (36))")) {
-            statement.execute();
-        }
-        try (Connection connection = dataSource.getConnection(); PreparedStatement statement =
-                connection.prepareStatement("CREATE TABLE IF NOT EXISTS necrify_whitelist (uuid VARCHAR (36))")) {
-            statement.execute();
         }
     }
 
@@ -283,8 +266,12 @@ public class NecrifyPlugin implements Necrify {
         this.userManager = userManager;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends Punishment> CompletableFuture<Optional<T>> getPunishment(@NotNull UUID punishmentId) {
-        return Necrify.super.getPunishment(punishmentId);
+        return Util.executeAsync(() -> (Optional<T>) Query.query("SELECT u.* FROM punishment.necrify_user u " + "INNER JOIN punishment.necrify_punishment p ON u.uuid = p.uuid " + "WHERE p.punishment_id = ?;").single(Call.of().bind(punishmentId, Adapters.UUID_ADAPTER)).map(row -> {
+            var user = new VelocityUser(row.getObject(1, UUID.class), row.getString(2), row.getBoolean(3), this);
+            return user.getPunishments().stream().filter(punishment -> punishment.getPunishmentUuid().equals(punishmentId)).findFirst().orElse(null);
+        }).first(), service);
     }
 }

@@ -17,6 +17,7 @@ dependencies {
     api(libs.bundles.database)
     api(libs.bundles.cloud)
     annotationProcessor(libs.cloud.annotations)
+    compileOnly("com.google.code.gson:gson:2.10.1")
     implementation(libs.bundles.adventure)
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)

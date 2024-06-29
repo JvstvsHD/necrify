@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    //api(libs.bundles.database)
+    // api(libs.bundles.database)
     api(projects.pluginCommon)
     annotationProcessor(libs.velocity.api)
     compileOnly(libs.velocity.api)
@@ -25,7 +25,6 @@ dependencies {
 tasks.getByName<Test>("test") {
     useJUnitPlatform()
 }
-
 
 tasks {
     compileJava {
@@ -50,6 +49,9 @@ tasks {
 java {
     withSourcesJar()
     withJavadocJar()
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
 }
 
 tasks {

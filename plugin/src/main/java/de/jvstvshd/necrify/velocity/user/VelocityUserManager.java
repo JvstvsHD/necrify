@@ -24,72 +24,206 @@
 
 package de.jvstvshd.necrify.velocity.user;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.connection.DisconnectEvent;
+import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.proxy.ProxyServer;
-import de.jvstvshd.necrify.api.message.MessageProvider;
-import de.jvstvshd.necrify.api.punishment.PunishmentManager;
-import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
+import de.chojo.sadu.queries.api.call.Call;
+import de.chojo.sadu.queries.api.query.Query;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserManager;
+import de.jvstvshd.necrify.common.io.Adapters;
+import de.jvstvshd.necrify.common.user.MojangAPI;
+import de.jvstvshd.necrify.velocity.NecrifyPlugin;
+import de.jvstvshd.necrify.velocity.internal.Util;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.sql.DataSource;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
+import static de.jvstvshd.necrify.velocity.internal.Util.executeAsync;
+import static java.util.Optional.empty;
+
 //20.06.2024: Only stub implementation to allow ConnectionListener to work.
 public class VelocityUserManager implements UserManager {
 
-    private final PlayerResolver resolver;
-    private final DataSource dataSource;
-    private final ExecutorService service;
-    private final MessageProvider messageProvider;
+    @Language("sql")
+    private static final String SELECT_USER_QUERY = "SELECT name, whitelisted FROM punishment.necrify_user WHERE uuid = ?;";
+
+    @Language("sql")
+    private static final String SELECT_USER_BY_NAME_QUERY = "SELECT uuid, whitelisted FROM punishment.necrify_user WHERE name = ?";
+
+    @Language("sql")
+    private static final String SELECT_USER_PUNISHMENTS_QUERY =
+            "SELECT type, expiration, reason, punishment_id FROM punishment.necrify_punishment WHERE uuid = ?;";
+
+    @Language("sql")
+    private static final String INSERT_NEW_USER = "INSERT INTO punishment.necrify_user (uuid, name, whitelisted) VALUES (?, ?, ?) ON CONFLICT (uuid) DO NOTHING;";
+
+    private final ExecutorService executor;
     private final ProxyServer server;
-    private final PunishmentManager punishmentManager;
+    private final Cache<UUID, VelocityUser> userCache;
+    private final Cache<String, UUID> nameCache;
+    private final NecrifyPlugin plugin;
 
-
-    public VelocityUserManager(PlayerResolver resolver, DataSource dataSource, ExecutorService service, MessageProvider messageProvider, ProxyServer server, PunishmentManager punishmentManager) {
-        this.resolver = resolver;
-        this.dataSource = dataSource;
-        this.service = service;
-        this.messageProvider = messageProvider;
+    public VelocityUserManager(ExecutorService executor, ProxyServer server, Cache<UUID, VelocityUser> userCache, Cache<String, UUID> nameCache, NecrifyPlugin plugin) {
+        this.executor = executor;
         this.server = server;
-        this.punishmentManager = punishmentManager;
+        this.userCache = userCache;
+        this.nameCache = nameCache;
+        this.plugin = plugin;
     }
 
     @Override
-    public @Nullable NecrifyUser getUser(@NotNull UUID uuid) {
-        notImplemented();
-        return null;
+    public @NotNull Optional<NecrifyUser> getUser(@NotNull UUID uuid) {
+        return Optional.ofNullable(userCache.getIfPresent(uuid));
     }
 
     @Override
-    public @Nullable NecrifyUser getUser(@NotNull String name) {
-        notImplemented();
-        return null;
+    public @NotNull Optional<NecrifyUser> getUser(@NotNull String player) {
+        var uuid = tryAcquireUuid(player);
+        if (uuid != null) {
+            return getUser(uuid);
+        }
+        return empty();
     }
 
     @Override
-    public @NotNull CompletableFuture<@Nullable NecrifyUser> loadUser(@NotNull UUID uuid) {
+    public @NotNull CompletableFuture<Optional<NecrifyUser>> loadUser(@NotNull UUID uuid) {
+        var cached = getUser(uuid);
+        if (cached.isPresent()) {
+            return CompletableFuture.completedFuture(cached);
+        }
+        return executeAsync(() -> {
+            var player = server.getPlayer(uuid);
+            var user = Query.query(SELECT_USER_QUERY)
+                    .single(Call.of().bind(uuid, Adapters.UUID_ADAPTER))
+                    .map(row -> new VelocityUser(uuid, row.getString(1), row.getBoolean(2), player.orElse(null), plugin))
+                    .first();
+            user.ifPresent(velocityUser -> {
+                Query.query(SELECT_USER_PUNISHMENTS_QUERY)
+                        .single(Call.of().bind(uuid, Adapters.UUID_ADAPTER))
+                        .map(velocityUser::addPunishment).all();
+            });
+            //will cause compilation error: return user.map(this::cache);
+            //noinspection Convert2MethodRef
+            return user.map(velocityUser -> cache(velocityUser));
+        }, executor);
+    }
 
-        return CompletableFuture.supplyAsync(() -> new VelocityUser(uuid,
-                resolver.getOrQueryPlayerName(uuid, service).join(),
-                null,
-                punishmentManager.getPunishments(uuid, service).join(),
-                dataSource,
-                service,
-                messageProvider,
-                server));
+
+    @Override
+    public @NotNull CompletableFuture<Optional<NecrifyUser>> loadUser(@NotNull String player) {
+        var cached = getUser(player);
+        if (cached.isPresent()) {
+            return CompletableFuture.completedFuture(cached);
+        }
+        return executeAsync(() -> {
+            var user = Query.query(SELECT_USER_BY_NAME_QUERY)
+                    .single(Call.of().bind(player))
+                    .map(row -> new VelocityUser(row.getObject(1, UUID.class), player, row.getBoolean(3), plugin))
+                    .first();
+            user.ifPresent(velocityUser -> {
+                Query.query(SELECT_USER_PUNISHMENTS_QUERY)
+                        .single(Call.of().bind(velocityUser.getUuid(), Adapters.UUID_ADAPTER))
+                        .map(velocityUser::addPunishment).all();
+            });
+            //will cause compilation error: return user.map(this::cache);
+            //noinspection Convert2MethodRef
+            return user.map(velocityUser -> cache(velocityUser));
+        }, executor);
     }
 
     @Override
-    public @NotNull CompletableFuture<@Nullable NecrifyUser> loadUser(@NotNull String name) {
-        notImplemented();
-        return null;
+    public @NotNull CompletableFuture<Optional<NecrifyUser>> createUser(@NotNull UUID uuid) {
+        return executeAsync(() -> {
+            var name = MojangAPI.getPlayerName(uuid);
+            return name.map(s -> createUser(uuid, s));
+        }, executor);
     }
 
-    private void notImplemented() {
-        throw new UnsupportedOperationException("Not implemented yet.");
+    @Override
+    public @NotNull CompletableFuture<Optional<NecrifyUser>> createUser(@NotNull String player) {
+        return executeAsync(() -> {
+            var uuid = MojangAPI.getUuid(player);
+            return uuid.map(id -> createUser(id, player));
+        }, executor);
+    }
+
+    /**
+     * Expects to be executed in an async context (otherwise blocks the current thread) and the user to exist.
+     *
+     * @param uuid non-null uuid of the user
+     * @param name non-null name of the user
+     * @return the created user
+     * @throws IllegalStateException if the user already exists
+     */
+    private NecrifyUser createUser(UUID uuid, String name) {
+        var result = Query.query(INSERT_NEW_USER)
+                .single(Call.of().bind(uuid, Adapters.UUID_ADAPTER).bind(name).bind(false))
+                .insert();
+        if (!result.changed()) {
+            throw new IllegalStateException("user already exists");
+        }
+        return cache(new VelocityUser(uuid, name, false, plugin));
+    }
+
+    @Override
+    public @NotNull CompletableFuture<Optional<NecrifyUser>> loadOrCreateUser(@NotNull UUID uuid) {
+        return loadUser(uuid).thenApplyAsync(optional -> optional.or(() -> createUser(uuid).join()), executor);
+    }
+
+    @Override
+    public @NotNull CompletableFuture<Optional<NecrifyUser>> loadOrCreateUser(@NotNull String player) {
+        return loadUser(player).thenApplyAsync(optional -> optional.or(() -> createUser(player).join()), executor);
+    }
+
+    @Override
+    public void putUser(@NotNull NecrifyUser user) {
+        cache(new VelocityUser(user.getUuid(), user.getUsername(), user.isWhitelisted(), plugin));
+    }
+
+    @Nullable
+    private UUID tryAcquireUuid(String name) {
+        var parsed = Util.fromString(name);
+        if (parsed.isPresent()) {
+            return parsed.get();
+        }
+        var onlinePlayer = server.getPlayer(name);
+        if (onlinePlayer.isPresent()) {
+            return onlinePlayer.get().getUniqueId();
+        }
+        return nameCache.getIfPresent(name);
+    }
+
+    private VelocityUser cache(@NotNull VelocityUser user) {
+        userCache.put(user.getUuid(), user);
+        if (user.getUsername() != null) {
+            nameCache.put(user.getUsername(), user.getUuid());
+        }
+        return user;
+    }
+
+    @Subscribe
+    public void onPlayerDisconnect(DisconnectEvent event) {
+        var player = event.getPlayer();
+        var uuid = player.getUniqueId();
+        var user = userCache.getIfPresent(uuid);
+        if (user == null) return;
+        user.setPlayer(null);
+    }
+
+    @Subscribe
+    public void onPlayerJoin(LoginEvent event) {
+        var player = event.getPlayer();
+        var uuid = player.getUniqueId();
+        var user = userCache.getIfPresent(uuid);
+        if (user == null) return;
+        user.setPlayer(player);
     }
 }
