@@ -5,6 +5,7 @@ plugins {
     `maven-publish`
     signing
     id("org.cadixdev.licenser") version "0.6.1"
+    java
 }
 
 group = "de.jvstvshd.necrify"
@@ -15,6 +16,7 @@ subprojects {
         plugin<Licenser>()
         plugin<MavenPublishPlugin>()
         plugin<SigningPlugin>()
+        plugin("java")
     }
 
     license {
@@ -22,12 +24,16 @@ subprojects {
         include("**/*.java")
         newLine(true)
     }
+    java {
+        toolchain.languageVersion = JavaLanguageVersion.of(21)
+    }
 
     repositories {
         mavenCentral()
         maven("https://nexus.velocitypowered.com/repository/maven-public/")
         maven("https://repo.papermc.io/repository/maven-public/")
     }
+
     tasks {
         gradle.projectsEvaluated {
             signing {
@@ -92,10 +98,4 @@ subprojects {
             }
         }
     }
-}
-
-tasks.withType<JavaCompile>().configureEach {
-    options.encoding = "UTF-8"
-    sourceCompatibility = "21"
-    targetCompatibility = "21"
 }

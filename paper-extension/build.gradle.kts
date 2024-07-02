@@ -21,12 +21,6 @@ dependencies {
     api(projects.pluginCommon)
 }
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
-    }
-}
-
 tasks {
     shadowJar {
         archiveFileName.set("${rootProject.name}-Paper-${project.version}.jar")
