@@ -4,6 +4,12 @@ pipeline {
         disableConcurrentBuilds()
     }
     stages {
+        stage('Checkout') {
+            steps {
+                checkout changelog: true, poll: true, scm: [$class: 'GitSCM', branches: [[name: '*/1.2-dev']]]
+            }
+        }
+
         stage('Build') {
             steps {
                 sh './gradlew build --stacktrace'
