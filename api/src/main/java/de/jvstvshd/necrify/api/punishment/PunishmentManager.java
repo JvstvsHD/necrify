@@ -45,7 +45,7 @@ import java.util.concurrent.Executor;
  * <a href="https://github.com/users/JvstvsHD/projects/5/views/1?pane=issue&itemId=65367115">NecrifyUser</a>.
  */
 @Deprecated(since = "1.2.0", forRemoval = true)
-@ApiStatus.ScheduledForRemoval(inVersion = "2.0.0")
+@ApiStatus.ScheduledForRemoval(inVersion = "1.3.0")
 public interface PunishmentManager {
 
     /**

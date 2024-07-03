@@ -1,6 +1,6 @@
 plugins {
     java
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("io.github.goooler.shadow") version "8.1.8"
     id("xyz.jpenilla.run-velocity") version "2.3.0"
     `java-library`
 }
@@ -13,7 +13,6 @@ repositories {
 }
 
 dependencies {
-    // api(libs.bundles.database)
     api(projects.pluginCommon)
     annotationProcessor(libs.velocity.api)
     compileOnly(libs.velocity.api)
@@ -40,6 +39,29 @@ tasks {
     shadowJar {
         archiveFileName.set("${rootProject.name}-Velocity-${project.version}.jar")
         archiveBaseName.set("necrify")
+        dependencies {
+            val prefix: (String) -> String = { "de.jvstvshd.necrify.lib.$it" }
+            relocate("com.fasterxml.jackson", prefix("jackson"))
+            relocate("com.github.benmanes.caffeine", prefix("caffeine"))
+            relocate("com.google", prefix("google"))
+            relocate("com.mysql", prefix("mysql"))
+            relocate("com.sun.jna", "sun.jna")
+            relocate("com.zaxxer.hikari", prefix("hikari"))
+            relocate("de.chojo.sadu", prefix("sadu"))
+            relocate("google", prefix("google"))
+            relocate("io.leangen.geantyref", prefix("geantyref"))
+            relocate("org.apache.commons", prefix("commons"))
+            relocate("org.checkerframework", prefix("checkerframework"))
+            relocate("org.incendo.cloud", prefix("cloud"))
+            relocate("org.intellij.lang.annotations", prefix("intellij.lang.annotations"))
+            relocate("org.jetbrains.annotations", prefix("jetbrains.annotations"))
+            relocate("org.mariadb", prefix("mariadb"))
+            relocate("org.postgresql", prefix("postgresql"))
+            relocate("org.sqlite", prefix("sqlite"))
+            relocate("org.yaml.snakeyaml", prefix("snakeyaml"))
+            relocate("sun.jna", prefix("sun.jna"))
+            relocate("waffle", prefix("waffle"))
+        }
     }
     build {
         dependsOn(shadowJar)
@@ -49,54 +71,4 @@ tasks {
 java {
     withSourcesJar()
     withJavadocJar()
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
-    }
 }
-
-tasks {
-    compileJava {
-        options.encoding = "UTF-8"
-    }
-}
-
-/*
-publishing {
-    repositories {
-        maven("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
-            name = "ossrh"
-            credentials {
-                username = project.findProperty("sonatypeUsername") as String? ?: System.getenv("SONATYPE_USERNAME")
-                password = project.findProperty("sonatypePassword") as String? ?: System.getenv("SONATYPE_PASSWORD")
-            }
-        }
-    }
-    publications {
-        register<MavenPublication>(project.name) {
-            from(components["java"])
-            groupId = rootProject.group.toString().toLowerCase()
-            artifactId = project.name.toLowerCase()
-            version = project.version.toString()
-            pom {
-                name.set(project.name)
-                description.set(project.description)
-                developers {
-                    developer {
-                        name.set("JvstvsHD")
-                    }
-                }
-                licenses {
-                    license {
-                        name.set("GNU General Public License v3.0")
-                        url.set("https://www.gnu.org/licenses/gpl-3.0.en.html")
-                    }
-                }
-                url.set("https://github.com/JvstvsHD/velocity-punishment")
-                scm {
-                    connection.set("scm:git:git://github.com/JvstvsHD/velocity-punishment.git")
-                    url.set("https://github.com/JvstvsHD/velocity-punishment/tree/main")
-                }
-            }
-        }
-    }
-}*/

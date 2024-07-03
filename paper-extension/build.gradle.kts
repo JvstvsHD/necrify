@@ -8,25 +8,38 @@ plugins {
 group = "de.jvstvshd.necrify"
 version = rootProject.version
 
-repositories {
-    mavenCentral()
-    maven("https://repo.papermc.io/repository/maven-public/")
-    maven("https://repo.karuslabs.com/repository/chimera-releases/")
-    maven("https://libraries.minecraft.net/")
-}
-
 dependencies {
     compileOnly(libs.paper.api)
-    api(libs.brigadier)
     api(projects.pluginCommon)
 }
 
 tasks {
     shadowJar {
         archiveFileName.set("${rootProject.name}-Paper-${project.version}.jar")
+        dependencies {
+            include(project(":plugin-common"))
+            include(project(":api"))
+        }
     }
     build {
         dependsOn(shadowJar)
+    }
+    /*
+     This is a hacky workaround to exclude all those dependencies from being loaded by paper that are in this project
+     (plugin-common, api). Maybe I should be taken to the International Criminal Court for this
+     */
+    generatePaperPluginDescription {
+        val field = librariesRootComponent.get()::class.java.getDeclaredField("dependencies")
+        field.isAccessible = true
+        val set = field.get(librariesRootComponent.get()) as LinkedHashSet<DependencyResult>
+        val configuration = project(":plugin-common").configurations.getByName("runtimeClasspath")
+        val resolutionResult = configuration.incoming.resolutionResult
+        set.clear()
+        set.addAll(
+            resolutionResult.allDependencies
+                .filter { it.from.id is ProjectComponentIdentifier }
+                .filter { it.requested is ModuleComponentSelector },
+        )
     }
 }
 
@@ -42,4 +55,5 @@ paper {
     apiVersion = "1.20"
     bootstrapper = "de.jvstvshd.necrify.paper.NecrifyPaperPluginBootstrap"
     loader = "de.jvstvshd.necrify.paper.NecrifyPaperPluginLoader"
+    generateLibrariesJson = true
 }
