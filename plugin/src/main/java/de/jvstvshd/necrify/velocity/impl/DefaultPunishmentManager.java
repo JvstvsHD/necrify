@@ -90,7 +90,7 @@ public class DefaultPunishmentManager implements PunishmentManager {
         return plugin.getPunishment(punishmentId);
     }
 
-    @Override
+
     public ProxyServer getServer() {
         return proxyServer;
     }

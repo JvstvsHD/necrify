@@ -33,6 +33,7 @@ import java.util.logging.Level;
  * This logger will delegate all messages to the SLF4J logger.
  * The level conversion is as follows:
  * <table border="1">
+ *     <caption>Level conversion</caption>
  *     <tr>
  *         <th>Java Util Logging Level</th>
  *         <th>SLF4J Level</th>

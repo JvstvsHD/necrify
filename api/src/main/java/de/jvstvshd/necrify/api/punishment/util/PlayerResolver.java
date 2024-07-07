@@ -47,7 +47,7 @@ import java.util.concurrent.Executor;
 public interface PlayerResolver {
 
     /**
-     * Retrieves the player's name via {@link com.velocitypowered.api.proxy.ProxyServer#getPlayer(UUID)}, a caching mechanism or related things.
+     * Retrieves the player's name via  com.velocitypowered.api.proxy.ProxyServer#getPlayer(UUID) (on Velocity), a caching mechanism or related things.
      *
      * @param uuid the uuid of the player
      * @return the name, or {@link Optional#empty()}
@@ -73,7 +73,7 @@ public interface PlayerResolver {
     CompletableFuture<String> getOrQueryPlayerName(@NotNull UUID uuid, @NotNull Executor executor);
 
     /**
-     * Retrieves the player's uuid via {@link com.velocitypowered.api.proxy.ProxyServer#getPlayer(String)}, a caching mechanism or related things.
+     * Retrieves the player's uuid via com.velocitypowered.api.proxy.ProxyServer#getPlayer(String) (on velocity), a caching mechanism or related things.
      *
      * @param name the name of the player
      * @return the name, or {@link Optional#empty()}

@@ -36,8 +36,6 @@ import java.util.concurrent.CompletableFuture;
  *     <li>{@link Punishment#cancel()}</li>
  *     <li>{@link Punishment#change(Component)}</li>
  * </ul>
- *
- * @see com.velocitypowered.api.proxy.Player#disconnect(Component)
  */
 public interface Kick extends Punishment {
 

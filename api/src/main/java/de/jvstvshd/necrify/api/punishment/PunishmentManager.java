@@ -49,7 +49,7 @@ public interface PunishmentManager {
     /**
      * Prepares a ban for a player with custom reason and duration.
      *
-     * @param player   the uuid of the player which should be banned (by either {@link Player#getUniqueId()} ()} or {@link PlayerResolver#getPlayerUuid(String)}.
+     * @param player   the uuid of the player which should be banned (by either {link Player#getUniqueId() or {@link PlayerResolver#getPlayerUuid(String)}.
      * @param reason   the reason given as a {@link Component}.
      * @param duration the duration, which can be created via {@link PunishmentDuration#parse(String)} when it's source is from minecraft commands.
      * @return the prepared ban with the given reason and duration. This duration remains the same at any duration since it is only added when the player is banned.
@@ -61,7 +61,7 @@ public interface PunishmentManager {
      * Prepares a ban for a player with custom reason and duration. Its only difference to {@link #createBan(UUID, Component, PunishmentDuration)} is, that the {@link PunishmentDuration}
      * is {@link PunishmentDuration#permanent()}.
      *
-     * @param player the uuid of the player which should be banned (by either {@link Player#getUniqueId()} ()} or {@link PlayerResolver#getPlayerUuid(String)}.
+     * @param player the uuid of the player which should be banned (by either  Player#getUniqueId() ()} or {@link PlayerResolver#getPlayerUuid(String)}.
      * @param reason the reason given as a {@link Component}.
      * @return the prepared ban with the given reason and duration. The duration is permanent, equals {@link java.time.LocalDateTime#MAX}
      * Only {@link Ban#punish()} is needed to execute the punishment.
@@ -73,7 +73,7 @@ public interface PunishmentManager {
     /**
      * Prepares a mute for a player with custom reason and duration.
      *
-     * @param player   the uuid of the player which should be banned (by either {@link Player#getUniqueId()} ()} or {@link PlayerResolver#getPlayerUuid(String)}.
+     * @param player   the uuid of the player which should be banned (by either  Player#getUniqueId() or {@link PlayerResolver#getPlayerUuid(String)}.
      * @param reason   the reason given as a {@link Component}.
      * @param duration the duration, which can be created via {@link PunishmentDuration#parse(String)} when it's source is from minecraft commands.
      * @return the prepared ban with the given reason and duration. This duration remains the same at any duration since it is only added when the player is banned.
@@ -85,7 +85,7 @@ public interface PunishmentManager {
      * Prepares a ban for a player with custom reason and duration. Its only difference to {@link #createMute(UUID, Component, PunishmentDuration)} is, that the {@link PunishmentDuration}
      * is {@link PunishmentDuration#permanent()}.
      *
-     * @param player the uuid of the player which should be banned (by either {@link Player#getUniqueId()} ()} or {@link PlayerResolver#getPlayerUuid(String)}
+     * @param player the uuid of the player which should be banned (by either Player#getUniqueId() or {@link PlayerResolver#getPlayerUuid(String)}
      * @param reason the reason given as a {@link Component}.
      * @return the prepared ban with the given reason and duration. The duration is permanent, equals {@link java.time.LocalDateTime#MAX}
      * Only {@link Mute#punish()} is needed to execute the punishment.

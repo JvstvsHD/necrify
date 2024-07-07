@@ -274,4 +274,9 @@ public class VelocityUser implements NecrifyUser {
                 ", player=" + player +
                 '}';
     }
+
+    @Override
+    public void delete() {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
 }
