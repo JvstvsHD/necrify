@@ -171,6 +171,11 @@ public interface NecrifyUser extends CommandSender {
     void setWhitelisted(boolean whitelisted);
 
     /**
+     * Deletes this user from the system. This will also delete all punishments associated with this user.
+     */
+    void delete();
+
+    /**
      * Method to add punishments to users. This method is only meant to be used until events are implemented.
      *
      * @param punishment the punishment to add.

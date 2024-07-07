@@ -17,6 +17,9 @@ sqlite = "3.45.3.0"
 mysql = "8.4.0"
 adventure = "4.17.0"
 cloud = "2.0.0-SNAPSHOT"
+eventbus = "3.3.1"
+jetbrains-annotations = "24.1.0"
+slf4j = "2.0.13"
 
 [libraries]
 
@@ -40,6 +43,9 @@ adventure-api = { group = "net.kyori", name = "adventure-api", version.ref = "ad
 adventure-text-minimessage = { group = "net.kyori", name = "adventure-text-minimessage", version.ref = "adventure" }
 cloud-core = { group = "org.incendo", name = "cloud-core", version.ref = "cloud" }
 cloud-annotations = { group = "org.incendo", name = "cloud-annotations", version.ref = "cloud" }
+jetbrains-annotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrains-annotations" }
+eventbus = { group = "org.greenrobot", name = "eventbus-java", version.ref = "eventbus" }
+slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
 
 [bundles]
 

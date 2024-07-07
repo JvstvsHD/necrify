@@ -24,8 +24,6 @@
 
 package de.jvstvshd.necrify.api.punishment;
 
-import com.velocitypowered.api.proxy.Player;
-import com.velocitypowered.api.proxy.ProxyServer;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
 import net.kyori.adventure.text.Component;
@@ -45,7 +43,7 @@ import java.util.concurrent.Executor;
  * <a href="https://github.com/users/JvstvsHD/projects/5/views/1?pane=issue&itemId=65367115">NecrifyUser</a>.
  */
 @Deprecated(since = "1.2.0", forRemoval = true)
-@ApiStatus.ScheduledForRemoval(inVersion = "1.3.0")
+@ApiStatus.ScheduledForRemoval(inVersion = "1.2.0")
 public interface PunishmentManager {
 
     /**
@@ -115,11 +113,6 @@ public interface PunishmentManager {
      * @deprecated This method is deprecated and will be removed in 2.0.0. Use {@link de.jvstvshd.necrify.api.Necrify#getPunishment(UUID)} instead.
      */
     <T extends Punishment> CompletableFuture<Optional<T>> getPunishment(UUID punishmentId, Executor service);
-
-    /**
-     * @return the underlying {@link ProxyServer} of this punishment manager.
-     */
-    ProxyServer getServer();
 
     /**
      * Checks whether the player specified via <code>playerUuid</code>. By default this method must not be overwritten and throws an {@link UnsupportedOperationException}

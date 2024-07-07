@@ -24,7 +24,6 @@
 
 package de.jvstvshd.necrify.api;
 
-import com.velocitypowered.api.proxy.ProxyServer;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.PunishmentManager;
@@ -69,36 +68,29 @@ public interface Necrify {
      * @deprecated Will be removed with {@link PunishmentManager}.
      */
     @Deprecated(since = "1.2.0", forRemoval = true)
-    @ApiStatus.ScheduledForRemoval(inVersion = "2.0.0")
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.2.0")
     PunishmentManager getPunishmentManager();
 
     /**
      * @deprecated Will be removed with {@link PunishmentManager}.
      */
     @Deprecated(since = "1.2.0", forRemoval = true)
-    @ApiStatus.ScheduledForRemoval(inVersion = "2.0.0")
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.2.0")
     void setPunishmentManager(PunishmentManager punishmentManager);
 
     /**
      * @deprecated Will be removed with {@link PunishmentManager}.
      */
     @Deprecated(since = "1.2.0", forRemoval = true)
-    @ApiStatus.ScheduledForRemoval(inVersion = "2.0.0")
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.2.0")
     PlayerResolver getPlayerResolver();
 
     /**
      * @deprecated Will be removed with {@link PunishmentManager}.
      */
     @Deprecated(since = "1.2.0", forRemoval = true)
-    @ApiStatus.ScheduledForRemoval(inVersion = "2.0.0")
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.2.0")
     void setPlayerResolver(PlayerResolver playerResolver);
-
-    /**
-     * @deprecated Will be removed with multi-platform support.
-     */
-    @Deprecated(since = "1.2.0", forRemoval = true)
-    @ApiStatus.ScheduledForRemoval(inVersion = "2.0.0")
-    ProxyServer getServer();
 
     @NotNull
     ExecutorService getService();

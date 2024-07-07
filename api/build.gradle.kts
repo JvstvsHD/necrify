@@ -1,5 +1,6 @@
 plugins {
     java
+    `java-library`
 }
 
 version = rootProject.version
@@ -10,7 +11,12 @@ repositories {
 }
 
 dependencies {
-    compileOnly(libs.velocity.api)
+    api(libs.jetbrains.annotations)
+    api(libs.eventbus)
+    compileOnly(libs.slf4j.api)
+    compileOnly(libs.bundles.adventure)
+    testImplementation(libs.slf4j.api)
+    testImplementation("ch.qos.logback:logback-classic:1.5.6")
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)
 }

@@ -79,7 +79,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Plugin(id = "necrify", name = "Necrify", version = "1.0.0-SNAPSHOT", description = "A simple punishment plugin for Velocity", authors = {"JvstvsHD"})
+@Plugin(id = "necrify", name = "Necrify", version = "1.2.0-SNAPSHOT", description = "A simple punishment plugin for Velocity", authors = {"JvstvsHD"})
 public class NecrifyPlugin implements Necrify {
 
     private final ProxyServer server;
@@ -214,8 +214,6 @@ public class NecrifyPlugin implements Necrify {
         this.playerResolver = playerResolver;
     }
 
-    @SuppressWarnings("removal")
-    @Override
     public ProxyServer getServer() {
         return server;
     }
