@@ -32,13 +32,15 @@ import de.chojo.sadu.mapper.wrapper.Row;
 import de.chojo.sadu.queries.api.call.Call;
 import de.chojo.sadu.queries.api.query.Query;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
+import de.jvstvshd.necrify.api.event.user.UserDeletedEvent;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.*;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
+import de.jvstvshd.necrify.api.user.UserDeletionReason;
 import de.jvstvshd.necrify.common.io.Adapters;
 import de.jvstvshd.necrify.common.punishment.NecrifyBan;
 import de.jvstvshd.necrify.common.punishment.NecrifyMute;
-import de.jvstvshd.necrify.velocity.NecrifyPlugin;
+import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import de.jvstvshd.necrify.velocity.impl.VelocityKick;
 import de.jvstvshd.necrify.velocity.internal.Util;
 import net.kyori.adventure.text.Component;
@@ -68,12 +70,12 @@ public class VelocityUser implements NecrifyUser {
     private final ExecutorService service;
     private final MessageProvider messageProvider;
     private final ProxyServer server;
-    private final NecrifyPlugin plugin;
+    private final NecrifyVelocityPlugin plugin;
     private boolean whitelisted;
     private String name;
     private Player player;
 
-    public VelocityUser(@NotNull UUID uuid, @Nullable String name, boolean whitelisted, @Nullable Player player, NecrifyPlugin plugin) {
+    public VelocityUser(@NotNull UUID uuid, @Nullable String name, boolean whitelisted, @Nullable Player player, NecrifyVelocityPlugin plugin) {
         this.whitelisted = whitelisted;
         this.plugin = plugin;
         this.punishments = new ArrayList<>();
@@ -86,7 +88,7 @@ public class VelocityUser implements NecrifyUser {
         this.server = plugin.getServer();
     }
 
-    public VelocityUser(@NotNull UUID uuid, @Nullable String name, boolean whitelisted, NecrifyPlugin plugin) {
+    public VelocityUser(@NotNull UUID uuid, @Nullable String name, boolean whitelisted, NecrifyVelocityPlugin plugin) {
         this.whitelisted = whitelisted;
         this.plugin = plugin;
         this.punishments = new ArrayList<>();
@@ -112,7 +114,7 @@ public class VelocityUser implements NecrifyUser {
 
     @Override
     public @NotNull Ban ban(@Nullable Component reason, @NotNull PunishmentDuration duration) {
-        return punish(new NecrifyBan(this, reason, dataSource, service, duration.absolute(), messageProvider));
+        return punish(new NecrifyBan(this, reason, duration.absolute(), plugin));
     }
 
     @Override
@@ -122,7 +124,7 @@ public class VelocityUser implements NecrifyUser {
 
     @Override
     public @NotNull Mute mute(@Nullable Component reason, @NotNull PunishmentDuration duration) {
-        return punish(new NecrifyMute(this, reason, dataSource, service, duration.absolute(), messageProvider));
+        return punish(new NecrifyMute(this, reason, duration.absolute(), plugin));
     }
 
     @Override
@@ -132,7 +134,7 @@ public class VelocityUser implements NecrifyUser {
 
     @Override
     public @NotNull Kick kick(@Nullable Component reason) {
-        var kick = new VelocityKick(this, reason, dataSource, service, UUID.randomUUID(), messageProvider);
+        var kick = new VelocityKick(this, reason, UUID.randomUUID(), plugin);
         kick.punish();
         return kick;
     }
@@ -146,6 +148,7 @@ public class VelocityUser implements NecrifyUser {
     @SuppressWarnings("unchecked")
     @Override
     public @NotNull <T extends Punishment> List<T> getPunishments(PunishmentType... types) {
+        validatePunishments();
         if (types == null || types.length == 0)
             return (List<T>) ImmutableList.copyOf(punishments);
         return (List<T>) ImmutableList.copyOf(punishments.stream().filter(punishment -> {
@@ -157,19 +160,23 @@ public class VelocityUser implements NecrifyUser {
         }).toList());
     }
 
+    private synchronized void validatePunishments() {
+        punishments.removeIf(punishment -> !punishment.isOngoing());
+    }
+
     @Override
     public @NotNull CompletableFuture<String> queryUsername(boolean update) {
-        try (HttpClient httpClient = HttpClient.newHttpClient()) {
-            HttpRequest request = HttpRequest.newBuilder(URI.create("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid)).GET().build();
-            return httpClient
-                    .sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                    .thenApply(response -> JsonParser.parseString(response.body()).getAsJsonObject().get("name").getAsString())
-                    .thenApplyAsync(s -> {
-                        if (update)
-                            name = s;
-                        return s;
-                    });
-        }
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder(URI.create("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid)).GET().build();
+        return httpClient
+                .sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenApply(response -> JsonParser.parseString(response.body()).getAsJsonObject().get("name").getAsString())
+                .thenApplyAsync(s -> {
+                    if (update)
+                        name = s;
+                    return s;
+                });
+
     }
 
     public Optional<Player> queryPlayer() {
@@ -199,12 +206,9 @@ public class VelocityUser implements NecrifyUser {
         final UUID punishmentUuid = row.getObject(4, UUID.class);
         Punishment punishment;
         switch (type) {
-            case BAN, PERMANENT_BAN ->
-                    punishment = new NecrifyBan(this, reason, dataSource, service, punishmentUuid, duration, messageProvider);
-            case MUTE, PERMANENT_MUTE ->
-                    punishment = new NecrifyMute(this, reason, dataSource, service, punishmentUuid, duration, messageProvider);
-            case KICK ->
-                    punishment = new VelocityKick(this, reason, dataSource, service, punishmentUuid, messageProvider);
+            case BAN, PERMANENT_BAN -> punishment = new NecrifyBan(this, reason, punishmentUuid, duration, plugin);
+            case MUTE, PERMANENT_MUTE -> punishment = new NecrifyMute(this, reason, punishmentUuid, duration, plugin);
+            case KICK -> punishment = new VelocityKick(this, reason, punishmentUuid, plugin);
             default -> throw new UnsupportedOperationException("unhandled punishment type: " + type.getName());
         }
         punishments.add(punishment);
@@ -236,12 +240,10 @@ public class VelocityUser implements NecrifyUser {
         this.player = player;
     }
 
-    @Override
     public void addPunishment(Punishment punishment) {
         punishments.add(punishment);
     }
 
-    @Override
     public void removePunishment(Punishment punishment) {
         punishments.remove(punishment);
     }
@@ -276,7 +278,8 @@ public class VelocityUser implements NecrifyUser {
     }
 
     @Override
-    public void delete() {
+    public void delete(@NotNull UserDeletionReason reason) {
+        plugin.getEventDispatcher().dispatch(new UserDeletedEvent(this, reason));
         throw new UnsupportedOperationException("not implemented yet");
     }
 }

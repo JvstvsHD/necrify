@@ -34,7 +34,7 @@ import com.velocitypowered.api.command.BrigadierCommand;
 import com.velocitypowered.api.command.CommandSource;
 import de.jvstvshd.necrify.api.PunishmentException;
 import de.jvstvshd.necrify.api.punishment.Punishment;
-import de.jvstvshd.necrify.velocity.NecrifyPlugin;
+import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import de.jvstvshd.necrify.velocity.internal.PunishmentHelper;
 import de.jvstvshd.necrify.velocity.internal.Util;
 import net.kyori.adventure.text.Component;
@@ -51,7 +51,7 @@ public class PunishmentCommand {
 
     private final static List<String> PUNISHMENT_OPTIONS = ImmutableList.of("cancel", "remove", "info", "change");
 
-    public static BrigadierCommand punishmentCommand(NecrifyPlugin plugin) {
+    public static BrigadierCommand punishmentCommand(NecrifyVelocityPlugin plugin) {
         var node = Util.permissibleCommand("punishment", "necrify.command.punishment")
                 .then(LiteralArgumentBuilder.<CommandSource>literal("playerinfo")
                         .then(Util.punishmentRemoveArgument(plugin).executes(context -> executePlayerInfo(context, plugin))))
@@ -63,7 +63,7 @@ public class PunishmentCommand {
         return new BrigadierCommand(node);
     }
 
-    private static int executePlayerInfo(CommandContext<CommandSource> context, NecrifyPlugin plugin) {
+    private static int executePlayerInfo(CommandContext<CommandSource> context, NecrifyVelocityPlugin plugin) {
         CommandSource source = context.getSource();
         var punishmentManager = plugin.getPunishmentManager();
         PunishmentHelper.getPlayerUuid(context, plugin).whenCompleteAsync((uuid, throwable) -> {
@@ -87,7 +87,7 @@ public class PunishmentCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int execute(CommandContext<CommandSource> context, NecrifyPlugin plugin) {
+    private static int execute(CommandContext<CommandSource> context, NecrifyVelocityPlugin plugin) {
         var source = context.getSource();
         var uuidString = context.getArgument("punishment ID", String.class);
         UUID uuid;

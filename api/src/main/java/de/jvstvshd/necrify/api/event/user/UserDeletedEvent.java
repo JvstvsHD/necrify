@@ -25,6 +25,7 @@
 package de.jvstvshd.necrify.api.event.user;
 
 import de.jvstvshd.necrify.api.user.NecrifyUser;
+import de.jvstvshd.necrify.api.user.UserDeletionReason;
 
 /**
  * Event that is fired when a user is deleted.
@@ -33,7 +34,7 @@ import de.jvstvshd.necrify.api.user.NecrifyUser;
  */
 public class UserDeletedEvent extends UserEvent {
 
-    private final Reason reason;
+    private final UserDeletionReason reason;
 
     /**
      * Creates a new UserDeletedEvent.
@@ -41,30 +42,12 @@ public class UserDeletedEvent extends UserEvent {
      * @param user   The user that was deleted.
      * @param reason The reason why the user was deleted.
      */
-    public UserDeletedEvent(NecrifyUser user, Reason reason) {
+    public UserDeletedEvent(NecrifyUser user, UserDeletionReason reason) {
         super("user_deleted", user);
         this.reason = reason;
     }
 
-    public Reason getReason() {
+    public UserDeletionReason getReason() {
         return reason;
-    }
-
-    /**
-     * The reason why the user was deleted.
-     *
-     * @since 1.2.0
-     */
-    public enum Reason {
-
-        /**
-         * The user was deleted because the user requested it. This may due to data protection regulation.
-         */
-        USER_REQUESTED,
-
-        /**
-         * The user was deleted by the system or a team member.
-         */
-        USER_DELETED
     }
 }

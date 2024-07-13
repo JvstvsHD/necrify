@@ -24,6 +24,7 @@
 
 package de.jvstvshd.necrify.api;
 
+import de.jvstvshd.necrify.api.event.EventDispatcher;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.PunishmentManager;
@@ -68,32 +69,49 @@ public interface Necrify {
      * @deprecated Will be removed with {@link PunishmentManager}.
      */
     @Deprecated(since = "1.2.0", forRemoval = true)
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.2.0")
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.3.0")
     PunishmentManager getPunishmentManager();
 
     /**
      * @deprecated Will be removed with {@link PunishmentManager}.
      */
     @Deprecated(since = "1.2.0", forRemoval = true)
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.2.0")
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.3.0")
     void setPunishmentManager(PunishmentManager punishmentManager);
 
     /**
      * @deprecated Will be removed with {@link PunishmentManager}.
      */
     @Deprecated(since = "1.2.0", forRemoval = true)
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.2.0")
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.3.0")
     PlayerResolver getPlayerResolver();
 
     /**
      * @deprecated Will be removed with {@link PunishmentManager}.
      */
     @Deprecated(since = "1.2.0", forRemoval = true)
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.2.0")
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.3.0")
     void setPlayerResolver(PlayerResolver playerResolver);
 
+    /**
+     * Returns the executor service used by the plugin.
+     *
+     * @return the executor service.
+     * @deprecated Rename in favor of {@link #getExecutor()}.
+     */
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.3.0")
+    @Deprecated(since = "1.2.0", forRemoval = true)
     @NotNull
     ExecutorService getService();
+
+    /**
+     * Returns the executor service used by the plugin. This {@link ExecutorService} is used for asynchronous operations,
+     * such as database queries, event dispatching or time-consuming network/IO operations.
+     *
+     * @return the executor service.
+     */
+    @NotNull
+    ExecutorService getExecutor();
 
     @NotNull
     MessageProvider getMessageProvider();
@@ -116,4 +134,19 @@ public interface Necrify {
     default <T extends Punishment> CompletableFuture<Optional<T>> getPunishment(@NotNull UUID punishmentId) {
         return getPunishmentManager().getPunishment(punishmentId, getService());
     }
+
+    /**
+     * Returns the system's event dispatcher.
+     *
+     * @return the event dispatcher.
+     */
+    @NotNull
+    EventDispatcher getEventDispatcher();
+
+    /**
+     * Sets the event dispatcher.
+     *
+     * @param eventDispatcher the event dispatcher to set.
+     */
+    void setEventDispatcher(@NotNull EventDispatcher eventDispatcher);
 }

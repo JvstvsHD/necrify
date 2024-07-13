@@ -32,7 +32,7 @@ import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.TemporalPunishment;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
-import de.jvstvshd.necrify.velocity.NecrifyPlugin;
+import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -91,11 +91,11 @@ public class PunishmentHelper {
     }
 
     /**
-     * @deprecated in favor of the new User API, use {@link #getUser(CommandContext, NecrifyPlugin)} instead.
+     * @deprecated in favor of the new User API, use {@link #getUser(CommandContext, NecrifyVelocityPlugin)} instead.
      */
     @Deprecated(since = "1.2.0", forRemoval = true)
     @ApiStatus.ScheduledForRemoval(inVersion = "2.0.0")
-    public static CompletableFuture<UUID> getPlayerUuid(CommandContext<CommandSource> context, NecrifyPlugin plugin) {
+    public static CompletableFuture<UUID> getPlayerUuid(CommandContext<CommandSource> context, NecrifyVelocityPlugin plugin) {
         var argument = context.getArgument("player", String.class);
         if (argument.length() <= 16) {
             return plugin.getPlayerResolver().getOrQueryPlayerUuid(argument, plugin.getService());
@@ -110,7 +110,7 @@ public class PunishmentHelper {
         }
     }
 
-    public static CompletableFuture<Optional<NecrifyUser>> getUser(CommandContext<CommandSource> context, NecrifyPlugin plugin) {
+    public static CompletableFuture<Optional<NecrifyUser>> getUser(CommandContext<CommandSource> context, NecrifyVelocityPlugin plugin) {
         var argument = context.getArgument("player", String.class);
         if (argument.length() <= 16) {
             return plugin.getUserManager().loadUser(argument);

@@ -29,7 +29,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.velocitypowered.api.command.BrigadierCommand;
 import com.velocitypowered.api.command.CommandSource;
 import de.jvstvshd.necrify.api.PunishmentException;
-import de.jvstvshd.necrify.velocity.NecrifyPlugin;
+import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import de.jvstvshd.necrify.velocity.internal.PunishmentHelper;
 import de.jvstvshd.necrify.velocity.internal.Util;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -37,14 +37,14 @@ import net.kyori.adventure.text.format.TextDecoration;
 
 public class BanCommand {
 
-    public static BrigadierCommand banCommand(NecrifyPlugin plugin) {
+    public static BrigadierCommand banCommand(NecrifyVelocityPlugin plugin) {
         var node = Util.permissibleCommand("ban", "necrify.command.ban")
                 .then(Util.playerArgument(plugin.getServer()).executes(context -> execute(context, plugin))
                         .then(Util.reasonArgument.executes(context -> execute(context, plugin))));
         return new BrigadierCommand(node);
     }
 
-    private static int execute(CommandContext<CommandSource> context, NecrifyPlugin plugin) {
+    private static int execute(CommandContext<CommandSource> context, NecrifyVelocityPlugin plugin) {
         var source = context.getSource();
         var player = context.getArgument("player", String.class);
         var reason = PunishmentHelper.parseReason(context);

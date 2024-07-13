@@ -24,26 +24,24 @@
 
 package de.jvstvshd.necrify.velocity.impl;
 
-import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
+import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.punishment.NecrifyKick;
 import de.jvstvshd.necrify.velocity.user.VelocityUser;
 import net.kyori.adventure.text.Component;
 
-import javax.sql.DataSource;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 
 public class VelocityKick extends NecrifyKick {
 
-    public VelocityKick(NecrifyUser user, Component reason, DataSource dataSource, ExecutorService service, UUID punishmentUuid, MessageProvider messageProvider) {
-        super(user, reason, dataSource, service, punishmentUuid, messageProvider);
+    public VelocityKick(NecrifyUser user, Component reason, UUID punishmentUuid, AbstractNecrifyPlugin plugin) {
+        super(user, reason, punishmentUuid, plugin);
     }
 
     @Override
-    public CompletableFuture<Punishment> punish() {
+    protected CompletableFuture<Punishment> applyPunishment() {
         if (!(getUser() instanceof VelocityUser))
             throw new IllegalStateException("Cannot kick user: User is not a VelocityUser.");
         var player = ((VelocityUser) getUser()).getPlayer();

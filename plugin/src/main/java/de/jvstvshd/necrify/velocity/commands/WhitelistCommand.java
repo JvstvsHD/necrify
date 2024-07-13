@@ -31,7 +31,7 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.velocitypowered.api.command.BrigadierCommand;
 import com.velocitypowered.api.command.CommandSource;
-import de.jvstvshd.necrify.velocity.NecrifyPlugin;
+import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import de.jvstvshd.necrify.velocity.internal.Util;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -45,7 +45,7 @@ public class WhitelistCommand {
     public static final List<String> options = ImmutableList.of("add", "remove", "on", "off");
 
 
-    public static BrigadierCommand whitelistCommand(NecrifyPlugin plugin) {
+    public static BrigadierCommand whitelistCommand(NecrifyVelocityPlugin plugin) {
         var node = Util.permissibleCommand("whitelist", "necrify.command.whitelist")
                 .then(RequiredArgumentBuilder.<CommandSource, String>argument("option", StringArgumentType.word())
                         .executes(context -> execute(context, plugin)).suggests((context, builder) -> {
@@ -60,7 +60,7 @@ public class WhitelistCommand {
         return new BrigadierCommand(node);
     }
 
-    private static int execute(CommandContext<CommandSource> context, NecrifyPlugin plugin) {
+    private static int execute(CommandContext<CommandSource> context, NecrifyVelocityPlugin plugin) {
         var source = context.getSource();
         String player;
         if (context.getArguments().containsKey("player")) {

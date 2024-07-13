@@ -22,27 +22,31 @@
  * SOFTWARE.
  */
 
-package de.jvstvshd.necrify.api.event.punishment;
+package de.jvstvshd.necrify.common;
 
-import de.jvstvshd.necrify.api.punishment.Punishment;
+import de.jvstvshd.necrify.api.Necrify;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Represents an event that is related to a punishment that has been changed.
- *
- * @since 1.2.0
- */
-public class PunishmentChangedEvent extends PunishmentEvent {
+import java.util.concurrent.ExecutorService;
 
-    private final Punishment oldPunishment;
+public abstract class AbstractNecrifyPlugin implements Necrify {
 
-    public PunishmentChangedEvent(Punishment punishment, Punishment oldPunishment) {
-        super("punishment_changed", punishment);
-        this.oldPunishment = oldPunishment;
+    protected ExecutorService executorService;
+
+    public AbstractNecrifyPlugin(ExecutorService executorService) {
+        this.executorService = executorService;
     }
 
-    @NotNull
-    public Punishment getOldPunishment() {
-        return oldPunishment;
+    public AbstractNecrifyPlugin() {
+    }
+
+    @Override
+    public @NotNull ExecutorService getExecutor() {
+        return executorService;
+    }
+
+    @Override
+    public @NotNull ExecutorService getService() {
+        return getExecutor();
     }
 }

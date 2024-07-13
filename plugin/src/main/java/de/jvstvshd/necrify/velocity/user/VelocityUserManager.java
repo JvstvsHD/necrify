@@ -31,11 +31,16 @@ import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.proxy.ProxyServer;
 import de.chojo.sadu.queries.api.call.Call;
 import de.chojo.sadu.queries.api.query.Query;
+import de.jvstvshd.necrify.api.event.origin.EventOrigin;
+import de.jvstvshd.necrify.api.event.punishment.PunishmentCancelledEvent;
+import de.jvstvshd.necrify.api.event.punishment.PunishmentChangedEvent;
+import de.jvstvshd.necrify.api.event.punishment.PunishmentPersecutedEvent;
+import de.jvstvshd.necrify.api.event.user.UserLoadedEvent;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserManager;
 import de.jvstvshd.necrify.common.io.Adapters;
 import de.jvstvshd.necrify.common.user.MojangAPI;
-import de.jvstvshd.necrify.velocity.NecrifyPlugin;
+import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import de.jvstvshd.necrify.velocity.internal.Util;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -69,9 +74,9 @@ public class VelocityUserManager implements UserManager {
     private final ProxyServer server;
     private final Cache<UUID, VelocityUser> userCache;
     private final Cache<String, UUID> nameCache;
-    private final NecrifyPlugin plugin;
+    private final NecrifyVelocityPlugin plugin;
 
-    public VelocityUserManager(ExecutorService executor, ProxyServer server, Cache<UUID, VelocityUser> userCache, Cache<String, UUID> nameCache, NecrifyPlugin plugin) {
+    public VelocityUserManager(ExecutorService executor, ProxyServer server, Cache<UUID, VelocityUser> userCache, Cache<String, UUID> nameCache, NecrifyVelocityPlugin plugin) {
         this.executor = executor;
         this.server = server;
         this.userCache = userCache;
@@ -111,8 +116,11 @@ public class VelocityUserManager implements UserManager {
                         .map(velocityUser::addPunishment).all();
             });
             //will cause compilation error: return user.map(this::cache);
-            //noinspection Convert2MethodRef
-            return user.map(velocityUser -> cache(velocityUser));
+            return user.map(velocityUser -> {
+                cache(velocityUser);
+                plugin.getEventDispatcher().dispatch(new UserLoadedEvent(velocityUser).setOrigin(EventOrigin.ofClass(getClass())));
+                return velocityUser;
+            });
         }, executor);
     }
 
@@ -134,8 +142,11 @@ public class VelocityUserManager implements UserManager {
                         .map(velocityUser::addPunishment).all();
             });
             //will cause compilation error: return user.map(this::cache);
-            //noinspection Convert2MethodRef
-            return user.map(velocityUser -> cache(velocityUser));
+            return user.map(velocityUser -> {
+                cache(velocityUser);
+                plugin.getEventDispatcher().dispatch(new UserLoadedEvent(velocityUser).setOrigin(EventOrigin.ofClass(getClass())));
+                return velocityUser;
+            });
         }, executor);
     }
 
@@ -170,7 +181,9 @@ public class VelocityUserManager implements UserManager {
         if (!result.changed()) {
             throw new IllegalStateException("user already exists");
         }
-        return cache(new VelocityUser(uuid, name, false, plugin));
+        var user = new VelocityUser(uuid, name, false, plugin);
+        plugin.getEventDispatcher().dispatch(new UserLoadedEvent(user));
+        return cache(user);
     }
 
     @Override
@@ -225,5 +238,39 @@ public class VelocityUserManager implements UserManager {
         var user = userCache.getIfPresent(uuid);
         if (user == null) return;
         user.setPlayer(player);
+    }
+
+    @org.greenrobot.eventbus.Subscribe
+    public void onUserLoaded(UserLoadedEvent event) {
+        if (event.getOrigin().originatesFrom(getClass())) return;
+        var user = event.getUser();
+        if (user instanceof VelocityUser) {
+            cache((VelocityUser) user);
+        }
+    }
+
+    @org.greenrobot.eventbus.Subscribe
+    public void onPunishmentEnforced(PunishmentPersecutedEvent event) {
+        var punishment = event.getPunishment();
+        if (punishment.getUser() instanceof VelocityUser user) {
+            user.addPunishment(punishment);
+        }
+    }
+
+    @org.greenrobot.eventbus.Subscribe
+    public void onPunishmentCancelled(PunishmentCancelledEvent event) {
+        var punishment = event.getPunishment();
+        if (punishment.getUser() instanceof VelocityUser user) {
+            user.removePunishment(punishment);
+        }
+    }
+
+    @org.greenrobot.eventbus.Subscribe
+    public void onPunishmentChanged(PunishmentChangedEvent event) {
+        var punishment = event.getPunishment();
+        if (punishment.getUser() instanceof VelocityUser user) {
+            user.removePunishment(punishment);
+            user.addPunishment(punishment);
+        }
     }
 }

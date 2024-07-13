@@ -29,7 +29,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.velocitypowered.api.command.BrigadierCommand;
 import com.velocitypowered.api.command.CommandSource;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
-import de.jvstvshd.necrify.velocity.NecrifyPlugin;
+import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import de.jvstvshd.necrify.velocity.internal.PunishmentHelper;
 import de.jvstvshd.necrify.velocity.internal.Util;
 import net.kyori.adventure.text.Component;
@@ -42,7 +42,7 @@ import java.util.Optional;
 public class TempbanCommand {
 
 
-    public static BrigadierCommand tempbanCommand(NecrifyPlugin plugin) {
+    public static BrigadierCommand tempbanCommand(NecrifyVelocityPlugin plugin) {
         var node = Util.permissibleCommand("tempban", "necrify.command.tempban")
                 .then(Util.playerArgument(plugin.getServer())
                         .then(Util.durationArgument.executes(context -> execute(context, plugin))
@@ -50,7 +50,7 @@ public class TempbanCommand {
         return new BrigadierCommand(node);
     }
 
-    private static int execute(CommandContext<CommandSource> context, NecrifyPlugin plugin) {
+    private static int execute(CommandContext<CommandSource> context, NecrifyVelocityPlugin plugin) {
         CommandSource source = context.getSource();
         var player = context.getArgument("player", String.class);
         plugin.getPlayerResolver().getOrQueryPlayerUuid(player, plugin.getService()).whenCompleteAsync((uuid, throwable) -> {

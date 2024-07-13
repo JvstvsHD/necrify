@@ -25,7 +25,7 @@
 package de.jvstvshd.necrify.velocity.message;
 
 import de.jvstvshd.necrify.api.message.MessageProvider;
-import de.jvstvshd.necrify.velocity.NecrifyPlugin;
+import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import de.jvstvshd.necrify.velocity.config.ConfigData;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
@@ -77,14 +77,14 @@ public class ResourceBundleMessageProvider implements MessageProvider {
                         LOGGER.error("An error occurred while loading translation file {}", path.getFileName(), e);
                     }
                 });
-                try (JarFile jar = new JarFile(new File(NecrifyPlugin.class.getProtectionDomain().getCodeSource().getLocation().toURI()))) {
+                try (JarFile jar = new JarFile(new File(NecrifyVelocityPlugin.class.getProtectionDomain().getCodeSource().getLocation().toURI()))) {
                     for (JarEntry translationEntry : jar.stream().filter(jarEntry -> jarEntry.getName().toLowerCase().contains("translations") && !jarEntry.isDirectory()).toList()) {
                         var path = Path.of(baseDir.toString(), translationEntry.getName().split("/")[1]);
                         if (Files.exists(path)) {
                             continue;
                         }
                         System.out.println("copying translation file " + translationEntry.getName());
-                        Files.copy(Objects.requireNonNull(NecrifyPlugin.class.getResourceAsStream("/" + translationEntry.getName())), path);
+                        Files.copy(Objects.requireNonNull(NecrifyVelocityPlugin.class.getResourceAsStream("/" + translationEntry.getName())), path);
                     }
                 }
             }

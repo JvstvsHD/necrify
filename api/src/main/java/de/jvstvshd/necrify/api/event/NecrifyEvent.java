@@ -24,6 +24,8 @@
 
 package de.jvstvshd.necrify.api.event;
 
+import de.jvstvshd.necrify.api.event.origin.EventOrigin;
+
 /**
  * Represents an event that can be dispatched by the {@link EventDispatcher}.
  * All events must extend this class.
@@ -33,6 +35,7 @@ package de.jvstvshd.necrify.api.event;
 public abstract class NecrifyEvent {
 
     private final String name;
+    private EventOrigin origin = null;
     private EventDispatcher executingDispatcher = null;
 
     public NecrifyEvent(String name) {
@@ -60,6 +63,26 @@ public abstract class NecrifyEvent {
      */
     NecrifyEvent setExecutingDispatcher(EventDispatcher executingDispatcher) {
         this.executingDispatcher = executingDispatcher;
+        return this;
+    }
+
+    /**
+     * Gets the origin of this event.
+     *
+     * @return the origin of this event.
+     */
+    public EventOrigin getOrigin() {
+        return origin;
+    }
+
+    /**
+     * Sets the origin of this event.
+     *
+     * @param origin the origin of this event.
+     * @return this event.
+     */
+    public NecrifyEvent setOrigin(EventOrigin origin) {
+        this.origin = origin;
         return this;
     }
 }

@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -133,6 +134,7 @@ public interface NecrifyUser extends CommandSender {
 
     /**
      * This method queries all punishments with the given {@link UUID} of a player and returns them in a list.
+     * All punishments that are returned are still running, i.e. they are not expired or revoked.
      *
      * @param <T>   the type of punishment(s), matching them in <code>type</code>
      * @param types the types of punishments to query. If no type is given, all punishments that are stored as running
@@ -173,26 +175,39 @@ public interface NecrifyUser extends CommandSender {
     /**
      * Deletes this user from the system. This will also delete all punishments associated with this user.
      */
-    void delete();
+    void delete(@NotNull UserDeletionReason reason);
 
     /**
-     * Method to add punishments to users. This method is only meant to be used until events are implemented.
+     * Gets a punishment by its UUID. This punishment has to be valid, i.e. it is still running. A punishment that
+     * was revoked or expired is not returned by this method.
+     *
+     * @param punishmentUuid the UUID of the punishment.
+     * @return the punishment with the given UUID, if it exists.
+     */
+    default Optional<Punishment> getPunishment(@NotNull UUID punishmentUuid) {
+        return getPunishments().stream().filter(punishment -> punishment.getPunishmentUuid().equals(punishmentUuid)).findFirst();
+    }
+
+    /*    *//**
+     * Method to add punishments to users. This method is only meant to be used until events are implemented and all
+     * other components can be used so this method will not be used.
      *
      * @param punishment the punishment to add.
-     */
+     *//*
     @Deprecated(forRemoval = true)
     @ApiStatus.ScheduledForRemoval(inVersion = "1.2.0")
     default void addPunishment(Punishment punishment) {
     }
 
-    /**
-     * Method to remove punishments from users. This method is only meant to be used until events are implemented.
+    *//**
+     * Method to remove punishments from users. This method is only meant to be used until events are implemented and all
+     * other components can be used so this method will not be used.
      * This does not cancel the punishment, it only removes it from the user's punishment list.
      *
      * @param punishment the punishment to remove.
-     */
+     *//*
     @Deprecated(forRemoval = true)
     @ApiStatus.ScheduledForRemoval(inVersion = "1.2.0")
     default void removePunishment(Punishment punishment) {
-    }
+    }*/
 }

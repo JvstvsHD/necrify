@@ -29,10 +29,11 @@ import com.mojang.brigadier.context.CommandContext;
 import com.velocitypowered.api.command.BrigadierCommand;
 import com.velocitypowered.api.command.CommandSource;
 import de.jvstvshd.necrify.api.PunishmentException;
+import de.jvstvshd.necrify.api.event.punishment.PunishmentCancelledEvent;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.PunishmentType;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
-import de.jvstvshd.necrify.velocity.NecrifyPlugin;
+import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import de.jvstvshd.necrify.velocity.internal.PunishmentHelper;
 import de.jvstvshd.necrify.velocity.internal.Util;
 import net.kyori.adventure.text.Component;
@@ -45,19 +46,19 @@ import java.util.Locale;
 
 public class PunishmentRemovalCommand {
 
-    public static BrigadierCommand unmuteCommand(NecrifyPlugin plugin) {
+    public static BrigadierCommand unmuteCommand(NecrifyVelocityPlugin plugin) {
         var node = Util.permissibleCommand("unmute", "necrify.command.unmute")
                 .then(Util.punishmentRemoveArgument(plugin).executes(context -> execute(context, plugin, "unmute", StandardPunishmentType.MUTE, StandardPunishmentType.PERMANENT_MUTE)));
         return new BrigadierCommand(node);
     }
 
-    public static BrigadierCommand unbanCommand(NecrifyPlugin plugin) {
+    public static BrigadierCommand unbanCommand(NecrifyVelocityPlugin plugin) {
         var node = Util.permissibleCommand("unban", "necrify.command.unban")
                 .then(Util.punishmentRemoveArgument(plugin).executes(context -> execute(context, plugin, "unban", StandardPunishmentType.BAN, StandardPunishmentType.PERMANENT_BAN)));
         return new BrigadierCommand(node);
     }
 
-    public static int execute(CommandContext<CommandSource> context, NecrifyPlugin plugin, String commandName, PunishmentType... types) {
+    public static int execute(CommandContext<CommandSource> context, NecrifyVelocityPlugin plugin, String commandName, PunishmentType... types) {
         var source = context.getSource();
         PunishmentHelper.getPlayerUuid(context, plugin).whenCompleteAsync((uuid, throwable) -> {
             if (Util.sendErrorMessageIfErrorOccurred(context, uuid, throwable, plugin)) return;
@@ -77,7 +78,7 @@ public class PunishmentRemovalCommand {
                         source.sendMessage(buildComponent(PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider()), punishment));
                     }
                 } else {
-                    Punishment punishment = punishments.get(0);
+                    Punishment punishment = punishments.getFirst();
                     try {
                         punishment.cancel().whenCompleteAsync((unused, th) -> {
                             if (th != null) {
@@ -85,10 +86,12 @@ public class PunishmentRemovalCommand {
                                 source.sendMessage(plugin.getMessageProvider().internalError());
                                 return;
                             }
+                            plugin.getEventDispatcher().dispatch(new PunishmentCancelledEvent(punishment));
+                            //plugin.getUserManager().getUser(uuid).ifPresentOrElse(user -> user.removePunishment(punishment), () -> plugin.getLogger().warn("User {} not found in cache", uuid));
                             source.sendMessage(plugin.getMessageProvider().provide("command." + commandName + ".success").color(NamedTextColor.GREEN));
                         }, plugin.getService());
                     } catch (PunishmentException e) {
-                        plugin.getLogger().error("An error occurred while removing punishment " + punishment.getPunishmentUuid() + " for player " + uuid, e);
+                        plugin.getLogger().error("An error occurred while removing punishment {} for player {}", punishment.getPunishmentUuid(), uuid, e);
                         Util.sendErrorMessage(context, e);
                     }
                 }

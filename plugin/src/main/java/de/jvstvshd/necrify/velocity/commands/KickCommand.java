@@ -29,7 +29,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.velocitypowered.api.command.BrigadierCommand;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.proxy.Player;
-import de.jvstvshd.necrify.velocity.NecrifyPlugin;
+import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import de.jvstvshd.necrify.velocity.internal.PunishmentHelper;
 import de.jvstvshd.necrify.velocity.internal.Util;
 import net.kyori.adventure.text.Component;
@@ -39,14 +39,14 @@ import java.util.Optional;
 
 public class KickCommand {
 
-    public static BrigadierCommand kickCommand(NecrifyPlugin plugin) {
+    public static BrigadierCommand kickCommand(NecrifyVelocityPlugin plugin) {
         var node = Util.permissibleCommand("kick", "necrify.command.kick")
                 .then(Util.playerArgument(plugin.getServer()).executes(context -> execute(context, plugin))
                         .then(Util.reasonArgument.executes(context -> execute(context, plugin))));
         return new BrigadierCommand(node);
     }
 
-    private static int execute(CommandContext<CommandSource> context, NecrifyPlugin plugin) {
+    private static int execute(CommandContext<CommandSource> context, NecrifyVelocityPlugin plugin) {
         var source = context.getSource();
         var playerArgument = context.getArgument("player", String.class);
         Optional<Player> playerOptional = plugin.getServer().getPlayer(playerArgument);

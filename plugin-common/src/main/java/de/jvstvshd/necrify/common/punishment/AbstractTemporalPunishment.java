@@ -28,31 +28,30 @@ import de.chojo.sadu.queries.api.call.Call;
 import de.chojo.sadu.queries.api.query.Query;
 import de.jvstvshd.necrify.api.PunishmentException;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
-import de.jvstvshd.necrify.api.message.MessageProvider;
+import de.jvstvshd.necrify.api.event.punishment.PunishmentChangedEvent;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.punishment.TemporalPunishment;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
+import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.io.Adapters;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
-import javax.sql.DataSource;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 
 public abstract class AbstractTemporalPunishment extends AbstractPunishment implements TemporalPunishment {
 
     private final PunishmentDuration duration;
 
-    public AbstractTemporalPunishment(NecrifyUser user, Component reason, DataSource dataSource, ExecutorService service, PunishmentDuration duration, MessageProvider messageProvider) {
-        super(user, reason, dataSource, service, messageProvider);
+    public AbstractTemporalPunishment(NecrifyUser user, Component reason, PunishmentDuration duration, AbstractNecrifyPlugin plugin) {
+        super(user, reason, plugin);
         this.duration = duration;
     }
 
-    public AbstractTemporalPunishment(NecrifyUser user, Component reason, DataSource dataSource, ExecutorService service, UUID punishmentUuid, PunishmentDuration duration, MessageProvider messageProvider) {
-        super(user, reason, dataSource, service, punishmentUuid, messageProvider);
+    public AbstractTemporalPunishment(NecrifyUser user, Component reason, UUID punishmentUuid, PunishmentDuration duration, AbstractNecrifyPlugin plugin) {
+        super(user, reason, punishmentUuid, plugin);
         this.duration = duration;
     }
 
@@ -80,7 +79,7 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
     }
 
     @Override
-    public CompletableFuture<Punishment> change(@NotNull PunishmentDuration newDuration, Component newReason) throws PunishmentException {
+    public final CompletableFuture<Punishment> change(@NotNull PunishmentDuration newDuration, Component newReason) throws PunishmentException {
         if (!getType().isBan() && !getType().isMute()) {
             throw new IllegalStateException("only bans and mutes can be changed");
         }
@@ -92,32 +91,34 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
                             .bind(newDuration.isPermanent())
                             .bind(getPunishmentUuid(), Adapters.UUID_ADAPTER))
                     .update();
+            Punishment punishment;
             if (getType().isBan()) {
-                return new NecrifyBan(getUser(), newReason, getDataSource(), getService(), newDuration, getMessageProvider());
+                punishment = new NecrifyBan(getUser(), newReason, newDuration, getPlugin());
             } else if (getType().isMute()) {
-                return new NecrifyMute(getUser(), newReason, getDataSource(), getService(), newDuration, getMessageProvider());
+                punishment = new NecrifyMute(getUser(), newReason, newDuration, getPlugin());
             } else {
                 throw new IllegalStateException("punishment type is not a ban or mute");
             }
+            getPlugin().getEventDispatcher().dispatch(new PunishmentChangedEvent(punishment, this));
+            return punishment;
         }, getService());
     }
 
     @Override
-    public CompletableFuture<Punishment> cancel() throws PunishmentException {
+    protected CompletableFuture<Punishment> applyCancellation() throws PunishmentException {
         return executeAsync(() -> {
             Query.query(APPLY_CANCELLATION)
                     .single(Call.of().bind(getPunishmentUuid(), Adapters.UUID_ADAPTER))
                     .delete();
-            getUser().removePunishment(this);
             return this;
         }, getService());
     }
 
     @Override
-    public abstract StandardPunishmentType getType();
+    public abstract @NotNull StandardPunishmentType getType();
 
     @Override
-    public CompletableFuture<Punishment> punish() throws PunishmentException {
+    protected CompletableFuture<Punishment> applyPunishment() throws PunishmentException {
         checkValidity();
         var duration = getDuration().absolute();
         return executeAsync(() -> {
@@ -129,7 +130,6 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
                             .bind(convertReason(getReason()))
                             .bind(getPunishmentUuid(), Adapters.UUID_ADAPTER))
                     .insert();
-            getUser().addPunishment(this);
             return this;
         }, getService());
     }

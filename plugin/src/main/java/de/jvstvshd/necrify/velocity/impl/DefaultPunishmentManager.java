@@ -31,7 +31,7 @@ import de.jvstvshd.necrify.api.punishment.*;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.punishment.NecrifyBan;
 import de.jvstvshd.necrify.common.punishment.NecrifyMute;
-import de.jvstvshd.necrify.velocity.NecrifyPlugin;
+import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import de.jvstvshd.necrify.velocity.internal.Util;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.ApiStatus;
@@ -45,15 +45,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Deprecated(since = "1.2.0", forRemoval = true)
-@ApiStatus.ScheduledForRemoval(inVersion = "2.0.0")
+@ApiStatus.ScheduledForRemoval(inVersion = "1.3.0")
 public class DefaultPunishmentManager implements PunishmentManager {
 
     private final ProxyServer proxyServer;
     private final HikariDataSource dataSource;
     private final ExecutorService service = Executors.newCachedThreadPool();
-    private final NecrifyPlugin plugin;
+    private final NecrifyVelocityPlugin plugin;
 
-    public DefaultPunishmentManager(ProxyServer proxyServer, HikariDataSource dataSource, NecrifyPlugin plugin) {
+    public DefaultPunishmentManager(ProxyServer proxyServer, HikariDataSource dataSource, NecrifyVelocityPlugin plugin) {
         this.proxyServer = proxyServer;
         this.dataSource = dataSource;
         this.plugin = plugin;
@@ -61,12 +61,12 @@ public class DefaultPunishmentManager implements PunishmentManager {
 
     @Override
     public Ban createBan(UUID player, Component reason, PunishmentDuration duration) {
-        return new NecrifyBan(getUser(player), reason, dataSource, service, duration.absolute(), plugin.getMessageProvider());
+        return new NecrifyBan(getUser(player), reason, duration.absolute(), plugin);
     }
 
     @Override
     public Mute createMute(UUID player, Component reason, PunishmentDuration duration) {
-        return new NecrifyMute(getUser(player), reason, dataSource, service, duration.absolute(), plugin.getMessageProvider());
+        return new NecrifyMute(getUser(player), reason, duration.absolute(), plugin);
     }
 
     //temporary workaround so that this class still functions
@@ -95,7 +95,7 @@ public class DefaultPunishmentManager implements PunishmentManager {
         return proxyServer;
     }
 
-    public NecrifyPlugin plugin() {
+    public NecrifyVelocityPlugin plugin() {
         return plugin;
     }
 

@@ -24,27 +24,25 @@
 
 package de.jvstvshd.necrify.common.punishment;
 
-import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Kick;
 import de.jvstvshd.necrify.api.punishment.PunishmentType;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
+import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
-import javax.sql.DataSource;
 import java.util.Locale;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
 
 public abstract class NecrifyKick extends AbstractPunishment implements Kick {
 
-    public NecrifyKick(NecrifyUser user, Component reason, DataSource dataSource, ExecutorService service, UUID punishmentUuid, MessageProvider messageProvider) {
-        super(user, reason, dataSource, service, punishmentUuid, messageProvider);
+    public NecrifyKick(NecrifyUser user, Component reason, UUID punishmentUuid, AbstractNecrifyPlugin plugin) {
+        super(user, reason, punishmentUuid, plugin);
     }
 
     @Override
-    public PunishmentType getType() {
+    public @NotNull PunishmentType getType() {
         return StandardPunishmentType.KICK;
     }
 

@@ -28,6 +28,8 @@ import de.jvstvshd.necrify.api.PunishmentException;
 import de.jvstvshd.necrify.api.punishment.util.ReasonHolder;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -51,7 +53,7 @@ public interface Punishment extends ReasonHolder {
      * Punishes the player finally.
      *
      * @return a {@link CompletableFuture} containing the exerted punishment
-     * @throws PunishmentException if the punishment could not be exerted
+     * @throws PunishmentException if the punishment could not be exerted (inside the future)
      */
     CompletableFuture<Punishment> punish();
 
@@ -59,19 +61,19 @@ public interface Punishment extends ReasonHolder {
      * Cancels this punishment thus allowing the player e.g. to join the server
      *
      * @return a {@link CompletableFuture} containing the cancelled punishment
-     * @throws PunishmentException if the punishment could not be cancelled
+     * @throws PunishmentException if the punishment could not be cancelled (inside the future)
      */
     CompletableFuture<Punishment> cancel();
 
     /**
      * Changes the duration and reason of this punishment. This method can be used if a player created an appeal an it was accepted.
      *
-     * @param newReason   the new reason which should be displayed to the player
+     * @param newReason   the new reason which should be displayed to the player or null if the reason should not be changed
      * @return a {@link CompletableFuture} containing the new punishment
      * @throws PunishmentException if the punishment could not be changed
      * @see #cancel()
      */
-    CompletableFuture<Punishment> change(Component newReason);
+    CompletableFuture<Punishment> change(@Nullable Component newReason);
 
     /**
      * Returns the type of this punishment. By default, this is a field from {@link StandardPunishmentType}.
@@ -79,23 +81,28 @@ public interface Punishment extends ReasonHolder {
      * @return the type of this punishment
      * @see StandardPunishmentType
      */
+    @NotNull
     PunishmentType getType();
 
     /**
      * @return the id of this punishment.
      */
+    @NotNull
     UUID getPunishmentUuid();
 
     /**
+     * This will return the value of {@link NecrifyUser#getUuid()} from {@link #getUser()}.
+     *
      * @return the uuid of the punished player.
      * @since 1.0.1
-     * @deprecated Consider using {@link #getUser()} instead.
      */
+    @NotNull
     UUID getUuid();
 
     /**
      * @return the user this punishment is affecting
      * @since 1.2.0
      */
+    @NotNull
     NecrifyUser getUser();
 }

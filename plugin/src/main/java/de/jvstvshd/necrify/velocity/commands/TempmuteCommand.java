@@ -30,7 +30,7 @@ import com.velocitypowered.api.command.BrigadierCommand;
 import com.velocitypowered.api.command.CommandSource;
 import de.jvstvshd.necrify.api.PunishmentException;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
-import de.jvstvshd.necrify.velocity.NecrifyPlugin;
+import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import de.jvstvshd.necrify.velocity.internal.PunishmentHelper;
 import de.jvstvshd.necrify.velocity.internal.Util;
 import net.kyori.adventure.text.Component;
@@ -41,11 +41,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 /**
- * @see NecrifyPlugin#MUTES_DISABLED
+ * @see NecrifyVelocityPlugin#MUTES_DISABLED
  */
 public class TempmuteCommand {
 
-    public static BrigadierCommand tempmuteCommand(NecrifyPlugin plugin) {
+    public static BrigadierCommand tempmuteCommand(NecrifyVelocityPlugin plugin) {
         var node = Util.permissibleCommand("tempmute", "necrify.command.tempmute")
                 .then(Util.playerArgument(plugin.getServer())
                         .then(Util.durationArgument.executes(context -> execute(context, plugin))
@@ -53,7 +53,7 @@ public class TempmuteCommand {
         return new BrigadierCommand(node);
     }
 
-    private static int execute(CommandContext<CommandSource> context, NecrifyPlugin plugin) {
+    private static int execute(CommandContext<CommandSource> context, NecrifyVelocityPlugin plugin) {
         CommandSource source = context.getSource();
         var player = context.getArgument("player", String.class);
         plugin.getPlayerResolver().getOrQueryPlayerUuid(player, plugin.getService()).whenCompleteAsync((uuid, throwable) -> {

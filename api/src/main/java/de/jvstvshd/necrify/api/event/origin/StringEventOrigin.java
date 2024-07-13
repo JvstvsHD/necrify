@@ -22,27 +22,12 @@
  * SOFTWARE.
  */
 
-package de.jvstvshd.necrify.api.event.punishment;
+package de.jvstvshd.necrify.api.event.origin;
 
-import de.jvstvshd.necrify.api.punishment.Punishment;
-import org.jetbrains.annotations.NotNull;
+public record StringEventOrigin(String origin) implements EventOrigin {
 
-/**
- * Represents an event that is related to a punishment that has been changed.
- *
- * @since 1.2.0
- */
-public class PunishmentChangedEvent extends PunishmentEvent {
-
-    private final Punishment oldPunishment;
-
-    public PunishmentChangedEvent(Punishment punishment, Punishment oldPunishment) {
-        super("punishment_changed", punishment);
-        this.oldPunishment = oldPunishment;
-    }
-
-    @NotNull
-    public Punishment getOldPunishment() {
-        return oldPunishment;
+    @Override
+    public boolean originatesFrom(Object object) {
+        return object instanceof String string && string.equals(origin);
     }
 }

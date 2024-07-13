@@ -29,7 +29,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.velocitypowered.api.command.BrigadierCommand;
 import com.velocitypowered.api.command.CommandSource;
 import de.jvstvshd.necrify.api.PunishmentException;
-import de.jvstvshd.necrify.velocity.NecrifyPlugin;
+import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import de.jvstvshd.necrify.velocity.internal.PunishmentHelper;
 import de.jvstvshd.necrify.velocity.internal.Util;
 import net.kyori.adventure.text.Component;
@@ -38,20 +38,20 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 
 /**
- * @see NecrifyPlugin#MUTES_DISABLED
+ * @see NecrifyVelocityPlugin#MUTES_DISABLED
  */
 public class MuteCommand {
 
-    public static BrigadierCommand muteCommand(NecrifyPlugin plugin) {
+    public static BrigadierCommand muteCommand(NecrifyVelocityPlugin plugin) {
         var node = Util.permissibleCommand("mute", "necrify.command.mute")
                 .then(Util.playerArgument(plugin.getServer()).executes(context -> execute(context, plugin))
                         .then(Util.reasonArgument.executes(context -> execute(context, plugin))));
         return new BrigadierCommand(node);
     }
 
-    private static int execute(CommandContext<CommandSource> context, NecrifyPlugin plugin) {
+    private static int execute(CommandContext<CommandSource> context, NecrifyVelocityPlugin plugin) {
         CommandSource source = context.getSource();
-        source.sendMessage(NecrifyPlugin.MUTES_DISABLED);
+        source.sendMessage(NecrifyVelocityPlugin.MUTES_DISABLED);
         if (!plugin.communicator().isSupportedEverywhere()) {
             source.sendMessage(plugin.getMessageProvider()
                     .prefixed(MiniMessage.miniMessage().deserialize("<red>It seems that not all servers run the mentioned paper extension. " +

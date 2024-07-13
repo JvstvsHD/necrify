@@ -25,15 +25,18 @@
 package de.jvstvshd.necrify.common.punishment;
 
 
+import de.jvstvshd.necrify.api.event.EventDispatcher;
+import de.jvstvshd.necrify.api.event.punishment.PunishmentCancelledEvent;
+import de.jvstvshd.necrify.api.event.punishment.PunishmentPersecutedEvent;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
+import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
-import javax.sql.DataSource;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -42,11 +45,12 @@ import java.util.concurrent.ExecutorService;
 public abstract class AbstractPunishment implements Punishment {
 
     private final Component reason;
-    private final DataSource dataSource;
     private final ExecutorService service;
     private final NecrifyUser user;
     private final UUID punishmentUuid;
     private final MessageProvider messageProvider;
+    private final EventDispatcher eventDispatcher;
+    private final AbstractNecrifyPlugin plugin;
 
     @Language("sql")
     protected final static String APPLY_PUNISHMENT = "INSERT INTO punishment.necrify_punishment" +
@@ -58,22 +62,19 @@ public abstract class AbstractPunishment implements Punishment {
     protected final static String APPLY_CHANGE = "UPDATE necrify_punishment SET reason = ?, expiration = ?, permanent = ? WHERE punishment_id = ?";
     private final boolean validity;
 
-    public AbstractPunishment(NecrifyUser user, Component reason, DataSource dataSource, ExecutorService service, MessageProvider messageProvider) {
-        this(user, reason, dataSource, service, UUID.randomUUID(), messageProvider);
+    public AbstractPunishment(@NotNull NecrifyUser user, @NotNull Component reason, @NotNull AbstractNecrifyPlugin plugin) {
+        this(user, reason, UUID.randomUUID(), plugin);
     }
 
-    public AbstractPunishment(NecrifyUser user, Component reason, DataSource dataSource, ExecutorService service, UUID punishmentUuid, MessageProvider messageProvider) {
+    public AbstractPunishment(@NotNull NecrifyUser user, @NotNull Component reason, @NotNull UUID punishmentUuid, @NotNull AbstractNecrifyPlugin plugin) {
         this.reason = reason;
-        this.dataSource = dataSource;
-        this.service = service;
+        this.service = plugin.getService();
         this.user = user;
         this.punishmentUuid = punishmentUuid;
         this.validity = true;
-        this.messageProvider = messageProvider;
-    }
-
-    public DataSource getDataSource() {
-        return dataSource;
+        this.messageProvider = plugin.getMessageProvider();
+        this.eventDispatcher = plugin.getEventDispatcher();
+        this.plugin = plugin;
     }
 
     public @NotNull Component getReason() {
@@ -96,11 +97,11 @@ public abstract class AbstractPunishment implements Punishment {
         return future;
     }
 
-    public NecrifyUser getUser() {
+    public @NotNull NecrifyUser getUser() {
         return user;
     }
 
-    public UUID getPunishmentUuid() {
+    public @NotNull UUID getPunishmentUuid() {
         return punishmentUuid;
     }
 
@@ -114,10 +115,33 @@ public abstract class AbstractPunishment implements Punishment {
     }
 
     @Override
+    public final CompletableFuture<Punishment> punish() {
+        return applyPunishment().whenCompleteAsync((punishment, throwable) -> {
+            if (punishment != null) {
+                plugin.getEventDispatcher().dispatch(new PunishmentPersecutedEvent(punishment));
+            }
+        });
+    }
+
+    @Override
+    public final CompletableFuture<Punishment> cancel() {
+        return applyCancellation().whenCompleteAsync((punishment, throwable) -> {
+            if (punishment != null) {
+                plugin.getEventDispatcher().dispatch(new PunishmentCancelledEvent(punishment));
+            }
+        });
+    }
+
+    protected abstract CompletableFuture<Punishment> applyPunishment();
+
+    protected CompletableFuture<Punishment> applyCancellation() {
+        throw new UnsupportedOperationException("cancellation is not supported for this punishment");
+    }
+
+    @Override
     public String toString() {
         return "AbstractPunishment{" +
                 "reason=" + reason +
-                ", dataSource=" + dataSource +
                 ", service=" + service +
                 ", user=" + user +
                 ", punishmentUuid=" + punishmentUuid +
@@ -145,12 +169,23 @@ public abstract class AbstractPunishment implements Punishment {
         }
     }
 
+    @NotNull
     public MessageProvider getMessageProvider() {
         return messageProvider;
     }
 
     @Override
-    public UUID getUuid() {
+    public @NotNull UUID getUuid() {
         return punishmentUuid;
+    }
+
+    @NotNull
+    public EventDispatcher getEventDispatcher() {
+        return eventDispatcher;
+    }
+
+    @NotNull
+    public AbstractNecrifyPlugin getPlugin() {
+        return plugin;
     }
 }

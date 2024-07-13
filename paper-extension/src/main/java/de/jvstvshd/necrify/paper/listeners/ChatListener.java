@@ -29,6 +29,8 @@ import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
+import java.time.LocalDateTime;
+import java.util.ArrayDeque;
 import java.util.Comparator;
 import java.util.stream.Collectors;
 
@@ -45,8 +47,16 @@ public class ChatListener implements Listener {
         var mutes = plugin.cachedMutes().stream().filter(muteData -> event.getPlayer().getUniqueId().equals(muteData.getPlayer().getUniqueId())).collect(Collectors.toList());
         if (mutes.isEmpty()) return;
         mutes.sort(Comparator.comparing(MuteInformation::getDuration));
-        var mute = mutes.get(0);
-        event.setCancelled(true);
-        event.getPlayer().sendMessage(mute.getReason());
+        var queue = new ArrayDeque<>(mutes);
+        while (!queue.isEmpty()) {
+            var mute = queue.poll();
+            if (!mute.getDuration().isPermanent() && mute.getDuration().expiration().isBefore(LocalDateTime.now())) {
+                plugin.cachedMutes().remove(mute);
+                continue;
+            }
+            event.setCancelled(true);
+            event.getPlayer().sendMessage(mute.getReason());
+            break;
+        }
     }
 }

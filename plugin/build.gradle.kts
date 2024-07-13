@@ -43,7 +43,8 @@ tasks {
             val prefix: (String) -> String = { "de.jvstvshd.necrify.lib.$it" }
             relocate("com.fasterxml.jackson", prefix("jackson"))
             relocate("com.github.benmanes.caffeine", prefix("caffeine"))
-            relocate("com.google", prefix("google"))
+            relocate("com.google.errorprone", prefix("google.errorprone"))
+            relocate("com.google.protobuf", prefix("google.protobuf"))
             relocate("com.mysql", prefix("mysql"))
             relocate("com.sun.jna", "sun.jna")
             relocate("com.zaxxer.hikari", prefix("hikari"))

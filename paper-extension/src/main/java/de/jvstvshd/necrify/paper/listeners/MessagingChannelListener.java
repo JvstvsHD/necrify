@@ -43,6 +43,7 @@ public class MessagingChannelListener implements PluginMessageListener {
     @SuppressWarnings("UnstableApiUsage")
     @Override
     public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, byte @NotNull [] message) {
+        if (message.length == 0) return;
         var input = ByteStreams.newDataInput(message);
         var content = input.readUTF();
         MuteData data;
@@ -59,6 +60,8 @@ public class MessagingChannelListener implements PluginMessageListener {
                     plugin.cachedMutes().removeIf(muteInformation -> muteInformation.getPunishmentUUID().equals(mute.getPunishmentUUID()));
             case MuteData.UPDATE ->
                     plugin.cachedMutes().stream().filter(muteInformation -> muteInformation.getPunishmentUUID().equals(mute.getPunishmentUUID())).findFirst().ifPresent(muteInformation -> muteInformation.updateTo(mute));
+            case MuteData.RESET ->
+                    plugin.cachedMutes().stream().filter(muteInformation -> muteInformation.getPlayer().getUniqueId().equals(mute.getPlayer().getUniqueId())).forEach(plugin.cachedMutes()::remove);
         }
     }
 }

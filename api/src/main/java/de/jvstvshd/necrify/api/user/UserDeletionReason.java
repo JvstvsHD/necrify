@@ -22,27 +22,15 @@
  * SOFTWARE.
  */
 
-package de.jvstvshd.necrify.api.event.punishment;
+package de.jvstvshd.necrify.api.user;
 
-import de.jvstvshd.necrify.api.punishment.Punishment;
-import org.jetbrains.annotations.NotNull;
+public interface UserDeletionReason {
 
-/**
- * Represents an event that is related to a punishment that has been changed.
- *
- * @since 1.2.0
- */
-public class PunishmentChangedEvent extends PunishmentEvent {
+    UserDeletionReason USER_REQUESTED = new UserDeletionReasonImpl("User requested deletion.");
+    UserDeletionReason USER_DELETED = new UserDeletionReasonImpl("User was deleted by the system or a team member.");
 
-    private final Punishment oldPunishment;
+    String reason();
 
-    public PunishmentChangedEvent(Punishment punishment, Punishment oldPunishment) {
-        super("punishment_changed", punishment);
-        this.oldPunishment = oldPunishment;
-    }
-
-    @NotNull
-    public Punishment getOldPunishment() {
-        return oldPunishment;
+    record UserDeletionReasonImpl(String reason) implements UserDeletionReason {
     }
 }

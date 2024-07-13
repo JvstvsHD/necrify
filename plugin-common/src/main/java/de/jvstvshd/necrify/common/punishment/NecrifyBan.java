@@ -26,33 +26,31 @@ package de.jvstvshd.necrify.common.punishment;
 
 import de.jvstvshd.necrify.api.PunishmentException;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
-import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Ban;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
+import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.sql.DataSource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 
 public class NecrifyBan extends AbstractTemporalPunishment implements Ban {
 
-    public NecrifyBan(NecrifyUser user, Component reason, DataSource dataSource, ExecutorService service, PunishmentDuration duration, MessageProvider messageProvider) {
-        super(user, reason, dataSource, service, duration, messageProvider);
+    public NecrifyBan(NecrifyUser user, Component reason, PunishmentDuration duration, AbstractNecrifyPlugin plugin) {
+        super(user, reason, duration, plugin);
     }
 
-    public NecrifyBan(NecrifyUser user, Component reason, DataSource dataSource, ExecutorService service, UUID punishmentUuid, PunishmentDuration duration, MessageProvider messageProvider) {
-        super(user, reason, dataSource, service, punishmentUuid, duration, messageProvider);
+    public NecrifyBan(NecrifyUser user, Component reason, UUID punishmentUuid, PunishmentDuration duration, AbstractNecrifyPlugin plugin) {
+        super(user, reason, punishmentUuid, duration, plugin);
     }
 
     @Override
@@ -61,7 +59,7 @@ public class NecrifyBan extends AbstractTemporalPunishment implements Ban {
     }
 
     @Override
-    public CompletableFuture<Punishment> punish() throws PunishmentException {
+    public CompletableFuture<Punishment> applyPunishment() throws PunishmentException {
         return super.punish().whenComplete((p, throwable) -> {
             tryKick();
         });
@@ -93,7 +91,7 @@ public class NecrifyBan extends AbstractTemporalPunishment implements Ban {
     }
 
     @Override
-    public StandardPunishmentType getType() {
+    public @NotNull StandardPunishmentType getType() {
         return getDuration().isPermanent() ? StandardPunishmentType.PERMANENT_BAN : StandardPunishmentType.BAN;
     }
 }

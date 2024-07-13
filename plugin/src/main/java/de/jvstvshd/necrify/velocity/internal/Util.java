@@ -38,7 +38,7 @@ import de.chojo.sadu.queries.api.query.Query;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.TemporalPunishment;
-import de.jvstvshd.necrify.velocity.NecrifyPlugin;
+import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -72,7 +72,7 @@ public class Util {
         });
     }
 
-    public static RequiredArgumentBuilder<CommandSource, String> punishmentRemoveArgument(NecrifyPlugin plugin) {
+    public static RequiredArgumentBuilder<CommandSource, String> punishmentRemoveArgument(NecrifyVelocityPlugin plugin) {
         return RequiredArgumentBuilder.<CommandSource, String>argument("player", StringArgumentType.word()).suggests((context, builder) -> Util.executeAsync(() -> {
             var input = builder.getRemainingLowerCase();
             if (input.isBlank() || input.length() <= 2) return builder.build();
@@ -156,7 +156,7 @@ public class Util {
         return origin.toString().toLowerCase().replace("-", "");
     }
 
-    public static boolean sendErrorMessageIfErrorOccurred(CommandContext<CommandSource> context, UUID uuid, Throwable throwable, NecrifyPlugin plugin) {
+    public static boolean sendErrorMessageIfErrorOccurred(CommandContext<CommandSource> context, UUID uuid, Throwable throwable, NecrifyVelocityPlugin plugin) {
         var source = context.getSource();
         var player = context.getArgument("player", String.class);
         if (throwable != null) {
@@ -171,7 +171,7 @@ public class Util {
         return false;
     }
 
-    public static boolean sendErrorMessageIfErrorOccurred(CommandContext<CommandSource> context, Throwable throwable, NecrifyPlugin plugin) {
+    public static boolean sendErrorMessageIfErrorOccurred(CommandContext<CommandSource> context, Throwable throwable, NecrifyVelocityPlugin plugin) {
         var source = context.getSource();
         var player = context.getArgument("player", String.class);
         if (throwable != null) {

@@ -39,6 +39,7 @@ public class MuteData {
     public static final int ADD = 0;
     public static final int REMOVE = 1;
     public static final int UPDATE = 2;
+    public static final int RESET = 3;
     public static final int UNKNOWN = -1;
 
     private final UUID uuid;

@@ -27,10 +27,14 @@ package de.jvstvshd.necrify.velocity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.io.ByteStreams;
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.player.ServerPostConnectEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
+import de.jvstvshd.necrify.api.event.punishment.PunishmentCancelledEvent;
+import de.jvstvshd.necrify.api.event.punishment.PunishmentChangedEvent;
+import de.jvstvshd.necrify.api.event.punishment.PunishmentPersecutedEvent;
 import de.jvstvshd.necrify.api.punishment.Mute;
 import de.jvstvshd.necrify.api.punishment.util.ReasonHolder;
 import de.jvstvshd.necrify.common.plugin.MuteData;
@@ -110,7 +114,7 @@ public class MessagingChannelCommunicator {
     }
 
     private boolean sendMessage(RegisteredServer server, MuteData muteData) throws JsonProcessingException {
-        return server.sendPluginMessage(NecrifyPlugin.MUTE_DATA_CHANNEL_IDENTIFIER, serializeMuteData(muteData));
+        return server.sendPluginMessage(NecrifyVelocityPlugin.MUTE_DATA_CHANNEL_IDENTIFIER, serializeMuteData(muteData));
     }
 
     @SuppressWarnings("UnstableApiUsage")
@@ -125,7 +129,7 @@ public class MessagingChannelCommunicator {
         byte[] message = new byte[]{0x00};
         supportingServers.clear();
         for (RegisteredServer allServer : server.getAllServers()) {
-            if (allServer.sendPluginMessage(NecrifyPlugin.MUTE_DATA_CHANNEL_IDENTIFIER, message)) {
+            if (allServer.sendPluginMessage(NecrifyVelocityPlugin.MUTE_DATA_CHANNEL_IDENTIFIER, message)) {
                 supportingServers.add(allServer);
             } else {
                 supportedEverywhere = false;
@@ -142,5 +146,47 @@ public class MessagingChannelCommunicator {
 
     public boolean isPlayerReachable(Player player) {
         return player.getCurrentServer().map(serverConnection -> supportingServers.contains(serverConnection.getServer())).orElse(false);
+    }
+
+    @Subscribe
+    public void onPlayerDisconnect(DisconnectEvent event) {
+        try {
+            queueMute(new MuteData(event.getPlayer().getUniqueId(), null, null, MuteData.RESET, null));
+        } catch (Exception e) {
+            logger.error("Could not queue mute for player {}", event.getPlayer().getUniqueId(), e);
+        }
+    }
+
+    @org.greenrobot.eventbus.Subscribe
+    public void onPunishmentPersecution(PunishmentPersecutedEvent event) {
+        if (event.getPunishment() instanceof Mute mute) {
+            try {
+                queueMute(mute, MuteData.ADD);
+            } catch (Exception e) {
+                logger.error("Could not queue mute for player {}", mute.getUser().getUuid(), e);
+            }
+        }
+    }
+
+    @org.greenrobot.eventbus.Subscribe
+    public void onPunishmentChange(PunishmentChangedEvent event) {
+        if (event.getPunishment() instanceof Mute mute) {
+            try {
+                queueMute(mute, MuteData.UPDATE);
+            } catch (Exception e) {
+                logger.error("Could not queue mute for player {}", mute.getUser().getUuid(), e);
+            }
+        }
+    }
+
+    @org.greenrobot.eventbus.Subscribe
+    public void onPunishmentRemoved(PunishmentCancelledEvent event) {
+        if (event.getPunishment() instanceof Mute mute) {
+            try {
+                queueMute(mute, MuteData.REMOVE);
+            } catch (Exception e) {
+                logger.error("Could not queue mute for player {}", mute.getUser().getUuid(), e);
+            }
+        }
     }
 }

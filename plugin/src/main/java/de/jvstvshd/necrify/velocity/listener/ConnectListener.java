@@ -33,7 +33,7 @@ import de.jvstvshd.necrify.api.punishment.Mute;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.plugin.MuteData;
-import de.jvstvshd.necrify.velocity.NecrifyPlugin;
+import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import de.jvstvshd.necrify.velocity.internal.Util;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -45,11 +45,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public final class ConnectListener {
-    private final NecrifyPlugin plugin;
+    private final NecrifyVelocityPlugin plugin;
     private final ExecutorService service;
     private final ProxyServer proxyServer;
 
-    public ConnectListener(NecrifyPlugin plugin,
+    public ConnectListener(NecrifyVelocityPlugin plugin,
                            ExecutorService service, ProxyServer proxyServer) {
         this.plugin = plugin;
         this.service = service;
@@ -105,7 +105,7 @@ public final class ConnectListener {
         event.setResult(ResultedEvent.ComponentResult.denied(deny));
     }
 
-    public NecrifyPlugin plugin() {
+    public NecrifyVelocityPlugin plugin() {
         return plugin;
     }
 

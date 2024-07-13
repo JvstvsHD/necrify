@@ -48,12 +48,16 @@ import de.chojo.sadu.queries.api.query.Query;
 import de.chojo.sadu.queries.configuration.QueryConfiguration;
 import de.chojo.sadu.sqlite.databases.SqLite;
 import de.chojo.sadu.updater.SqlUpdater;
-import de.jvstvshd.necrify.api.Necrify;
+import de.jvstvshd.necrify.api.event.EventDispatcher;
+import de.jvstvshd.necrify.api.event.Slf4jLogger;
+import de.jvstvshd.necrify.api.event.origin.EventOrigin;
+import de.jvstvshd.necrify.api.event.user.UserLoadedEvent;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.PunishmentManager;
 import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
 import de.jvstvshd.necrify.api.user.UserManager;
+import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.io.Adapters;
 import de.jvstvshd.necrify.common.plugin.MuteData;
 import de.jvstvshd.necrify.velocity.commands.*;
@@ -76,11 +80,10 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Plugin(id = "necrify", name = "Necrify", version = "1.2.0-SNAPSHOT", description = "A simple punishment plugin for Velocity", authors = {"JvstvsHD"})
-public class NecrifyPlugin implements Necrify {
+public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
 
     private final ProxyServer server;
     private final Logger logger;
@@ -96,8 +99,8 @@ public class NecrifyPlugin implements Necrify {
     private PlayerResolver playerResolver;
     private MessageProvider messageProvider;
     private UserManager userManager;
-    private final ExecutorService service;
     private final MessagingChannelCommunicator communicator;
+    private EventDispatcher eventDispatcher;
 
     /**
      * Since 1.19.1, cancelling chat messages on proxy is not possible anymore. Therefore, we have to listen to the chat event on the actual game server. This means
@@ -108,16 +111,20 @@ public class NecrifyPlugin implements Necrify {
     public static final Component MUTES_DISABLED = Component.text(MUTES_DISABLED_STRING);
 
     @Inject
-    public NecrifyPlugin(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
+    public NecrifyVelocityPlugin(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
+        super(Executors.newCachedThreadPool(new ThreadFactoryBuilder()
+                .setUncaughtExceptionHandler((t, e) -> logger.error("An error occurred in thread {}", t.getName(), e))
+                .build()));
         this.server = server;
         this.logger = logger;
-        this.configurationManager = new ConfigurationManager(dataDirectory.resolve("config.yml"));
-        this.playerResolver = new DefaultPlayerResolver(server);
-        this.communicator = new MessagingChannelCommunicator(server, logger);
         this.dataDirectory = dataDirectory;
-        this.service = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setUncaughtExceptionHandler((t, e) -> logger.error("An error occurred in thread {}", t.getName(), e)).build());
+        this.configurationManager = new ConfigurationManager(dataDirectory.resolve("config.yml"));
+        this.communicator = new MessagingChannelCommunicator(server, logger);
+        this.playerResolver = new DefaultPlayerResolver(server);
+        this.eventDispatcher = new EventDispatcher(getExecutor(), new Slf4jLogger(logger));
     }
 
+    //TODO keep changed implementations and do not override them.
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> logger.error("An error occurred in thread {}", t.getName(), e));
@@ -129,11 +136,13 @@ public class NecrifyPlugin implements Necrify {
             this.messageProvider = new ResourceBundleMessageProvider(configurationManager.getConfiguration());
         } catch (IOException e) {
             logger.error("Could not load configuration", e);
+            logger.error("Aborting start-up");
+            return;
         }
         dataSource = createDataSource();
         QueryConfiguration.setDefault(QueryConfiguration.builder(dataSource).setExceptionHandler(e -> logger.error("An error occurred during a database request", e)).build());
         punishmentManager = new DefaultPunishmentManager(server, dataSource, this);
-        this.userManager = new VelocityUserManager(service, server, Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build(), Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build(), this);
+        this.userManager = new VelocityUserManager(getExecutor(), server, Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build(), Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build(), this);
         try {
             updateDatabase();
         } catch (SQLException | IOException e) {
@@ -141,10 +150,12 @@ public class NecrifyPlugin implements Necrify {
         }
         setup(server.getCommandManager(), server.getEventManager());
         var notSupportedServers = communicator.testRecipients();
-        if (communicator.isSupportedEverywhere()) {
+        if (!communicator.isSupportedEverywhere()) {
             logger.warn("Persecution of mutes cannot be granted on the following servers as the required paper plugin is not installed: {}",
                     Joiner.on(", ").join(notSupportedServers));
         }
+        eventDispatcher.register(communicator);
+        eventDispatcher.register(userManager);
         logger.info("Velocity Punishment Plugin v1.2.0-SNAPSHOT has been loaded. This is only a dev build and thus may be unstable.");
     }
 
@@ -218,11 +229,6 @@ public class NecrifyPlugin implements Necrify {
         return server;
     }
 
-    @Override
-    public @NotNull ExecutorService getService() {
-        return service;
-    }
-
     public HikariDataSource getDataSource() {
         return dataSource;
     }
@@ -268,8 +274,27 @@ public class NecrifyPlugin implements Necrify {
     @Override
     public <T extends Punishment> CompletableFuture<Optional<T>> getPunishment(@NotNull UUID punishmentId) {
         return Util.executeAsync(() -> (Optional<T>) Query.query("SELECT u.* FROM punishment.necrify_user u " + "INNER JOIN punishment.necrify_punishment p ON u.uuid = p.uuid " + "WHERE p.punishment_id = ?;").single(Call.of().bind(punishmentId, Adapters.UUID_ADAPTER)).map(row -> {
+            var userId = row.getObject(1, UUID.class);
+            var cachedUser = getUserManager().getUser(userId);
+            if (cachedUser.isPresent()) {
+                return cachedUser.get().getPunishment(punishmentId).orElse(null);
+            }
             var user = new VelocityUser(row.getObject(1, UUID.class), row.getString(2), row.getBoolean(3), this);
-            return user.getPunishments().stream().filter(punishment -> punishment.getPunishmentUuid().equals(punishmentId)).findFirst().orElse(null);
-        }).first(), service);
+            getExecutor().execute(() -> {
+                Query.query("SELECT type, expiration, reason, punishment_id FROM punishment.necrify_punishment WHERE uuid = ?;").single(Call.of().bind(userId, Adapters.UUID_ADAPTER)).map(user::addPunishment).all();
+                getEventDispatcher().dispatch(new UserLoadedEvent(user).setOrigin(EventOrigin.ofClass(getClass())));
+            });
+            return user.getPunishment(punishmentId).orElse(null);
+        }).first(), getExecutor());
+    }
+
+    @Override
+    public @NotNull EventDispatcher getEventDispatcher() {
+        return eventDispatcher;
+    }
+
+    @Override
+    public void setEventDispatcher(@NotNull EventDispatcher eventDispatcher) {
+        this.eventDispatcher = eventDispatcher;
     }
 }

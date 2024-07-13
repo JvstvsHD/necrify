@@ -24,35 +24,30 @@
 
 package de.jvstvshd.necrify.common.punishment;
 
-import de.jvstvshd.necrify.api.PunishmentException;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
-import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Mute;
-import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
+import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.jetbrains.annotations.NotNull;
 
-import javax.sql.DataSource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 
 
 public class NecrifyMute extends AbstractTemporalPunishment implements Mute {
 
-    public NecrifyMute(NecrifyUser user, Component reason, DataSource dataSource, ExecutorService service, PunishmentDuration duration, MessageProvider messageProvider) {
-        super(user, reason, dataSource, service, duration, messageProvider);
+    public NecrifyMute(NecrifyUser user, Component reason, PunishmentDuration duration, AbstractNecrifyPlugin plugin) {
+        super(user, reason, duration, plugin);
     }
 
-    public NecrifyMute(NecrifyUser user, Component reason, DataSource dataSource, ExecutorService service, UUID punishmentUuid, PunishmentDuration duration, MessageProvider messageProvider) {
-        super(user, reason, dataSource, service, punishmentUuid, duration, messageProvider);
+    public NecrifyMute(NecrifyUser user, Component reason, UUID punishmentUuid, PunishmentDuration duration, AbstractNecrifyPlugin plugin) {
+        super(user, reason, punishmentUuid, duration, plugin);
     }
 
     @Override
@@ -61,21 +56,7 @@ public class NecrifyMute extends AbstractTemporalPunishment implements Mute {
     }
 
     @Override
-    public CompletableFuture<Punishment> punish() throws PunishmentException {
-        var punishment = super.punish();
-        //queueMute(MuteData.ADD);
-        return punishment;
-    }
-
-    @Override
-    public CompletableFuture<Punishment> cancel() throws PunishmentException {
-        var punishment = super.cancel();
-        //queueMute(MuteData.REMOVE);
-        return punishment;
-    }
-
-    @Override
-    public StandardPunishmentType getType() {
+    public @NotNull StandardPunishmentType getType() {
         return isPermanent() ? StandardPunishmentType.PERMANENT_MUTE : StandardPunishmentType.MUTE;
     }
 
@@ -97,13 +78,4 @@ public class NecrifyMute extends AbstractTemporalPunishment implements Mute {
             return getMessageProvider().provide("punishment.mute.temp.full-reason", Component.text(getDuration().remainingDuration()).color(NamedTextColor.YELLOW), getReason(), until);
         }
     }
-
-    /*void queueMute(int type) {
-        try {
-            getPunishmentManager().plugin().communicator().queueMute((Mute) this, type);
-        } catch (Exception e) {
-            getPunishmentManager().plugin().getLogger().error("Could not queue mute", e);
-        }
-    }*/
-
 }
