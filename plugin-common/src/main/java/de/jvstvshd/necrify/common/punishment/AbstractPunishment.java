@@ -36,7 +36,9 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -51,6 +53,7 @@ public abstract class AbstractPunishment implements Punishment {
     private final MessageProvider messageProvider;
     private final EventDispatcher eventDispatcher;
     private final AbstractNecrifyPlugin plugin;
+    private Punishment successor;
 
     @Language("sql")
     protected final static String APPLY_PUNISHMENT = "INSERT INTO punishment.necrify_punishment" +
@@ -62,15 +65,13 @@ public abstract class AbstractPunishment implements Punishment {
     protected final static String APPLY_CHANGE = "UPDATE necrify_punishment SET reason = ?, expiration = ?, permanent = ? WHERE punishment_id = ?";
     private final boolean validity;
 
-    public AbstractPunishment(@NotNull NecrifyUser user, @NotNull Component reason, @NotNull AbstractNecrifyPlugin plugin) {
-        this(user, reason, UUID.randomUUID(), plugin);
-    }
 
-    public AbstractPunishment(@NotNull NecrifyUser user, @NotNull Component reason, @NotNull UUID punishmentUuid, @NotNull AbstractNecrifyPlugin plugin) {
+    public AbstractPunishment(@NotNull NecrifyUser user, @NotNull Component reason, @NotNull UUID punishmentUuid, @NotNull AbstractNecrifyPlugin plugin, @Nullable Punishment successor) {
         this.reason = reason;
         this.service = plugin.getService();
         this.user = user;
         this.punishmentUuid = punishmentUuid;
+        this.successor = successor;
         this.validity = true;
         this.messageProvider = plugin.getMessageProvider();
         this.eventDispatcher = plugin.getEventDispatcher();
@@ -187,5 +188,23 @@ public abstract class AbstractPunishment implements Punishment {
     @NotNull
     public AbstractNecrifyPlugin getPlugin() {
         return plugin;
+    }
+
+    @Override
+    public boolean hasSuccessor() {
+        return successor != null;
+    }
+
+    @Override
+    public @NotNull Punishment getSuccessor() {
+        if (!hasSuccessor()) {
+            throw new NoSuchElementException("this punishment has no successor");
+        }
+        return successor;
+    }
+
+    @Override
+    public void setSuccessor(@NotNull Punishment successor) {
+        this.successor = successor;
     }
 }

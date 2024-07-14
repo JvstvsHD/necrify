@@ -26,6 +26,7 @@ package de.jvstvshd.necrify.common.punishment;
 
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.punishment.Mute;
+import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
@@ -42,12 +43,8 @@ import java.util.UUID;
 
 public class NecrifyMute extends AbstractTemporalPunishment implements Mute {
 
-    public NecrifyMute(NecrifyUser user, Component reason, PunishmentDuration duration, AbstractNecrifyPlugin plugin) {
-        super(user, reason, duration, plugin);
-    }
-
-    public NecrifyMute(NecrifyUser user, Component reason, UUID punishmentUuid, PunishmentDuration duration, AbstractNecrifyPlugin plugin) {
-        super(user, reason, punishmentUuid, duration, plugin);
+    public NecrifyMute(NecrifyUser user, Component reason, UUID punishmentUuid, PunishmentDuration duration, AbstractNecrifyPlugin plugin, Punishment successor) {
+        super(user, reason, punishmentUuid, duration, plugin, successor);
     }
 
     @Override

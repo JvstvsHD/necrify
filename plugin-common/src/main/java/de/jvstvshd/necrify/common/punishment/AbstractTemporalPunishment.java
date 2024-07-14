@@ -45,13 +45,8 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
 
     private final PunishmentDuration duration;
 
-    public AbstractTemporalPunishment(NecrifyUser user, Component reason, PunishmentDuration duration, AbstractNecrifyPlugin plugin) {
-        super(user, reason, plugin);
-        this.duration = duration;
-    }
-
-    public AbstractTemporalPunishment(NecrifyUser user, Component reason, UUID punishmentUuid, PunishmentDuration duration, AbstractNecrifyPlugin plugin) {
-        super(user, reason, punishmentUuid, plugin);
+    public AbstractTemporalPunishment(NecrifyUser user, Component reason, UUID punishmentUuid, PunishmentDuration duration, AbstractNecrifyPlugin plugin, Punishment successor) {
+        super(user, reason, punishmentUuid, plugin, successor);
         this.duration = duration;
     }
 
@@ -91,11 +86,16 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
                             .bind(newDuration.isPermanent())
                             .bind(getPunishmentUuid(), Adapters.UUID_ADAPTER))
                     .update();
+            var builder = new PunishmentBuilder(getPlugin())
+                    .withUser(getUser())
+                    .withReason(newReason)
+                    .withDuration(newDuration)
+                    .withPunishmentUuid(getPunishmentUuid());
             Punishment punishment;
             if (getType().isBan()) {
-                punishment = new NecrifyBan(getUser(), newReason, newDuration, getPlugin());
+                punishment = builder.buildBan();
             } else if (getType().isMute()) {
-                punishment = new NecrifyMute(getUser(), newReason, newDuration, getPlugin());
+                punishment = builder.buildMute();
             } else {
                 throw new IllegalStateException("punishment type is not a ban or mute");
             }

@@ -45,12 +45,8 @@ import java.util.concurrent.CompletableFuture;
 
 public class NecrifyBan extends AbstractTemporalPunishment implements Ban {
 
-    public NecrifyBan(NecrifyUser user, Component reason, PunishmentDuration duration, AbstractNecrifyPlugin plugin) {
-        super(user, reason, duration, plugin);
-    }
-
-    public NecrifyBan(NecrifyUser user, Component reason, UUID punishmentUuid, PunishmentDuration duration, AbstractNecrifyPlugin plugin) {
-        super(user, reason, punishmentUuid, duration, plugin);
+    public NecrifyBan(NecrifyUser user, Component reason, UUID punishmentUuid, PunishmentDuration duration, AbstractNecrifyPlugin plugin, Punishment successor) {
+        super(user, reason, punishmentUuid, duration, plugin, successor);
     }
 
     @Override

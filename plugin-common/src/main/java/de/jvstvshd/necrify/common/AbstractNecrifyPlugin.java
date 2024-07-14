@@ -25,8 +25,12 @@
 package de.jvstvshd.necrify.common;
 
 import de.jvstvshd.necrify.api.Necrify;
+import de.jvstvshd.necrify.api.user.NecrifyUser;
+import de.jvstvshd.necrify.common.punishment.NecrifyKick;
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 public abstract class AbstractNecrifyPlugin implements Necrify {
@@ -49,4 +53,6 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
     public @NotNull ExecutorService getService() {
         return getExecutor();
     }
+
+    public abstract NecrifyKick createKick(Component reason, NecrifyUser user, UUID punishmentUuid);
 }

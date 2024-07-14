@@ -105,4 +105,35 @@ public interface Punishment extends ReasonHolder {
      */
     @NotNull
     NecrifyUser getUser();
+
+    /**
+     * Returns whether this punishment has a successor punishment.
+     *
+     * @return true, if this punishment has a successor punishment, otherwise false
+     * @see #getSuccessor()
+     * @since 1.2.0
+     */
+    boolean hasSuccessor();
+
+    /**
+     * Returns the successor of this punishment. This is used to chain punishments so that one punishment of the same kind
+     * is paused until the previous one is finished. This may especially be useful for punishments of differing reasons.
+     *
+     * @return the successor of this punishment
+     * @throws java.util.NoSuchElementException if there is no successor punishment - check {@link #hasSuccessor()}
+     * @throws UnsupportedOperationException    if the underlying punishment does not support succeeding punishments (e.g. Kicks)
+     * @see #hasSuccessor()
+     * @since 1.2.0
+     */
+    @NotNull
+    Punishment getSuccessor();
+
+    /**
+     * Sets the successor of this punishment. This is used to chain punishments so that one punishment of the same kind
+     * is paused until the previous one is finished. This may especially be useful for punishments of differing reasons.
+     *
+     * @param successor the successor of this punishment
+     * @throws UnsupportedOperationException if the underlying punishment does not support succeeding punishments (e.g. Kicks)
+     */
+    void setSuccessor(@NotNull Punishment successor);
 }

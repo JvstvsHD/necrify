@@ -29,8 +29,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.punishment.*;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
-import de.jvstvshd.necrify.common.punishment.NecrifyBan;
-import de.jvstvshd.necrify.common.punishment.NecrifyMute;
+import de.jvstvshd.necrify.common.punishment.PunishmentBuilder;
 import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import de.jvstvshd.necrify.velocity.internal.Util;
 import net.kyori.adventure.text.Component;
@@ -61,12 +60,20 @@ public class DefaultPunishmentManager implements PunishmentManager {
 
     @Override
     public Ban createBan(UUID player, Component reason, PunishmentDuration duration) {
-        return new NecrifyBan(getUser(player), reason, duration.absolute(), plugin);
+        return PunishmentBuilder.newBuilder(plugin)
+                .withUser(getUser(player))
+                .withReason(reason)
+                .withDuration(duration)
+                .buildBan();
     }
 
     @Override
     public Mute createMute(UUID player, Component reason, PunishmentDuration duration) {
-        return new NecrifyMute(getUser(player), reason, duration.absolute(), plugin);
+        return PunishmentBuilder.newBuilder(plugin)
+                .withUser(getUser(player))
+                .withReason(reason)
+                .withDuration(duration)
+                .buildMute();
     }
 
     //temporary workaround so that this class still functions

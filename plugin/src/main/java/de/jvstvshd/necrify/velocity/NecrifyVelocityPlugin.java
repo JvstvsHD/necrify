@@ -56,14 +56,17 @@ import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.PunishmentManager;
 import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
+import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserManager;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.io.Adapters;
 import de.jvstvshd.necrify.common.plugin.MuteData;
+import de.jvstvshd.necrify.common.punishment.NecrifyKick;
 import de.jvstvshd.necrify.velocity.commands.*;
 import de.jvstvshd.necrify.velocity.config.ConfigurationManager;
 import de.jvstvshd.necrify.velocity.impl.DefaultPlayerResolver;
 import de.jvstvshd.necrify.velocity.impl.DefaultPunishmentManager;
+import de.jvstvshd.necrify.velocity.impl.VelocityKick;
 import de.jvstvshd.necrify.velocity.internal.Util;
 import de.jvstvshd.necrify.velocity.listener.ConnectListener;
 import de.jvstvshd.necrify.velocity.message.ResourceBundleMessageProvider;
@@ -296,5 +299,10 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     @Override
     public void setEventDispatcher(@NotNull EventDispatcher eventDispatcher) {
         this.eventDispatcher = eventDispatcher;
+    }
+
+    @Override
+    public NecrifyKick createKick(Component reason, NecrifyUser user, UUID punishmentUuid) {
+        return new VelocityKick(user, reason, punishmentUuid, this);
     }
 }

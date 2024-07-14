@@ -38,7 +38,7 @@ import java.util.UUID;
 public abstract class NecrifyKick extends AbstractPunishment implements Kick {
 
     public NecrifyKick(NecrifyUser user, Component reason, UUID punishmentUuid, AbstractNecrifyPlugin plugin) {
-        super(user, reason, punishmentUuid, plugin);
+        super(user, reason, punishmentUuid, plugin, null);
     }
 
     @Override

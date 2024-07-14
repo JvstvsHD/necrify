@@ -38,10 +38,8 @@ import de.jvstvshd.necrify.api.punishment.*;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserDeletionReason;
 import de.jvstvshd.necrify.common.io.Adapters;
-import de.jvstvshd.necrify.common.punishment.NecrifyBan;
-import de.jvstvshd.necrify.common.punishment.NecrifyMute;
+import de.jvstvshd.necrify.common.punishment.PunishmentBuilder;
 import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
-import de.jvstvshd.necrify.velocity.impl.VelocityKick;
 import de.jvstvshd.necrify.velocity.internal.Util;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -114,7 +112,11 @@ public class VelocityUser implements NecrifyUser {
 
     @Override
     public @NotNull Ban ban(@Nullable Component reason, @NotNull PunishmentDuration duration) {
-        return punish(new NecrifyBan(this, reason, duration.absolute(), plugin));
+        return punish(PunishmentBuilder.newBuilder(plugin)
+                .withDuration(duration)
+                .withReason(reason)
+                .withUser(this)
+                .buildBan());
     }
 
     @Override
@@ -124,7 +126,11 @@ public class VelocityUser implements NecrifyUser {
 
     @Override
     public @NotNull Mute mute(@Nullable Component reason, @NotNull PunishmentDuration duration) {
-        return punish(new NecrifyMute(this, reason, duration.absolute(), plugin));
+        return punish(PunishmentBuilder.newBuilder(plugin)
+                .withDuration(duration)
+                .withReason(reason)
+                .withUser(this)
+                .buildMute());
     }
 
     @Override
@@ -134,7 +140,10 @@ public class VelocityUser implements NecrifyUser {
 
     @Override
     public @NotNull Kick kick(@Nullable Component reason) {
-        var kick = new VelocityKick(this, reason, UUID.randomUUID(), plugin);
+        var kick = PunishmentBuilder.newBuilder(plugin)
+                .withReason(reason)
+                .withUser(this)
+                .buildKick();
         kick.punish();
         return kick;
     }
@@ -204,11 +213,16 @@ public class VelocityUser implements NecrifyUser {
         final PunishmentDuration duration = PunishmentDuration.fromTimestamp(timestamp);
         final Component reason = MiniMessage.miniMessage().deserialize(row.getString(3));
         final UUID punishmentUuid = row.getObject(4, UUID.class);
+        var builder = PunishmentBuilder.newBuilder(plugin)
+                .withDuration(duration)
+                .withReason(reason)
+                .withUser(this)
+                .withPunishmentUuid(punishmentUuid);
         Punishment punishment;
         switch (type) {
-            case BAN, PERMANENT_BAN -> punishment = new NecrifyBan(this, reason, punishmentUuid, duration, plugin);
-            case MUTE, PERMANENT_MUTE -> punishment = new NecrifyMute(this, reason, punishmentUuid, duration, plugin);
-            case KICK -> punishment = new VelocityKick(this, reason, punishmentUuid, plugin);
+            case BAN, PERMANENT_BAN -> punishment = builder.buildBan();
+            case MUTE, PERMANENT_MUTE -> punishment = builder.buildMute();
+            case KICK -> punishment = builder.buildKick();
             default -> throw new UnsupportedOperationException("unhandled punishment type: " + type.getName());
         }
         punishments.add(punishment);
