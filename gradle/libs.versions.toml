@@ -3,7 +3,7 @@
 [versions]
 velocity-api = "3.3.0-SNAPSHOT"
 luckperms-api = "5.4"
-jackson-databind = "2.17.1"
+jackson-databind = "2.17.2"
 jackson-datatype-jsr310 = "2.13.4"
 jackson-yaml = "2.13.4"
 postgresql = "42.5.0"
