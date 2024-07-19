@@ -12,5 +12,18 @@
   "reviewers": [
     "JvstvsHD"
   ],
-  "commitBody": "[skip ci]"
+  "commitBody": "[skip ci]",
+  "packageRules": [
+    {
+      "matchUpdateTypes": "patch",
+      "automerge": true
+    },
+    {
+      "groupName": "jackson",
+      "matchPackagePatterns": [
+        "com.fasterxml.jackson.*"
+      ],
+      "automerge": true
+    }
+  ]
 }
