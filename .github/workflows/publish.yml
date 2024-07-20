@@ -12,8 +12,8 @@ on:
   release:
     types: [created]
   push:
-    branches-ignore:
-      - 'renovate/**'
+    branches: ["**"]
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -22,14 +22,15 @@ jobs:
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
-          distribution: 'adopt'
+          java-version: '21'
+          distribution: 'temurin'
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@88425854a36845f9c881450d9660b5fd46bee142
-      - name: Publish package
-        uses: gradle/gradle-build-action@66535aaf56f831b35e3a8481c9c99b665b84dd45
-        with:
-          arguments: publish
+      - name: Build
+        run: ./gradlew build
+      - name: Publish
+        if: ${{ github.event_name == 'push' && !startsWith(github.ref, 'renovate/**') }}
+        run: ./gradlew publish
         env:
           SONATYPE_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
