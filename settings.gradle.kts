@@ -1,7 +1,7 @@
 rootProject.name = "necrify"
-include("api")
-include("plugin")
-include("paper-extension")
-include("plugin-common")
+include("necrify-api")
+include("necrify-common")
+include("necrify-paper")
+include("necrify-velocity")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

@@ -7,7 +7,7 @@ group = "de.jvstvshd.necrify"
 version = rootProject.version
 
 dependencies {
-    api(projects.api)
+    api(projects.necrifyApi)
     api(libs.bundles.jackson)
     api(libs.bundles.database) {
         exclude(group = "org.slf4j", module = "slf4j-api")

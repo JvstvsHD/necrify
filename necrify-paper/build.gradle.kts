@@ -10,15 +10,15 @@ version = rootProject.version
 
 dependencies {
     compileOnly(libs.paper.api)
-    api(projects.pluginCommon)
+    api(projects.necrifyCommon)
 }
 
 tasks {
     shadowJar {
         archiveFileName.set("${rootProject.name}-Paper-${project.version}.jar")
         dependencies {
-            include(project(":plugin-common"))
-            include(project(":api"))
+            include(project(":necrify-common"))
+            include(project(":necrify-api"))
         }
     }
     build {
@@ -32,7 +32,7 @@ tasks {
         val field = librariesRootComponent.get()::class.java.getDeclaredField("dependencies")
         field.isAccessible = true
         val set = field.get(librariesRootComponent.get()) as LinkedHashSet<DependencyResult>
-        val configuration = project(":plugin-common").configurations.getByName("runtimeClasspath")
+        val configuration = project(":necrify-common").configurations.getByName("runtimeClasspath")
         val resolutionResult = configuration.incoming.resolutionResult
         set.clear()
         set.addAll(
