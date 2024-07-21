@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    api(projects.pluginCommon)
+    api(projects.necrifyCommon)
     annotationProcessor(libs.velocity.api)
     compileOnly(libs.velocity.api)
     compileOnly(libs.luckperms.api)
