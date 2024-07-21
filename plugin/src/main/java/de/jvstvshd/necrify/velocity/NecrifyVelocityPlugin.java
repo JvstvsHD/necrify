@@ -28,12 +28,18 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Joiner;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.TypeLiteral;
 import com.velocitypowered.api.command.CommandManager;
+import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.event.EventManager;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
+import com.velocitypowered.api.proxy.ConsoleCommandSource;
+import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
@@ -73,6 +79,10 @@ import de.jvstvshd.necrify.velocity.message.ResourceBundleMessageProvider;
 import de.jvstvshd.necrify.velocity.user.VelocityUser;
 import de.jvstvshd.necrify.velocity.user.VelocityUserManager;
 import net.kyori.adventure.text.Component;
+import org.incendo.cloud.SenderMapper;
+import org.incendo.cloud.execution.ExecutionCoordinator;
+import org.incendo.cloud.velocity.CloudInjectionModule;
+import org.incendo.cloud.velocity.VelocityCommandManager;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
@@ -104,6 +114,9 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     private UserManager userManager;
     private final MessagingChannelCommunicator communicator;
     private EventDispatcher eventDispatcher;
+
+    @Inject
+    private Injector injector;
 
     /**
      * Since 1.19.1, cancelling chat messages on proxy is not possible anymore. Therefore, we have to listen to the chat event on the actual game server. This means
@@ -178,6 +191,14 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         commandManager.register(TempmuteCommand.tempmuteCommand(this));
         commandManager.register(KickCommand.kickCommand(this));
         commandManager.register(WhitelistCommand.whitelistCommand(this));
+
+        final Injector childInjector = injector.createChildInjector(
+                new CloudInjectionModule<>(
+                        NecrifyUser.class,
+                        ExecutionCoordinator.simpleCoordinator(),
+                        SenderMapper.create(this::createUser, this::getCommandSource)));
+        registerCommands(childInjector.getInstance(Key.get(new TypeLiteral<VelocityCommandManager<NecrifyUser>>() {
+        })), getConfig().getConfiguration().isAllowTopLevelCommands());
     }
 
     @SuppressWarnings({"unchecked", "UnstableApiUsage"})
@@ -278,17 +299,52 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     public <T extends Punishment> CompletableFuture<Optional<T>> getPunishment(@NotNull UUID punishmentId) {
         return Util.executeAsync(() -> (Optional<T>) Query.query("SELECT u.* FROM punishment.necrify_user u " + "INNER JOIN punishment.necrify_punishment p ON u.uuid = p.uuid " + "WHERE p.punishment_id = ?;").single(Call.of().bind(punishmentId, Adapters.UUID_ADAPTER)).map(row -> {
             var userId = row.getObject(1, UUID.class);
-            var cachedUser = getUserManager().getUser(userId);
-            if (cachedUser.isPresent()) {
-                return cachedUser.get().getPunishment(punishmentId).orElse(null);
-            }
-            var user = new VelocityUser(row.getObject(1, UUID.class), row.getString(2), row.getBoolean(3), this);
-            getExecutor().execute(() -> {
-                Query.query("SELECT type, expiration, reason, punishment_id FROM punishment.necrify_punishment WHERE uuid = ?;").single(Call.of().bind(userId, Adapters.UUID_ADAPTER)).map(user::addPunishment).all();
-                getEventDispatcher().dispatch(new UserLoadedEvent(user).setOrigin(EventOrigin.ofClass(getClass())));
-            });
-            return user.getPunishment(punishmentId).orElse(null);
+            return createUser(userId).getPunishment(punishmentId).orElse(null);
         }).first(), getExecutor());
+    }
+
+    public NecrifyUser createUser(CommandSource source) {
+        if (source instanceof Player) {
+            return createUser(((Player) source).getUniqueId());
+        } else if (source instanceof ConsoleCommandSource) {
+            return new VelocityUser(new UUID(0, 0), "CONSOLE", true, this);
+        } else {
+            return new VelocityUser(UUID.randomUUID(), "unknown_source", false, this);
+        }
+    }
+
+    /**
+     * Creates a user with the given UUID. If the user is already cached, the cached user is returned.
+     * <p>Note: this user does not hold any valid data besides his uuid and maybe player instance (if online). After returning
+     * the value, the missing user data will be loaded, whereafter the {@link UserLoadedEvent} will be fired.</p>
+     *
+     * @param userId the UUID of the user to create.
+     * @return the created user.
+     */
+    public NecrifyUser createUser(UUID userId) {
+        var cachedUser = getUserManager().getUser(userId);
+        if (cachedUser.isPresent()) {
+            return cachedUser.get();
+        }
+        var user = new VelocityUser(userId, "unknown", false, this);
+        getExecutor().execute(() -> {
+            Query.query("SELECT type, expiration, reason, punishment_id FROM punishment.necrify_punishment WHERE uuid = ?;").single(Call.of().bind(userId, Adapters.UUID_ADAPTER)).map(user::addPunishment).all();
+            getEventDispatcher().dispatch(new UserLoadedEvent(user).setOrigin(EventOrigin.ofClass(getClass())));
+        });
+        return user;
+    }
+
+    public CommandSource getCommandSource(NecrifyUser user) {
+        if (user instanceof VelocityUser velocityUser) {
+            var player = velocityUser.getPlayer();
+            if (player != null) {
+                return player;
+            }
+        }
+        if ("console".equalsIgnoreCase(user.getUsername()) && user.getUuid().equals(new UUID(0, 0))) {
+            return server.getConsoleCommandSource();
+        }
+        return server.getPlayer(user.getUuid()).orElse(null);
     }
 
     @Override

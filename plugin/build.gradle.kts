@@ -14,6 +14,7 @@ repositories {
 
 dependencies {
     api(projects.pluginCommon)
+    api(libs.cloud.velocity)
     annotationProcessor(libs.velocity.api)
     compileOnly(libs.velocity.api)
     compileOnly(libs.luckperms.api)

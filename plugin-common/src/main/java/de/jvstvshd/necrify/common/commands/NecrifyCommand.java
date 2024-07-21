@@ -24,7 +24,25 @@
 
 package de.jvstvshd.necrify.common.commands;
 
+import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
+import org.incendo.cloud.annotations.Command;
+
 public class NecrifyCommand {
 
+    private final AbstractNecrifyPlugin plugin;
 
+    public NecrifyCommand(AbstractNecrifyPlugin plugin) {
+        this.plugin = plugin;
+    }
+
+    @Command("necrify ban")
+    @Command("ban")
+    public void banCommand() {
+
+    }
+
+    @Command("necrify kick")
+    public void kickCommand() {
+
+    }
 }

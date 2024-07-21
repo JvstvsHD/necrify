@@ -26,10 +26,14 @@ package de.jvstvshd.necrify.common;
 
 import de.jvstvshd.necrify.api.Necrify;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
+import de.jvstvshd.necrify.common.commands.NecrifyCommand;
 import de.jvstvshd.necrify.common.punishment.NecrifyKick;
 import net.kyori.adventure.text.Component;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.annotations.AnnotationParser;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
@@ -39,9 +43,6 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
 
     public AbstractNecrifyPlugin(ExecutorService executorService) {
         this.executorService = executorService;
-    }
-
-    public AbstractNecrifyPlugin() {
     }
 
     @Override
@@ -55,4 +56,23 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
     }
 
     public abstract NecrifyKick createKick(Component reason, NecrifyUser user, UUID punishmentUuid);
+
+    /**
+     * Registers commands for the plugin via the {@link AnnotationParser} from the cloud framework. It is possible to only
+     * register the commands of the /necrify root, but also the top-level ones (e.g. /ban, /kick, etc.).
+     *
+     * @param manager          the command manager to register the commands to.
+     * @param topLevelCommands whether to register top-level commands (/ban, /kick, etc.) or not (i.e. only /necrify commands).
+     */
+    public final void registerCommands(CommandManager<NecrifyUser> manager, boolean topLevelCommands) {
+        AnnotationParser<NecrifyUser> parser = new AnnotationParser<>(manager, NecrifyUser.class);
+        final var oldExtractor = parser.commandExtractor();
+        if (!topLevelCommands) {
+            parser.commandExtractor(instance -> {
+                var commands = new ArrayList<>(oldExtractor.extractCommands(instance));
+                return commands.stream().filter(commandDescriptor -> commandDescriptor.commandToken().startsWith("necrify")).toList();
+            });
+        }
+        parser.parse(new NecrifyCommand(this));
+    }
 }

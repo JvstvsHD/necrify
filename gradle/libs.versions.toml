@@ -43,6 +43,7 @@ adventure-api = { group = "net.kyori", name = "adventure-api", version.ref = "ad
 adventure-text-minimessage = { group = "net.kyori", name = "adventure-text-minimessage", version.ref = "adventure" }
 cloud-core = { group = "org.incendo", name = "cloud-core", version.ref = "cloud" }
 cloud-annotations = { group = "org.incendo", name = "cloud-annotations", version.ref = "cloud" }
+cloud-velocity = { group = "org.incendo", name = "cloud-velocity", version.ref = "cloud" }
 jetbrains-annotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrains-annotations" }
 eventbus = { group = "org.greenrobot", name = "eventbus-java", version.ref = "eventbus" }
 slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
