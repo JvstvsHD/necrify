@@ -95,8 +95,7 @@ public class PunishmentBuilder {
     }
 
     public NecrifyBan buildBan() {
-        if (punishmentUuid == null)
-            punishmentUuid = UUID.randomUUID();
+        validateValues();
         return new NecrifyBan(user, reason, punishmentUuid, duration, plugin, successor);
     }
 
@@ -106,10 +105,23 @@ public class PunishmentBuilder {
      * @return The kick punishment.
      */
     public NecrifyKick buildKick() {
+        validateValues();
         return plugin.createKick(reason, user, punishmentUuid);
     }
 
     public NecrifyMute buildMute() {
+        validateValues();
         return new NecrifyMute(user, reason, punishmentUuid, duration, plugin, successor);
+    }
+
+    private void validateValues() {
+        if (punishmentUuid == null)
+            punishmentUuid = UUID.randomUUID();
+        if (user == null)
+            throw new NullPointerException("user is null");
+        if (reason == null)
+            throw new NullPointerException("reason is null");
+        if (duration == null)
+            throw new NullPointerException("duration is null");
     }
 }

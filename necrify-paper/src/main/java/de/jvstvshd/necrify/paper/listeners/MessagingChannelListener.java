@@ -53,6 +53,10 @@ public class MessagingChannelListener implements PluginMessageListener {
             plugin.getSLF4JLogger().error("Could not parse MuteData", e);
             return;
         }
+        if (data.getType() == MuteData.RESET) {
+            plugin.cachedMutes().stream().filter(muteInformation -> muteInformation.getPlayer().getUniqueId().equals(data.getUuid())).forEach(plugin.cachedMutes()::remove);
+            return;
+        }
         var mute = MuteInformation.from(data);
         switch (data.getType()) {
             case MuteData.ADD -> plugin.cachedMutes().add(mute);
@@ -60,8 +64,6 @@ public class MessagingChannelListener implements PluginMessageListener {
                     plugin.cachedMutes().removeIf(muteInformation -> muteInformation.getPunishmentUUID().equals(mute.getPunishmentUUID()));
             case MuteData.UPDATE ->
                     plugin.cachedMutes().stream().filter(muteInformation -> muteInformation.getPunishmentUUID().equals(mute.getPunishmentUUID())).findFirst().ifPresent(muteInformation -> muteInformation.updateTo(mute));
-            case MuteData.RESET ->
-                    plugin.cachedMutes().stream().filter(muteInformation -> muteInformation.getPlayer().getUniqueId().equals(mute.getPlayer().getUniqueId())).forEach(plugin.cachedMutes()::remove);
         }
     }
 }

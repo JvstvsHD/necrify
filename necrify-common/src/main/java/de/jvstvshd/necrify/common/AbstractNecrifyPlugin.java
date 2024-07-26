@@ -103,7 +103,7 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
         });
         var parserRegistry = manager.parserRegistry();
         parserRegistry.registerParser(ParserDescriptor.of(new NecrifyUserParser(this.getUserManager()), NecrifyUser.class));
-        parserRegistry.registerParser(ComponentParser.componentParser(MiniMessage.miniMessage(), StringParser.StringMode.GREEDY_FLAG_YIELDING));
+        parserRegistry.registerParser(ComponentParser.componentParser(MiniMessage.miniMessage(), StringParser.StringMode.GREEDY));
         var commands = new NecrifyCommand(this);
         parser.parse(commands);
     }

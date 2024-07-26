@@ -108,7 +108,7 @@ public class VelocityUser implements NecrifyUser {
     }
 
     @Override
-    public @NotNull Ban ban(@Nullable Component reason, @NotNull PunishmentDuration duration) {
+    public @NotNull CompletableFuture<Ban> ban(@Nullable Component reason, @NotNull PunishmentDuration duration) {
         return punish(PunishmentBuilder.newBuilder(plugin)
                 .withDuration(duration)
                 .withReason(reason)
@@ -117,12 +117,12 @@ public class VelocityUser implements NecrifyUser {
     }
 
     @Override
-    public @NotNull Ban banPermanent(@Nullable Component reason) {
+    public @NotNull CompletableFuture<Ban> banPermanent(@Nullable Component reason) {
         return ban(reason, PunishmentDuration.permanent());
     }
 
     @Override
-    public @NotNull Mute mute(@Nullable Component reason, @NotNull PunishmentDuration duration) {
+    public @NotNull CompletableFuture<Mute> mute(@Nullable Component reason, @NotNull PunishmentDuration duration) {
         return punish(PunishmentBuilder.newBuilder(plugin)
                 .withDuration(duration)
                 .withReason(reason)
@@ -131,24 +131,30 @@ public class VelocityUser implements NecrifyUser {
     }
 
     @Override
-    public @NotNull Mute mutePermanent(@Nullable Component reason) {
+    public @NotNull CompletableFuture<Mute> mutePermanent(@Nullable Component reason) {
         return mute(reason, PunishmentDuration.permanent());
     }
 
     @Override
-    public @NotNull Kick kick(@Nullable Component reason) {
+    public @NotNull CompletableFuture<Kick> kick(@Nullable Component reason) {
         var kick = PunishmentBuilder.newBuilder(plugin)
                 .withReason(reason)
                 .withUser(this)
                 .buildKick();
         kick.punish();
-        return kick;
+        return CompletableFuture.completedFuture(kick);
     }
 
-    private <T extends Punishment> T punish(T punishment) {
+    //We're just returning the same instance that was passed in via 'punishment', so we can safely cast it to T.
+    @SuppressWarnings("unchecked")
+    private <T extends Punishment> CompletableFuture<T> punish(T punishment) {
         punishments.add(punishment);
-        punishment.punish();
-        return punishment;
+        return (CompletableFuture<T>) punishment.punish().whenComplete((ignored, throwable) -> {
+            if (throwable != null) {
+                plugin.getLogger().error("An error occurred while punishing user {}", punishment.getUser().getUuid(), throwable);
+                punishment.getUser().sendErrorMessage();
+            }
+        });
     }
 
     @SuppressWarnings("unchecked")

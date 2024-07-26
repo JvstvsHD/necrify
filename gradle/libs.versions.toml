@@ -41,9 +41,12 @@ sqlite = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqlite" }
 mysql = { group = "com.mysql", name = "mysql-connector-j", version.ref = "mysql" }
 adventure-api = { group = "net.kyori", name = "adventure-api", version.ref = "adventure" }
 adventure-text-minimessage = { group = "net.kyori", name = "adventure-text-minimessage", version.ref = "adventure" }
+adventure-text-serializer-plain = { group = "net.kyori", name = "adventure-text-serializer-plain", version.ref = "adventure" }
 cloud-core = { group = "org.incendo", name = "cloud-core", version.ref = "cloud" }
 cloud-annotations = { group = "org.incendo", name = "cloud-annotations", version.ref = "cloud" }
 cloud-velocity = { group = "org.incendo", name = "cloud-velocity", version.ref = "cloud" }
+cloud-minecraft-extras = { group = "org.incendo", name = "cloud-minecraft-extras", version.ref = "cloud" }
+cloud-brigadier = { group = "org.incendo", name = "cloud-brigadier", version.ref = "cloud" }
 jetbrains-annotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrains-annotations" }
 eventbus = { group = "org.greenrobot", name = "eventbus-java", version.ref = "eventbus" }
 slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
@@ -52,5 +55,5 @@ slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
 
 database = ["postgresql", "hikari", "sadu", "mariadb", "sqlite", "mysql", "sadu-queries"]
 jackson = ["jackson-databind", "jackson-yaml", "jackson-datatype-jsr310"]
-adventure = ["adventure-api", "adventure-text-minimessage"]
-cloud = ["cloud-core", "cloud-annotations"]
+adventure = ["adventure-api", "adventure-text-minimessage", "adventure-text-serializer-plain"]
+cloud = ["cloud-core", "cloud-annotations", "cloud-minecraft-extras"]

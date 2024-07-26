@@ -24,6 +24,14 @@
 
 package de.jvstvshd.necrify.common.plugin;
 
+import de.jvstvshd.necrify.api.message.MessageProvider;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.event.HoverEventSource;
+import net.kyori.adventure.text.format.NamedTextColor;
+
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -48,5 +56,10 @@ public class Util {
 
     public static String trimUuid(UUID origin) {
         return origin.toString().toLowerCase().replace("-", "");
+    }
+
+    public static TextComponent copyComponent(String text, MessageProvider provider) {
+        return Component.text(text).clickEvent(ClickEvent.suggestCommand(text))
+                .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(provider.provide("commands.general.copy").color(NamedTextColor.GREEN)));
     }
 }

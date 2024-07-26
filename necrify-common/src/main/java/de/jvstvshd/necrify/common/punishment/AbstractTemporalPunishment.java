@@ -38,6 +38,7 @@ import de.jvstvshd.necrify.common.io.Adapters;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -47,7 +48,7 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
 
     public AbstractTemporalPunishment(NecrifyUser user, Component reason, UUID punishmentUuid, PunishmentDuration duration, AbstractNecrifyPlugin plugin, Punishment successor) {
         super(user, reason, punishmentUuid, plugin, successor);
-        this.duration = duration;
+        this.duration = Objects.requireNonNull(duration, "temporal punishment must have a duration");
     }
 
     public PunishmentDuration getDuration() {

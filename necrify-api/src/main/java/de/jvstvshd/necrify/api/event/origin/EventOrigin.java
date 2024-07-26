@@ -35,4 +35,16 @@ public interface EventOrigin {
     }
 
     boolean originatesFrom(Object object);
+
+    static EventOrigin nullOrigin() {
+        return new NullEventOrigin();
+    }
+
+    class NullEventOrigin implements EventOrigin {
+
+        @Override
+        public boolean originatesFrom(Object object) {
+            return false;
+        }
+    }
 }

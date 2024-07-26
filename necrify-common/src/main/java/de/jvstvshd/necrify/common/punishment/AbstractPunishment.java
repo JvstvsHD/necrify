@@ -39,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -67,10 +68,10 @@ public abstract class AbstractPunishment implements Punishment {
 
 
     public AbstractPunishment(@NotNull NecrifyUser user, @NotNull Component reason, @NotNull UUID punishmentUuid, @NotNull AbstractNecrifyPlugin plugin, @Nullable Punishment successor) {
-        this.reason = reason;
+        this.reason = Objects.requireNonNull(reason, "punishment must be reasoned");
         this.service = plugin.getService();
-        this.user = user;
-        this.punishmentUuid = punishmentUuid;
+        this.user = Objects.requireNonNull(user, "punishment must be bound to a user");
+        this.punishmentUuid = Objects.requireNonNull(punishmentUuid, "punishment must have a uuid");
         this.successor = successor;
         this.validity = true;
         this.messageProvider = plugin.getMessageProvider();

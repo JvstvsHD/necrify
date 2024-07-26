@@ -44,31 +44,31 @@ public abstract class AbstractConsoleUser implements NecrifyUser {
     }
 
     @Override
-    public @NotNull Ban ban(@Nullable Component reason, @NotNull PunishmentDuration duration) {
+    public @NotNull CompletableFuture<Ban> ban(@Nullable Component reason, @NotNull PunishmentDuration duration) {
         throwUnsupported();
         return null;
     }
 
     @Override
-    public @NotNull Ban banPermanent(@Nullable Component reason) {
+    public @NotNull CompletableFuture<Ban> banPermanent(@Nullable Component reason) {
         throwUnsupported();
         return null;
     }
 
     @Override
-    public @NotNull Mute mute(@Nullable Component reason, @NotNull PunishmentDuration duration) {
+    public @NotNull CompletableFuture<Mute> mute(@Nullable Component reason, @NotNull PunishmentDuration duration) {
         throwUnsupported();
         return null;
     }
 
     @Override
-    public @NotNull Mute mutePermanent(@Nullable Component reason) {
+    public @NotNull CompletableFuture<Mute> mutePermanent(@Nullable Component reason) {
         throwUnsupported();
         return null;
     }
 
     @Override
-    public @NotNull Kick kick(@Nullable Component reason) {
+    public @NotNull CompletableFuture<Kick> kick(@Nullable Component reason) {
         throwUnsupported();
         return null;
     }
