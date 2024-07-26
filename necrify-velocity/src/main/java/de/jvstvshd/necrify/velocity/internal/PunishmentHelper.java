@@ -94,7 +94,7 @@ public class PunishmentHelper {
      * @deprecated in favor of the new User API, use {@link #getUser(CommandContext, NecrifyVelocityPlugin)} instead.
      */
     @Deprecated(since = "1.2.0", forRemoval = true)
-    @ApiStatus.ScheduledForRemoval(inVersion = "2.0.0")
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.3.0")
     public static CompletableFuture<UUID> getPlayerUuid(CommandContext<CommandSource> context, NecrifyVelocityPlugin plugin) {
         var argument = context.getArgument("player", String.class);
         if (argument.length() <= 16) {

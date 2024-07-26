@@ -25,15 +25,30 @@
 package de.jvstvshd.necrify.common;
 
 import de.jvstvshd.necrify.api.Necrify;
+import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.commands.NecrifyCommand;
+import de.jvstvshd.necrify.common.commands.NecrifyUserParser;
 import de.jvstvshd.necrify.common.punishment.NecrifyKick;
+import de.jvstvshd.necrify.common.commands.UserNotFoundParseException;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.annotations.AnnotationParser;
+import org.incendo.cloud.exception.ArgumentParseException;
+import org.incendo.cloud.exception.handling.ExceptionHandler;
+import org.incendo.cloud.minecraft.extras.parser.ComponentParser;
+import org.incendo.cloud.parser.ParserDescriptor;
+import org.incendo.cloud.parser.standard.StringParser;
+import org.incendo.cloud.type.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
@@ -55,8 +70,6 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
         return getExecutor();
     }
 
-    public abstract NecrifyKick createKick(Component reason, NecrifyUser user, UUID punishmentUuid);
-
     /**
      * Registers commands for the plugin via the {@link AnnotationParser} from the cloud framework. It is possible to only
      * register the commands of the /necrify root, but also the top-level ones (e.g. /ban, /kick, etc.).
@@ -73,6 +86,40 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
                 return commands.stream().filter(commandDescriptor -> commandDescriptor.commandToken().startsWith("necrify")).toList();
             });
         }
-        parser.parse(new NecrifyCommand(this));
+
+        manager.exceptionController()
+                .registerHandler(ArgumentParseException.class, ExceptionHandler.unwrappingHandler(UserNotFoundParseException.class))
+                .registerHandler(UserNotFoundParseException.class, context -> {
+                    context.context().sender().sendMessage("commands.general.not-found", Component.text(context.exception().playerName()).color(NamedTextColor.YELLOW));
+                });
+        /*manager.exceptionController()//.registerHandler(ArgumentParseException.class, ExceptionHandler.unwrappingHandler(ArgumentParseException.class))
+                .registerHandler(ArgumentParseException.class, context -> {
+                    context.context().sender().sendMessage("commands.general.invalid-argument");
+                    System.out.println(context.exception().getCause());
+                });*/
+        manager.captionRegistry().registerProvider((caption, user) -> {
+            var component = getMessageProvider().provide(caption.key(), user.getLocale());
+            return PlainTextComponentSerializer.plainText().serialize(component);
+        });
+        var parserRegistry = manager.parserRegistry();
+        parserRegistry.registerParser(ParserDescriptor.of(new NecrifyUserParser(this.getUserManager()), NecrifyUser.class));
+        parserRegistry.registerParser(ComponentParser.componentParser(MiniMessage.miniMessage(), StringParser.StringMode.GREEDY_FLAG_YIELDING));
+        var commands = new NecrifyCommand(this);
+        parser.parse(commands);
     }
+
+    //TODO: Move config to necrify-common
+    public String getDefaultReason(StandardPunishmentType type) {
+        return "<red>You were " + switch (type) {
+            case KICK -> "kicked from the server.";
+            case BAN, PERMANENT_BAN -> "banned from the server.";
+            case MUTE, PERMANENT_MUTE -> "muted.";
+        } + "</red>";
+    }
+
+    public abstract NecrifyKick createKick(Component reason, NecrifyUser user, UUID punishmentUuid);
+
+    public abstract Logger getLogger();
+
+    public abstract Set<Pair<String, UUID>> getOnlinePlayers();
 }

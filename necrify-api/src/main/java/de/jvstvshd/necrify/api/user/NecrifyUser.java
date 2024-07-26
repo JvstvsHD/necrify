@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -187,6 +188,8 @@ public interface NecrifyUser extends CommandSender {
     default Optional<Punishment> getPunishment(@NotNull UUID punishmentUuid) {
         return getPunishments().stream().filter(punishment -> punishment.getPunishmentUuid().equals(punishmentUuid)).findFirst();
     }
+
+    Locale getLocale();
 
     /*    *//**
      * Method to add punishments to users. This method is only meant to be used until events are implemented and all

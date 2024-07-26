@@ -131,10 +131,14 @@ public class VelocityUserManager implements UserManager {
         if (cached.isPresent()) {
             return CompletableFuture.completedFuture(cached);
         }
+        var parsedUuid = Util.parseUuid(player);
+        if (parsedUuid != null) {
+            return loadUser(parsedUuid);
+        }
         return executeAsync(() -> {
             var user = Query.query(SELECT_USER_BY_NAME_QUERY)
                     .single(Call.of().bind(player))
-                    .map(row -> new VelocityUser(row.getObject(1, UUID.class), player, row.getBoolean(3), plugin))
+                    .map(row -> new VelocityUser(row.getObject(1, UUID.class), player, row.getBoolean(2), plugin))
                     .first();
             user.ifPresent(velocityUser -> {
                 Query.query(SELECT_USER_PUNISHMENTS_QUERY)
@@ -160,6 +164,10 @@ public class VelocityUserManager implements UserManager {
 
     @Override
     public @NotNull CompletableFuture<Optional<NecrifyUser>> createUser(@NotNull String player) {
+        var parsedUuid = Util.parseUuid(player);
+        if (parsedUuid != null) {
+            return loadUser(parsedUuid);
+        }
         return executeAsync(() -> {
             var uuid = MojangAPI.getUuid(player);
             return uuid.map(id -> createUser(id, player));

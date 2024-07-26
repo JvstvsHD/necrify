@@ -53,10 +53,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
@@ -175,17 +172,17 @@ public class VelocityUser implements NecrifyUser {
 
     @Override
     public @NotNull CompletableFuture<String> queryUsername(boolean update) {
-        HttpClient httpClient = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder(URI.create("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid)).GET().build();
-        return httpClient
-                .sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(response -> JsonParser.parseString(response.body()).getAsJsonObject().get("name").getAsString())
-                .thenApplyAsync(s -> {
-                    if (update)
-                        name = s;
-                    return s;
-                });
-
+        try (HttpClient httpClient = HttpClient.newHttpClient()) {
+            HttpRequest request = HttpRequest.newBuilder(URI.create("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid)).GET().build();
+            return httpClient
+                    .sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                    .thenApply(response -> JsonParser.parseString(response.body()).getAsJsonObject().get("name").getAsString())
+                    .thenApplyAsync(s -> {
+                        if (update)
+                            name = s;
+                        return s;
+                    });
+        }
     }
 
     public Optional<Player> queryPlayer() {
@@ -196,6 +193,16 @@ public class VelocityUser implements NecrifyUser {
     @Override
     public void sendMessage(@NotNull Component message) {
         queryPlayer().ifPresent(player -> player.sendMessage(message));
+    }
+
+    @Override
+    public void sendMessage(@NotNull String key, Component... args) {
+        sendMessage(messageProvider.provide(key, args));
+    }
+
+    @Override
+    public void sendErrorMessage() {
+        sendMessage(messageProvider.internalError());
     }
 
     @Override
@@ -295,5 +302,13 @@ public class VelocityUser implements NecrifyUser {
     public void delete(@NotNull UserDeletionReason reason) {
         plugin.getEventDispatcher().dispatch(new UserDeletedEvent(this, reason));
         throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    @Override
+    public Locale getLocale() {
+        if (player != null) {
+            return player.getEffectiveLocale();
+        }
+        return plugin.getConfig().getConfiguration().getDefaultLanguage();
     }
 }
