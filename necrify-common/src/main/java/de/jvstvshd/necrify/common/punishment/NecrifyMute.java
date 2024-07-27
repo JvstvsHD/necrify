@@ -54,7 +54,7 @@ public class NecrifyMute extends AbstractTemporalPunishment implements Mute {
 
     @Override
     public @NotNull StandardPunishmentType getType() {
-        return isPermanent() ? StandardPunishmentType.PERMANENT_MUTE : StandardPunishmentType.MUTE;
+        return isPermanent() ? StandardPunishmentType.PERMANENT_MUTE : StandardPunishmentType.TEMPORARY_MUTE;
     }
 
     @Override

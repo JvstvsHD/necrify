@@ -27,6 +27,7 @@ package de.jvstvshd.necrify.api.duration;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -43,6 +44,13 @@ public interface PunishmentDuration extends Comparable<PunishmentDuration> {
      *
      * @param source the source string.
      * @return the parsed duration
+     * @throws Parser.ParseException if... <ul>
+     *                                          <li>the source string is empty</li>
+     *                                          <li>the source string does not contain parsable tokens</li>
+     *                                          <li>the source string does not contain a unit character after a number</li>
+     *                                          <li>the source string contains an unknown unit character</li>
+     *                                          <li>the numeric value is negative</li>
+     *                                      </ul>
      * @see Parser#parse()
      */
     static PunishmentDuration parse(String source) {
@@ -94,6 +102,7 @@ public interface PunishmentDuration extends Comparable<PunishmentDuration> {
     /**
      * Converts the given {@link Duration} into a {@link PunishmentDuration}. The duration is relative the given length
      * into the future from a given point in time. It is absolute as soon as a punishment is enforced.
+     *
      * @param duration how long the punishment should last
      * @return the converted duration
      */
@@ -205,18 +214,23 @@ public interface PunishmentDuration extends Comparable<PunishmentDuration> {
             int index = 0;
             for (String number : numbers) {
                 index += number.length();
-                final long numericValue = Long.parseLong(number);
+                final long numericValue;
+                try {
+                    numericValue = Long.parseLong(number);
+                } catch (NumberFormatException e) {
+                    throw new ParseException("Not a number: " + e.getMessage());
+                }
                 if (numericValue < 0)
-                    throw new IllegalArgumentException("Illegal numeric value: " + numericValue);
+                    throw new ParseException("Illegal numeric value: " + numericValue);
                 final char unit;
                 try {
                     unit = Character.toLowerCase(source.charAt(index));
                 } catch (IndexOutOfBoundsException e) {
-                    throw new IllegalArgumentException("Number is not followed by unit marking character.");
+                    throw new ParseException("Number is not followed by unit marking character.");
                 }
                 TimeUnit timeUnit = characterMapping.get(unit);
                 if (timeUnit == null)
-                    throw new IllegalArgumentException("Unknown time unit for character '" + unit + "'");
+                    throw new ParseException("Unknown time unit for character '" + unit + "'");
                 converted.put(timeUnit, numericValue);
                 index++;
             }
@@ -231,9 +245,11 @@ public interface PunishmentDuration extends Comparable<PunishmentDuration> {
          * @return the parsed duration
          */
         public PunishmentDuration parse() {
+            if (source.isEmpty())
+                throw new ParseException("Source string is empty.");
             convert();
             if (rawDuration.isEmpty()) {
-                throw new IllegalArgumentException("Converted map is empty.");
+                throw new ParseException("Converted map is empty.");
             }
             return fromMillis(durationToMillis());
         }
@@ -248,6 +264,12 @@ public interface PunishmentDuration extends Comparable<PunishmentDuration> {
                 total += convertToMillis(entry.getKey(), entry.getValue());
             }
             return total;
+        }
+
+        public static class ParseException extends RuntimeException {
+            public ParseException(String message) {
+                super(message);
+            }
         }
     }
 }

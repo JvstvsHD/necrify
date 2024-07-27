@@ -35,7 +35,7 @@ public interface PunishmentType {
      * @since 1.0.1
      */
     default boolean isMute() {
-        return this == StandardPunishmentType.MUTE || this == StandardPunishmentType.PERMANENT_MUTE;
+        return this == StandardPunishmentType.TEMPORARY_MUTE || this == StandardPunishmentType.PERMANENT_MUTE;
     }
 
     /**
@@ -45,6 +45,6 @@ public interface PunishmentType {
      * @since 1.0.1
      */
     default boolean isBan() {
-        return this == StandardPunishmentType.BAN || this == StandardPunishmentType.PERMANENT_BAN;
+        return this == StandardPunishmentType.TEMPORARY_BAN || this == StandardPunishmentType.PERMANENT_BAN;
     }
 }

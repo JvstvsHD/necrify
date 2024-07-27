@@ -88,6 +88,6 @@ public class NecrifyBan extends AbstractTemporalPunishment implements Ban {
 
     @Override
     public @NotNull StandardPunishmentType getType() {
-        return getDuration().isPermanent() ? StandardPunishmentType.PERMANENT_BAN : StandardPunishmentType.BAN;
+        return getDuration().isPermanent() ? StandardPunishmentType.PERMANENT_BAN : StandardPunishmentType.TEMPORARY_BAN;
     }
 }

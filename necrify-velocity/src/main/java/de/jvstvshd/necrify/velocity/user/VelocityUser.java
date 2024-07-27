@@ -233,8 +233,8 @@ public class VelocityUser implements NecrifyUser {
                 .withPunishmentUuid(punishmentUuid);
         Punishment punishment;
         switch (type) {
-            case BAN, PERMANENT_BAN -> punishment = builder.buildBan();
-            case MUTE, PERMANENT_MUTE -> punishment = builder.buildMute();
+            case TEMPORARY_BAN, PERMANENT_BAN -> punishment = builder.buildBan();
+            case TEMPORARY_MUTE, PERMANENT_MUTE -> punishment = builder.buildMute();
             case KICK -> punishment = builder.buildKick();
             default -> throw new UnsupportedOperationException("unhandled punishment type: " + type.getName());
         }

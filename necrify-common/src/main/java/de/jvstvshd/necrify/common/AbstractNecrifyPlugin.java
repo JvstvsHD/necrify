@@ -25,10 +25,12 @@
 package de.jvstvshd.necrify.common;
 
 import de.jvstvshd.necrify.api.Necrify;
+import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.commands.NecrifyCommand;
 import de.jvstvshd.necrify.common.commands.NecrifyUserParser;
+import de.jvstvshd.necrify.common.commands.PunishmentDurationParser;
 import de.jvstvshd.necrify.common.punishment.NecrifyKick;
 import de.jvstvshd.necrify.common.commands.UserNotFoundParseException;
 import net.kyori.adventure.text.Component;
@@ -47,7 +49,6 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -104,6 +105,7 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
         var parserRegistry = manager.parserRegistry();
         parserRegistry.registerParser(ParserDescriptor.of(new NecrifyUserParser(this.getUserManager()), NecrifyUser.class));
         parserRegistry.registerParser(ComponentParser.componentParser(MiniMessage.miniMessage(), StringParser.StringMode.GREEDY));
+        parserRegistry.registerParser(ParserDescriptor.of(new PunishmentDurationParser(), PunishmentDuration.class));
         var commands = new NecrifyCommand(this);
         parser.parse(commands);
     }
@@ -112,8 +114,8 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
     public String getDefaultReason(StandardPunishmentType type) {
         return "<red>You were " + switch (type) {
             case KICK -> "kicked from the server.";
-            case BAN, PERMANENT_BAN -> "banned from the server.";
-            case MUTE, PERMANENT_MUTE -> "muted.";
+            case TEMPORARY_BAN, PERMANENT_BAN -> "banned from the server.";
+            case TEMPORARY_MUTE, PERMANENT_MUTE -> "muted.";
         } + "</red>";
     }
 

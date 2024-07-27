@@ -216,8 +216,8 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
             return TooltipSuggestion.suggestion(suggestion.suggestion(), VelocityBrigadierMessage.tooltip(componentTooltipSuggestion.tooltip()));
         });
         var brigadierManager = cManager.brigadierManager();
-        brigadierManager.setNativeSuggestions(new TypeToken<StringParser<NecrifyUser>>() {
-        }, true);
+        /*brigadierManager.setNativeSuggestions(new TypeToken<StringParser<NecrifyUser>>() {
+        }, true);*/
         brigadierManager.setNativeNumberSuggestions(true);
         registerCommands(cManager, getConfig().getConfiguration().isAllowTopLevelCommands());
         brigadierManager.registerMapping(new TypeToken<ComponentParser<NecrifyUser>>() {

@@ -96,7 +96,7 @@ public class PunishmentBuilder {
 
     public NecrifyBan buildBan() {
         validateValues();
-        return new NecrifyBan(user, reason, punishmentUuid, duration, plugin, successor);
+        return new NecrifyBan(user, reason, punishmentUuid, duration.absolute(), plugin, successor);
     }
 
     /**
@@ -111,7 +111,7 @@ public class PunishmentBuilder {
 
     public NecrifyMute buildMute() {
         validateValues();
-        return new NecrifyMute(user, reason, punishmentUuid, duration, plugin, successor);
+        return new NecrifyMute(user, reason, punishmentUuid, duration.absolute(), plugin, successor);
     }
 
     private void validateValues() {
@@ -121,7 +121,5 @@ public class PunishmentBuilder {
             throw new NullPointerException("user is null");
         if (reason == null)
             throw new NullPointerException("reason is null");
-        if (duration == null)
-            throw new NullPointerException("duration is null");
     }
 }

@@ -48,13 +48,13 @@ public class PunishmentRemovalCommand {
 
     public static BrigadierCommand unmuteCommand(NecrifyVelocityPlugin plugin) {
         var node = Util.permissibleCommand("unmute", "necrify.command.unmute")
-                .then(Util.punishmentRemoveArgument(plugin).executes(context -> execute(context, plugin, "unmute", StandardPunishmentType.MUTE, StandardPunishmentType.PERMANENT_MUTE)));
+                .then(Util.punishmentRemoveArgument(plugin).executes(context -> execute(context, plugin, "unmute", StandardPunishmentType.TEMPORARY_MUTE, StandardPunishmentType.PERMANENT_MUTE)));
         return new BrigadierCommand(node);
     }
 
     public static BrigadierCommand unbanCommand(NecrifyVelocityPlugin plugin) {
         var node = Util.permissibleCommand("unban", "necrify.command.unban")
-                .then(Util.punishmentRemoveArgument(plugin).executes(context -> execute(context, plugin, "unban", StandardPunishmentType.BAN, StandardPunishmentType.PERMANENT_BAN)));
+                .then(Util.punishmentRemoveArgument(plugin).executes(context -> execute(context, plugin, "unban", StandardPunishmentType.TEMPORARY_BAN, StandardPunishmentType.PERMANENT_BAN)));
         return new BrigadierCommand(node);
     }
 
