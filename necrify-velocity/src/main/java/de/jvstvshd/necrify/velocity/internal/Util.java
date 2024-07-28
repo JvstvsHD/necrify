@@ -93,9 +93,13 @@ public class Util {
         try {
             return UUID.fromString(uuidString);
         } catch (IllegalArgumentException e) {
-            return UUID.fromString(uuidString.replaceAll(
-                    "(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})",
-                    "$1-$2-$3-$4-$5"));
+            try {
+                return UUID.fromString(uuidString.replaceAll(
+                        "(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})",
+                        "$1-$2-$3-$4-$5"));
+            } catch (Exception ex) {
+                return null;
+            }
         }
     }
 

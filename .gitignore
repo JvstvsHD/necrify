@@ -1,0 +1,8 @@
+.gradle
+.idea
+build
+necrify-api/build
+necrify-common/build
+necrify-paper/build
+necrify-velocity/build
+necrify-velocity/run

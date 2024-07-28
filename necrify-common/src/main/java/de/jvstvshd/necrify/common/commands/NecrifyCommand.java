@@ -24,7 +24,355 @@
 
 package de.jvstvshd.necrify.common.commands;
 
+import de.jvstvshd.necrify.api.duration.PunishmentDuration;
+import de.jvstvshd.necrify.api.punishment.Punishment;
+import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
+import de.jvstvshd.necrify.api.user.NecrifyUser;
+import de.jvstvshd.necrify.api.user.UserDeletionReason;
+import de.jvstvshd.necrify.api.user.UserManager;
+import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
+import de.jvstvshd.necrify.common.util.PunishmentHelper;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.event.HoverEventSource;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.incendo.cloud.annotation.specifier.Greedy;
+import org.incendo.cloud.annotations.Argument;
+import org.incendo.cloud.annotations.Command;
+import org.incendo.cloud.annotations.Default;
+import org.incendo.cloud.annotations.Permission;
+import org.incendo.cloud.annotations.suggestion.Suggestions;
+import org.incendo.cloud.context.CommandContext;
+import org.incendo.cloud.context.CommandInput;
+import org.incendo.cloud.minecraft.extras.suggestion.ComponentTooltipSuggestion;
+import org.incendo.cloud.suggestion.Suggestion;
+import org.slf4j.Logger;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+
 public class NecrifyCommand {
 
+    private final AbstractNecrifyPlugin plugin;
+    private final MiniMessage miniMessage;
+    private final UserManager userManager;
+    private final Logger logger;
+    private final ExecutorService executor;
 
+    private static final List<String> PUNISHMENT_COMMAND_OPTIONS = List.of("cancel", "remove", "info", "change");
+    private static final List<String> USER_COMMAND_OPTIONS = List.of("info", "delete");
+
+    public NecrifyCommand(AbstractNecrifyPlugin plugin) {
+        this.plugin = plugin;
+        this.userManager = plugin.getUserManager();
+        this.miniMessage = MiniMessage.miniMessage();
+        this.logger = plugin.getLogger();
+        this.executor = plugin.getExecutor();
+    }
+
+    //COMMANDS
+    //Punishing
+
+    @Command("necrify ban <target> [reason]")
+    @Command("ban <target> [reason]")
+    @Permission(value = {"necrify.command.ban", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
+    public void banCommand(
+            NecrifyUser sender,
+            @Argument(value = "target", description = "Player to ban", suggestions = "suggestOnlinePlayers") NecrifyUser target,
+            @Argument(value = "reason", description = "Reason the user should be banned for", suggestions = "suggestMiniMessage") @Greedy String reason
+    ) {
+        var finalReason = reasonOrDefaultTo(reason, StandardPunishmentType.PERMANENT_BAN);
+        target.banPermanent(finalReason).whenComplete((ban, throwable) -> {
+            if (throwable != null) {
+                logException(sender, throwable);
+                return;
+            }
+            sender.sendMessage("command.ban.success",
+                    miniMessage(target.getUsername()).color(NamedTextColor.YELLOW),
+                    copyComponent(target.getUuid().toString()).color(NamedTextColor.YELLOW),
+                    finalReason);
+        });
+    }
+
+    @Command("necrify mute <target> [reason]")
+    @Command("mute <target> [reason]")
+    @Permission(value = {"necrify.command.mute", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
+    public void muteCommand(
+            NecrifyUser sender,
+            @Argument(value = "target", description = "Player to mute", suggestions = "suggestOnlinePlayers") NecrifyUser target,
+            @Argument(value = "reason", description = "Reason the user should be muted for", suggestions = "suggestMiniMessage") @Greedy String reason
+    ) {
+        var finalReason = reasonOrDefaultTo(reason, StandardPunishmentType.PERMANENT_MUTE);
+        target.mutePermanent(finalReason).whenComplete((mute, throwable) -> {
+            if (throwable != null) {
+                logException(sender, throwable);
+                return;
+            }
+            sender.sendMessage("command.mute.success",
+                    miniMessage(target.getUsername()).color(NamedTextColor.YELLOW),
+                    copyComponent(target.getUuid().toString()).color(NamedTextColor.YELLOW),
+                    finalReason);
+        });
+    }
+
+    @Command("necrify kick <target> [reason]")
+    @Command("kick <target> [reason]")
+    @Permission(value = {"necrify.command.kick", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
+    public void kickCommand(
+            NecrifyUser sender,
+            @Argument(value = "target", description = "Player to kick", suggestions = "suggestOnlinePlayers") NecrifyUser target,
+            @Argument(value = "reason", description = "Reason the user should be kicked for", suggestions = "suggestMiniMessage") @Greedy String reason
+    ) {
+        var finalReason = reasonOrDefaultTo(reason, StandardPunishmentType.KICK);
+        target.kick(finalReason).whenComplete((unused, throwable) -> {
+            if (throwable != null) {
+                logException(sender, throwable);
+                return;
+            }
+            sender.sendMessage("command.kick.success",
+                    miniMessage(target.getUsername()).color(NamedTextColor.YELLOW),
+                    copyComponent(target.getUuid().toString()).color(NamedTextColor.YELLOW),
+                    finalReason);
+        });
+    }
+
+    @Command("necrify tempban <target> <duration> [reason]")
+    @Command("tempban <target> <duration> [reason]")
+    @Permission(value = {"necrify.command.tempban", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
+    public void tempbanCommand(
+            NecrifyUser sender,
+            @Argument(value = "target", description = "Player to tempban", suggestions = "suggestOnlinePlayers") NecrifyUser target,
+            @Argument(value = "duration", description = "Duration the user should be banned for") PunishmentDuration duration,
+            @Argument(value = "reason", description = "Reason the user should be banned for", suggestions = "suggestMiniMessage") @Greedy String reason
+    ) {
+        var finalReason = reasonOrDefaultTo(reason, StandardPunishmentType.TEMPORARY_BAN);
+        target.ban(finalReason, duration).whenComplete((ban, throwable) -> {
+            if (throwable != null) {
+                logException(sender, throwable);
+                return;
+            }
+            sender.sendMessage("command.tempban.success",
+                    miniMessage(target.getUsername()).color(NamedTextColor.YELLOW),
+                    copyComponent(target.getUuid().toString()).color(NamedTextColor.YELLOW),
+                    finalReason,
+                    miniMessage(duration.expirationAsString()).color(NamedTextColor.YELLOW));
+        });
+    }
+
+    @Command("necrify tempmute <target> <duration> [reason]")
+    @Command("tempmute <target> <duration> [reason]")
+    @Permission(value = {"necrify.command.tempmute", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
+    public void tempmuteCommand(
+            NecrifyUser sender,
+            @Argument(value = "target", description = "Player to tempmute", suggestions = "suggestOnlinePlayers") NecrifyUser target,
+            @Argument(value = "duration", description = "Duration the user should be muted for") PunishmentDuration duration,
+            @Argument(value = "reason", description = "Reason the user should be muted for", suggestions = "suggestMiniMessage") @Greedy String reason
+    ) {
+        var finalReason = reasonOrDefaultTo(reason, StandardPunishmentType.TEMPORARY_MUTE);
+        target.mute(finalReason, duration).whenComplete((mute, throwable) -> {
+            if (throwable != null) {
+                logException(sender, throwable);
+                return;
+            }
+            sender.sendMessage("command.tempmute.success",
+                    miniMessage(target.getUsername()).color(NamedTextColor.YELLOW),
+                    copyComponent(target.getUuid().toString()).color(NamedTextColor.YELLOW),
+                    finalReason,
+                    miniMessage(duration.expirationAsString()).color(NamedTextColor.YELLOW));
+        });
+    }
+
+    //Removal of punishments
+
+    @Command("necrify unban <target>")
+    @Command("unban <target>")
+    @Permission(value = {"necrify.command.unban", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
+    public void unbanCommand(
+            NecrifyUser sender,
+            @Argument(value = "target", description = "Player to unban") NecrifyUser target
+    ) {
+        var punishments = target.getPunishments(StandardPunishmentType.TEMPORARY_BAN, StandardPunishmentType.PERMANENT_BAN);
+        try {
+            removePunishments(sender, "unban", punishments);
+        } catch (Exception e) {
+            logException(e);
+        }
+    }
+
+    @Command("necrify unmute <target>")
+    @Command("unmute <target>")
+    @Permission(value = {"necrify.command.unmute", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
+    public void unmuteCommand(
+            NecrifyUser sender,
+            @Argument(value = "target", description = "Player to unmute", suggestions = "suggestOnlinePlayers") NecrifyUser target
+    ) {
+        var punishments = target.getPunishments(StandardPunishmentType.TEMPORARY_MUTE, StandardPunishmentType.PERMANENT_MUTE);
+        removePunishments(sender, "unmute", punishments);
+    }
+
+    @Command("necrify punishment <punishment> [option]")
+    @Permission(value = {"necrify.command.punishment", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
+    public void punishmentCommand(
+            NecrifyUser sender,
+            @Argument(value = "punishment", description = "Punishment to manage") Punishment punishment,
+            @Argument(value = "option", description = "Option to manage the punishment", suggestions = "suggestPunishmentCommandOptions") @Default("info") String option
+    ) {
+        switch (option) {
+            case "info" ->
+                    sender.sendMessage(buildComponent(PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider()), punishment));
+            case "cancel", "remove" -> {
+                punishment.cancel().whenCompleteAsync((unused, th) -> {
+                    if (th != null) {
+                        logException(sender, th);
+                        return;
+                    }
+                    sender.sendMessage("command.punishment.cancel.success");
+                }, plugin.getService());
+            }
+            case "change" -> {
+                sender.sendMessage(miniMessage("Soon (TM)").color(NamedTextColor.LIGHT_PURPLE));
+            }
+        }
+    }
+
+    @Command("necrify user <target> [option]")
+    @Permission(value = {"necrify.command.user", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
+    public void userCommand(
+            NecrifyUser sender,
+            @Argument(value = "target", description = "Player to manage", suggestions = "suggestOnlinePlayers") NecrifyUser target,
+            @Argument(value = "option", description = "Option to manage the player", suggestions = "suggestUserCommandOptions") @Default("info") String option
+    ) {
+        switch (option) {
+            case "info" -> {
+                var punishments = target.getPunishments();
+                for (Punishment punishment : punishments) {
+                    Component component = PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider())
+                            .clickEvent(ClickEvent.suggestCommand(punishment.getPunishmentUuid().toString().toLowerCase(Locale.ROOT)))
+                            .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(plugin.getMessageProvider().provide("commands.general.copy")
+                                    .color(NamedTextColor.GREEN)));
+                    sender.sendMessage(component);
+                }
+            }
+            case "delete" -> {
+                //TODO add confirmation
+                target.delete(UserDeletionReason.USER_DELETED);
+                sender.sendMessage("command.user.delete.success",
+                        miniMessage(target.getUsername()).color(NamedTextColor.YELLOW),
+                        copyComponent(target.getUuid().toString()).color(NamedTextColor.YELLOW));
+            }
+        }
+    }
+
+    //SUGGESTIONS
+
+    @Suggestions("suggestOnlinePlayers")
+    public List<? extends Suggestion> suggestNames(CommandContext<NecrifyUser> context, CommandInput input) {
+        return plugin
+                .getOnlinePlayers()
+                .stream()
+                .filter(pair -> pair.first().toLowerCase(Locale.ROOT).startsWith(input.peekString().toLowerCase(Locale.ROOT)))
+                .map(pair -> ComponentTooltipSuggestion.suggestion(pair.first(),
+                        miniMessage("<red>The player <yellow>(<name>/<uuid>)</yellow> you want to select.</red><yellow>",
+                                Placeholder.parsed("name", pair.first()),
+                                Placeholder.parsed("uuid", pair.second().toString()))
+                )).toList();
+    }
+
+    @Suggestions("suggestMiniMessage")
+    public List<? extends Suggestion> suggestMiniMessage(CommandContext<NecrifyUser> context, CommandInput input) {
+        return Collections.singletonList(ComponentTooltipSuggestion.suggestion(input.remainingInput() + " (hover for preview)",
+                miniMessage(input.remainingInput())));
+    }
+
+    @Suggestions("suggestPunishmentCommandOptions")
+    public List<? extends Suggestion> suggestPunishmentCommandOptions(CommandContext<NecrifyUser> context, CommandInput input) {
+        return PUNISHMENT_COMMAND_OPTIONS
+                .stream()
+                .filter(option -> option.toLowerCase().startsWith(input.peekString().toLowerCase()))
+                .map(option -> ComponentTooltipSuggestion.suggestion(option, miniMessage(option)))
+                .toList();
+    }
+
+    @Suggestions("suggestUserCommandOptions")
+    public List<? extends Suggestion> suggestUserCommandOptions(CommandContext<NecrifyUser> context, CommandInput input) {
+        return USER_COMMAND_OPTIONS
+                .stream()
+                .filter(option -> option.toLowerCase().startsWith(input.peekString().toLowerCase()))
+                .map(option -> ComponentTooltipSuggestion.suggestion(option, miniMessage(option)))
+                .toList();
+    }
+
+    //HELPER METHODS
+
+    private void removePunishments(NecrifyUser source, String commandName, List<Punishment> punishments) {
+        var type = commandName.substring(2);
+        if (punishments.isEmpty()) {
+            source.sendMessage(plugin.getMessageProvider().provide("command.punishment.not-" + type).color(NamedTextColor.RED));
+            return;
+        }
+        if (punishments.size() > 1) {
+            source.sendMessage(plugin.getMessageProvider().provide("command." + commandName + ".multiple-" + type + "s").color(NamedTextColor.YELLOW));
+            for (Punishment punishment : punishments) {
+                source.sendMessage(buildComponent(PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider()), punishment));
+            }
+        } else {
+            Punishment punishment = punishments.getFirst();
+            try {
+                punishment.cancel().whenCompleteAsync((unused, th) -> {
+                    if (th != null) {
+                        logException(source, th);
+                        plugin.getLogger().error("An error occurred while removing punishment {} for player {}", punishment.getPunishmentUuid(), punishment.getUser().getUsername(), th);
+                        source.sendMessage(plugin.getMessageProvider().internalError());
+                        return;
+                    }
+                    source.sendMessage(plugin.getMessageProvider().provide("command." + commandName + ".success").color(NamedTextColor.GREEN));
+                }, plugin.getService());
+            } catch (Exception e) {
+                logException(source, e);
+            }
+        }
+    }
+
+    //Communication, messaging, logging
+
+    private Component buildComponent(Component dataComponent, Punishment punishment) {
+        return dataComponent.clickEvent(ClickEvent.runCommand("/punishment " + punishment.getPunishmentUuid()
+                        .toString().toLowerCase(Locale.ROOT) + " remove"))
+                .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(Component
+                        .text("Click to remove punishment").color(NamedTextColor.GREEN)));
+    }
+
+    private Component reasonOrDefaultTo(String reason, StandardPunishmentType type) {
+        return miniMessage(reason == null ? plugin.getDefaultReason(type) : reason);
+    }
+
+    private Component miniMessage(String message, TagResolver... resolvers) {
+        return miniMessage.deserialize(message, resolvers);
+    }
+
+    public TextComponent copyComponent(String text) {
+        return Component.text(text).clickEvent(ClickEvent.suggestCommand(text))
+                .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(plugin
+                        .getMessageProvider()
+                        .provide("commands.general.copy")
+                        .color(NamedTextColor.GREEN)));
+    }
+
+
+    private void logException(Throwable throwable) {
+        logger.error("An error occurred while executing a command", throwable);
+    }
+
+    private void logException(NecrifyUser sender, Throwable throwable) {
+        logger.error("An error occurred while executing a command for player {} ({})", sender.getUsername(), sender.getUuid(), throwable);
+        sender.sendErrorMessage();
+    }
 }

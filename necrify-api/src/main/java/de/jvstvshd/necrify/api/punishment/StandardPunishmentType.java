@@ -29,9 +29,9 @@ import java.util.Map;
 
 public enum StandardPunishmentType implements PunishmentType {
 
-    BAN(false, "BAN", 1),
+    TEMPORARY_BAN(false, "BAN", 1),
     PERMANENT_BAN(true, "PERMANENT_BAN", 2),
-    MUTE(false, "MUTE", 3),
+    TEMPORARY_MUTE(false, "MUTE", 3),
     PERMANENT_MUTE(true, "PERMANENT_MUTE", 4),
     KICK(false, "KICK", 5);
 

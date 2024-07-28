@@ -22,29 +22,42 @@
  * SOFTWARE.
  */
 
-package de.jvstvshd.necrify.api.punishment;
+package de.jvstvshd.necrify.velocity.user;
 
-public interface PunishmentType {
+import com.velocitypowered.api.proxy.ConsoleCommandSource;
+import de.jvstvshd.necrify.api.message.MessageProvider;
+import de.jvstvshd.necrify.common.user.AbstractConsoleUser;
+import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
 
-    String getName();
+import java.util.Locale;
 
-    /**
-     * Determines whether the punishment is a mute or not.
-     *
-     * @return true if the punishment is a mute, false otherwise.
-     * @since 1.0.1
-     */
-    default boolean isMute() {
-        return this == StandardPunishmentType.TEMPORARY_MUTE || this == StandardPunishmentType.PERMANENT_MUTE;
+public class VelocityConsoleUser extends AbstractConsoleUser {
+
+    private final ConsoleCommandSource console;
+
+    public VelocityConsoleUser(Locale locale, MessageProvider provider, ConsoleCommandSource console) {
+        super(locale, provider);
+        this.console = console;
     }
 
-    /**
-     * Determines whether the punishment is a ban or not.
-     *
-     * @return true if the punishment is a ban, false otherwise.
-     * @since 1.0.1
-     */
-    default boolean isBan() {
-        return this == StandardPunishmentType.TEMPORARY_BAN || this == StandardPunishmentType.PERMANENT_BAN;
+    public VelocityConsoleUser(MessageProvider provider, ConsoleCommandSource console) {
+        super(provider);
+        this.console = console;
+    }
+
+    @Override
+    public void sendMessage(@NotNull Component message) {
+        console.sendMessage(message);
+    }
+
+    @Override
+    public void sendMessage(@NotNull String key, Component... args) {
+        sendMessage(provider().provide(key, getLocale(), args));
+    }
+
+    @Override
+    public void sendErrorMessage() {
+        sendMessage(provider().internalError());
     }
 }

@@ -28,12 +28,20 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Joiner;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.TypeLiteral;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.velocitypowered.api.command.CommandManager;
+import com.velocitypowered.api.command.CommandSource;
+import com.velocitypowered.api.command.VelocityBrigadierMessage;
 import com.velocitypowered.api.event.EventManager;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
+import com.velocitypowered.api.proxy.ConsoleCommandSource;
+import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
@@ -70,9 +78,20 @@ import de.jvstvshd.necrify.velocity.impl.VelocityKick;
 import de.jvstvshd.necrify.velocity.internal.Util;
 import de.jvstvshd.necrify.velocity.listener.ConnectListener;
 import de.jvstvshd.necrify.velocity.message.ResourceBundleMessageProvider;
+import de.jvstvshd.necrify.velocity.user.VelocityConsoleUser;
 import de.jvstvshd.necrify.velocity.user.VelocityUser;
 import de.jvstvshd.necrify.velocity.user.VelocityUserManager;
+import io.leangen.geantyref.TypeToken;
 import net.kyori.adventure.text.Component;
+import org.incendo.cloud.SenderMapper;
+import org.incendo.cloud.brigadier.suggestion.TooltipSuggestion;
+import org.incendo.cloud.execution.ExecutionCoordinator;
+import org.incendo.cloud.minecraft.extras.parser.ComponentParser;
+import org.incendo.cloud.minecraft.extras.suggestion.ComponentTooltipSuggestion;
+import org.incendo.cloud.parser.standard.StringParser;
+import org.incendo.cloud.type.tuple.Pair;
+import org.incendo.cloud.velocity.CloudInjectionModule;
+import org.incendo.cloud.velocity.VelocityCommandManager;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
@@ -81,9 +100,11 @@ import java.nio.file.Path;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 @Plugin(id = "necrify", name = "Necrify", version = "1.2.0-SNAPSHOT", description = "A simple punishment plugin for Velocity", authors = {"JvstvsHD"})
 public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
@@ -104,6 +125,9 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     private UserManager userManager;
     private final MessagingChannelCommunicator communicator;
     private EventDispatcher eventDispatcher;
+
+    @Inject
+    private Injector injector;
 
     /**
      * Since 1.19.1, cancelling chat messages on proxy is not possible anymore. Therefore, we have to listen to the chat event on the actual game server. This means
@@ -178,23 +202,83 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         commandManager.register(TempmuteCommand.tempmuteCommand(this));
         commandManager.register(KickCommand.kickCommand(this));
         commandManager.register(WhitelistCommand.whitelistCommand(this));
+        final Injector childInjector = injector.createChildInjector(
+                new CloudInjectionModule<>(
+                        NecrifyUser.class,
+                        ExecutionCoordinator.coordinatorFor(ExecutionCoordinator.nonSchedulingExecutor()),
+                        SenderMapper.create(this::createUser, this::getCommandSource)));
+        var cManager = childInjector.getInstance(Key.get(new TypeLiteral<VelocityCommandManager<NecrifyUser>>() {
+        }));
+        cManager.appendSuggestionMapper(suggestion -> {
+            if (!(suggestion instanceof ComponentTooltipSuggestion componentTooltipSuggestion))
+                return suggestion;
+
+            return TooltipSuggestion.suggestion(suggestion.suggestion(), VelocityBrigadierMessage.tooltip(componentTooltipSuggestion.tooltip()));
+        });
+        var brigadierManager = cManager.brigadierManager();
+        /*brigadierManager.setNativeSuggestions(new TypeToken<StringParser<NecrifyUser>>() {
+        }, true);*/
+        brigadierManager.setNativeNumberSuggestions(true);
+        registerCommands(cManager, getConfig().getConfiguration().isAllowTopLevelCommands());
+        brigadierManager.registerMapping(new TypeToken<ComponentParser<NecrifyUser>>() {
+        }, builder -> {
+            builder.to(necrifyUserParser -> {
+                return StringArgumentType.greedyString();
+            }).nativeSuggestions();
+        });
+        /*brigadierManager.setNativeSuggestions(new TypeToken<ComponentParser<NecrifyUser>>() {
+        }, true);*/
     }
 
     @SuppressWarnings({"unchecked", "UnstableApiUsage"})
     private HikariDataSource createDataSource() {
         var dbData = configurationManager.getConfiguration().getDataBaseData();
+        var driverClass = getDriverClass(dbData.sqlType().name().toLowerCase());
         ConfigurationStage stage = switch (dbData.sqlType().name().toLowerCase()) {
-            case "sqlite" ->
-                    DataSourceCreator.create(SqLite.get()).configure(sqLiteJdbc -> sqLiteJdbc.path(dataDirectory.resolve("punishment.db"))).create();
-            case "postgresql" ->
-                    DataSourceCreator.create(PostgreSql.get()).configure(jdbcConfig -> jdbcConfig.host(dbData.getHost())
+            case "sqlite" -> DataSourceCreator
+                    .create(SqLite.get())
+                    .configure(sqLiteJdbc -> sqLiteJdbc
+                            .driverClass(driverClass)
+                            .path(dataDirectory.resolve("punishment.db")))
+                    .create();
+            case "postgresql" -> DataSourceCreator
+                    .create(PostgreSql.get())
+                    .configure(jdbcConfig -> jdbcConfig
+                            .driverClass(driverClass)
+                            .host(dbData.getHost())
+                            .port(dbData.getPort())
+                            .database(dbData.getDatabase())
+                            .user(dbData.getUsername())
+                            .password(dbData.getPassword()))
+                    .create();
 
-                            .port(dbData.getPort()).database(dbData.getDatabase()).user(dbData.getUsername()).password(dbData.getPassword())).create();
-
-            default ->
-                    DataSourceCreator.create((Database<RemoteJdbcConfig<?>, ?>) dbData.sqlType()).configure(jdbcConfig -> jdbcConfig.host(dbData.getHost()).port(dbData.getPort()).database(dbData.getDatabase()).user(dbData.getUsername()).password(dbData.getPassword())).create();
+            default -> DataSourceCreator
+                    .create((Database<RemoteJdbcConfig<?>, ?>) dbData.sqlType())
+                    .configure(jdbcConfig -> jdbcConfig
+                            .driverClass(driverClass)
+                            .host(dbData.getHost())
+                            .port(dbData.getPort())
+                            .database(dbData.getDatabase())
+                            .user(dbData.getUsername())
+                            .password(dbData.getPassword()))
+                    .create();
         };
-        return stage.withMaximumPoolSize(dbData.getMaxPoolSize()).withMinimumIdle(dbData.getMinIdle()).withPoolName("necrify-hikari").forSchema(dbData.getPostgresSchema()).build();
+        return stage
+                .withMaximumPoolSize(dbData.getMaxPoolSize())
+                .withMinimumIdle(dbData.getMinIdle())
+                .withPoolName("necrify-hikari")
+                .forSchema(dbData.getPostgresSchema())
+                .build();
+    }
+
+    private Class<? extends java.sql.Driver> getDriverClass(String type) {
+        return switch (type) {
+            case "sqlite" -> org.sqlite.JDBC.class;
+            case "postgresql", "postgres" -> org.postgresql.Driver.class;
+            case "mariadb" -> org.mariadb.jdbc.Driver.class;
+            case "mysql" -> com.mysql.cj.jdbc.Driver.class;
+            default -> throw new IllegalArgumentException("Unknown database type: " + type);
+        };
     }
 
     @SuppressWarnings("UnstableApiUsage")
@@ -251,6 +335,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         this.messageProvider = messageProvider;
     }
 
+    @Override
     public Logger getLogger() {
         return logger;
     }
@@ -276,19 +361,59 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     @SuppressWarnings("unchecked")
     @Override
     public <T extends Punishment> CompletableFuture<Optional<T>> getPunishment(@NotNull UUID punishmentId) {
-        return Util.executeAsync(() -> (Optional<T>) Query.query("SELECT u.* FROM punishment.necrify_user u " + "INNER JOIN punishment.necrify_punishment p ON u.uuid = p.uuid " + "WHERE p.punishment_id = ?;").single(Call.of().bind(punishmentId, Adapters.UUID_ADAPTER)).map(row -> {
-            var userId = row.getObject(1, UUID.class);
-            var cachedUser = getUserManager().getUser(userId);
-            if (cachedUser.isPresent()) {
-                return cachedUser.get().getPunishment(punishmentId).orElse(null);
+        System.out.println(punishmentId);
+        return Util.executeAsync(() -> (Optional<T>) Query
+                .query("SELECT u.* FROM punishment.necrify_user u INNER JOIN punishment.necrify_punishment p ON u.uuid = p.uuid WHERE p.punishment_id = ?;")
+                .single(Call.of().bind(punishmentId, Adapters.UUID_ADAPTER))
+                .map(row -> {
+                    var userId = row.getObject(1, UUID.class);
+                    System.out.println("User " + userId);
+                    return createUser(userId).getPunishment(punishmentId).orElse(null);
+                }).first(), getExecutor());
+    }
+
+    public NecrifyUser createUser(CommandSource source) {
+        if (source instanceof Player) {
+            return createUser(((Player) source).getUniqueId());
+        } else if (source instanceof ConsoleCommandSource) {
+            return new VelocityConsoleUser(messageProvider, server.getConsoleCommandSource());
+        } else {
+            return new VelocityUser(UUID.randomUUID(), "unknown_source", false, this);
+        }
+    }
+
+    /**
+     * Creates a user with the given UUID. If the user is already cached, the cached user is returned.
+     * <p>Note: this user does not hold any valid data besides his uuid and maybe player instance (if online). After returning
+     * the value, the missing user data will be loaded, whereafter the {@link UserLoadedEvent} will be fired.</p>
+     *
+     * @param userId the UUID of the user to create.
+     * @return the created user.
+     */
+    public NecrifyUser createUser(UUID userId) {
+        var cachedUser = getUserManager().getUser(userId);
+        if (cachedUser.isPresent()) {
+            return cachedUser.get();
+        }
+        var user = new VelocityUser(userId, "unknown", false, this);
+        getExecutor().execute(() -> {
+            Query.query("SELECT type, expiration, reason, punishment_id FROM punishment.necrify_punishment WHERE uuid = ?;").single(Call.of().bind(userId, Adapters.UUID_ADAPTER)).map(user::addPunishment).all();
+            getEventDispatcher().dispatch(new UserLoadedEvent(user).setOrigin(EventOrigin.ofClass(getClass())));
+        });
+        return user;
+    }
+
+    public CommandSource getCommandSource(NecrifyUser user) {
+        if (user instanceof VelocityUser velocityUser) {
+            var player = velocityUser.getPlayer();
+            if (player != null) {
+                return player;
             }
-            var user = new VelocityUser(row.getObject(1, UUID.class), row.getString(2), row.getBoolean(3), this);
-            getExecutor().execute(() -> {
-                Query.query("SELECT type, expiration, reason, punishment_id FROM punishment.necrify_punishment WHERE uuid = ?;").single(Call.of().bind(userId, Adapters.UUID_ADAPTER)).map(user::addPunishment).all();
-                getEventDispatcher().dispatch(new UserLoadedEvent(user).setOrigin(EventOrigin.ofClass(getClass())));
-            });
-            return user.getPunishment(punishmentId).orElse(null);
-        }).first(), getExecutor());
+        }
+        if ("console".equalsIgnoreCase(user.getUsername()) && user.getUuid().equals(new UUID(0, 0))) {
+            return server.getConsoleCommandSource();
+        }
+        return server.getPlayer(user.getUuid()).orElse(null);
     }
 
     @Override
@@ -304,5 +429,10 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     @Override
     public NecrifyKick createKick(Component reason, NecrifyUser user, UUID punishmentUuid) {
         return new VelocityKick(user, reason, punishmentUuid, this);
+    }
+
+    @Override
+    public Set<Pair<String, UUID>> getOnlinePlayers() {
+        return server.getAllPlayers().stream().map(player -> Pair.of(player.getUsername(), player.getUniqueId())).collect(Collectors.toSet());
     }
 }

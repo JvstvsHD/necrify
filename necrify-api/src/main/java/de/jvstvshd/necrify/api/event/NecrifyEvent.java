@@ -35,7 +35,7 @@ import de.jvstvshd.necrify.api.event.origin.EventOrigin;
 public abstract class NecrifyEvent {
 
     private final String name;
-    private EventOrigin origin = null;
+    private EventOrigin origin = EventOrigin.nullOrigin();
     private EventDispatcher executingDispatcher = null;
 
     public NecrifyEvent(String name) {

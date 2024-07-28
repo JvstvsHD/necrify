@@ -39,6 +39,7 @@ import de.jvstvshd.necrify.api.punishment.Mute;
 import de.jvstvshd.necrify.api.punishment.util.ReasonHolder;
 import de.jvstvshd.necrify.common.plugin.MuteData;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.slf4j.Logger;
 
@@ -86,7 +87,7 @@ public class MessagingChannelCommunicator {
     }
 
     private MuteData from(Mute mute, int type, Function<Mute, Component> reason) {
-        return new MuteData(mute.getUser().getUuid(), LegacyComponentSerializer.legacySection().serialize(reason.apply(mute)), mute.getDuration().expiration(), type, mute.getPunishmentUuid());
+        return new MuteData(mute.getUser().getUuid(), MiniMessage.miniMessage().serialize(reason.apply(mute)), mute.getDuration().expiration(), type, mute.getPunishmentUuid());
     }
 
     @SuppressWarnings("UnstableApiUsage")

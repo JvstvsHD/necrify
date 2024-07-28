@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -80,7 +81,7 @@ public interface NecrifyUser extends CommandSender {
      * @return the ban object representing the ban. The ban may not be active yet, as the execution takes some time to complete.
      */
     @NotNull
-    Ban ban(@Nullable Component reason, @NotNull PunishmentDuration duration);
+    CompletableFuture<Ban> ban(@Nullable Component reason, @NotNull PunishmentDuration duration);
 
     /**
      * Bans the user permanently with the given reason. A permanently banned user is not able to join the server this system
@@ -93,7 +94,7 @@ public interface NecrifyUser extends CommandSender {
      * @return the ban object representing the ban. The ban may not be active yet, as the execution takes some time to complete.
      */
     @NotNull
-    Ban banPermanent(@Nullable Component reason);
+    CompletableFuture<Ban> banPermanent(@Nullable Component reason);
 
     /**
      * Mutes the user with the given reason and duration. A muted user is not able to send messages in the chat of the server
@@ -107,7 +108,7 @@ public interface NecrifyUser extends CommandSender {
      * @return the mute object representing the mute. The mute may not be active yet, as the execution takes some time to complete.
      */
     @NotNull
-    Mute mute(@Nullable Component reason, @NotNull PunishmentDuration duration);
+    CompletableFuture<Mute> mute(@Nullable Component reason, @NotNull PunishmentDuration duration);
 
     /**
      * Mutes the user permanently with the given reason. A permanently muted user is not able to send messages in the chat of
@@ -119,7 +120,7 @@ public interface NecrifyUser extends CommandSender {
      * @return the mute object representing the mute. The mute may not be active yet, as the execution takes some time to complete.
      */
     @NotNull
-    Mute mutePermanent(@Nullable Component reason);
+    CompletableFuture<Mute> mutePermanent(@Nullable Component reason);
 
     /**
      * Kicks the user with the given reason. A kicked user is removed from the server this system belongs to. They are able to
@@ -130,7 +131,7 @@ public interface NecrifyUser extends CommandSender {
      * @return the kick object representing the kick. The kick may not be active yet, as the execution takes some time to complete.
      */
     @NotNull
-    Kick kick(@Nullable Component reason);
+    CompletableFuture<Kick> kick(@Nullable Component reason);
 
     /**
      * This method queries all punishments with the given {@link UUID} of a player and returns them in a list.
@@ -187,6 +188,8 @@ public interface NecrifyUser extends CommandSender {
     default Optional<Punishment> getPunishment(@NotNull UUID punishmentUuid) {
         return getPunishments().stream().filter(punishment -> punishment.getPunishmentUuid().equals(punishmentUuid)).findFirst();
     }
+
+    Locale getLocale();
 
     /*    *//**
      * Method to add punishments to users. This method is only meant to be used until events are implemented and all

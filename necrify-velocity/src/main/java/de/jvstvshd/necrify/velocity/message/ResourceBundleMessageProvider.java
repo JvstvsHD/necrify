@@ -29,6 +29,7 @@ import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import de.jvstvshd.necrify.velocity.config.ConfigData;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.kyori.adventure.translation.TranslationRegistry;
@@ -115,12 +116,12 @@ public class ResourceBundleMessageProvider implements MessageProvider {
 
     @Override
     public @NotNull Component internalError(@Nullable Locale locale) {
-        return provide("error.internal", locale);
+        return provide("error.internal", locale).color(NamedTextColor.DARK_RED);
     }
 
     @Override
     public @NotNull Component internalError() {
-        return provide("error.internal");
+        return provide("error.internal").color(NamedTextColor.DARK_RED);
     }
 
     @Override

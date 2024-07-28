@@ -130,10 +130,6 @@ public class DefaultPlayerResolver implements PlayerResolver {
         if (getPlayerUuid(name).isPresent()) {
             return CompletableFuture.completedFuture(getPlayerUuid(name).get());
         }
-        try {
-            return CompletableFuture.completedFuture(Util.parseUuid(name));
-        } catch (IllegalArgumentException e) {
-            return queryPlayerUuid(name, executor);
-        }
+        return queryPlayerUuid(name, executor);
     }
 }

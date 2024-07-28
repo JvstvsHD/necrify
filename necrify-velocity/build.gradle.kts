@@ -14,6 +14,7 @@ repositories {
 
 dependencies {
     api(projects.necrifyCommon)
+    api(libs.cloud.velocity)
     annotationProcessor(libs.velocity.api)
     compileOnly(libs.velocity.api)
     compileOnly(libs.luckperms.api)
@@ -40,6 +41,7 @@ tasks {
         archiveFileName.set("${rootProject.name}-Velocity-${project.version}.jar")
         archiveBaseName.set("necrify")
         dependencies {
+            //Do not relocate sqlite since it loads some native libraries
             val prefix: (String) -> String = { "de.jvstvshd.necrify.lib.$it" }
             relocate("com.fasterxml.jackson", prefix("jackson"))
             relocate("com.github.benmanes.caffeine", prefix("caffeine"))
@@ -58,7 +60,6 @@ tasks {
             relocate("org.jetbrains.annotations", prefix("jetbrains.annotations"))
             relocate("org.mariadb", prefix("mariadb"))
             relocate("org.postgresql", prefix("postgresql"))
-            relocate("org.sqlite", prefix("sqlite"))
             relocate("org.yaml.snakeyaml", prefix("snakeyaml"))
             relocate("sun.jna", prefix("sun.jna"))
             relocate("waffle", prefix("waffle"))

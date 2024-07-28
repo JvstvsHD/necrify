@@ -42,14 +42,19 @@ public class ConfigData {
     @JsonAlias("whitelistActivated")
     private boolean whitelistActivated;
 
-    public ConfigData(DataBaseData dataBaseData, Locale defaultLanguage, boolean whitelistActivated) {
+    @JsonProperty("allow-top-level-commands")
+    @JsonAlias("allowTopLevelCommands")
+    private boolean allowTopLevelCommands;
+
+    public ConfigData(DataBaseData dataBaseData, Locale defaultLanguage, boolean whitelistActivated, boolean allowTopLevelCommands) {
         this.dataBaseData = dataBaseData;
         this.defaultLanguage = defaultLanguage;
         this.whitelistActivated = whitelistActivated;
+        this.allowTopLevelCommands = allowTopLevelCommands;
     }
 
     public ConfigData() {
-        this(new DataBaseData(), Locale.ENGLISH, false);
+        this(new DataBaseData(), Locale.ENGLISH, false, true);
     }
 
     public final DataBaseData getDataBaseData() {
@@ -66,5 +71,13 @@ public class ConfigData {
 
     public void setWhitelistActivated(boolean whitelistActivated) {
         this.whitelistActivated = whitelistActivated;
+    }
+
+    public boolean isAllowTopLevelCommands() {
+        return allowTopLevelCommands;
+    }
+
+    public void setAllowTopLevelCommands(boolean allowTopLevelCommands) {
+        this.allowTopLevelCommands = allowTopLevelCommands;
     }
 }

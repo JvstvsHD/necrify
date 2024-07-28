@@ -53,10 +53,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
@@ -111,7 +108,7 @@ public class VelocityUser implements NecrifyUser {
     }
 
     @Override
-    public @NotNull Ban ban(@Nullable Component reason, @NotNull PunishmentDuration duration) {
+    public @NotNull CompletableFuture<Ban> ban(@Nullable Component reason, @NotNull PunishmentDuration duration) {
         return punish(PunishmentBuilder.newBuilder(plugin)
                 .withDuration(duration)
                 .withReason(reason)
@@ -120,12 +117,12 @@ public class VelocityUser implements NecrifyUser {
     }
 
     @Override
-    public @NotNull Ban banPermanent(@Nullable Component reason) {
+    public @NotNull CompletableFuture<Ban> banPermanent(@Nullable Component reason) {
         return ban(reason, PunishmentDuration.permanent());
     }
 
     @Override
-    public @NotNull Mute mute(@Nullable Component reason, @NotNull PunishmentDuration duration) {
+    public @NotNull CompletableFuture<Mute> mute(@Nullable Component reason, @NotNull PunishmentDuration duration) {
         return punish(PunishmentBuilder.newBuilder(plugin)
                 .withDuration(duration)
                 .withReason(reason)
@@ -134,24 +131,30 @@ public class VelocityUser implements NecrifyUser {
     }
 
     @Override
-    public @NotNull Mute mutePermanent(@Nullable Component reason) {
+    public @NotNull CompletableFuture<Mute> mutePermanent(@Nullable Component reason) {
         return mute(reason, PunishmentDuration.permanent());
     }
 
     @Override
-    public @NotNull Kick kick(@Nullable Component reason) {
+    public @NotNull CompletableFuture<Kick> kick(@Nullable Component reason) {
         var kick = PunishmentBuilder.newBuilder(plugin)
                 .withReason(reason)
                 .withUser(this)
                 .buildKick();
         kick.punish();
-        return kick;
+        return CompletableFuture.completedFuture(kick);
     }
 
-    private <T extends Punishment> T punish(T punishment) {
+    //We're just returning the same instance that was passed in via 'punishment', so we can safely cast it to T.
+    @SuppressWarnings("unchecked")
+    private <T extends Punishment> CompletableFuture<T> punish(T punishment) {
         punishments.add(punishment);
-        punishment.punish();
-        return punishment;
+        return (CompletableFuture<T>) punishment.punish().whenComplete((ignored, throwable) -> {
+            if (throwable != null) {
+                plugin.getLogger().error("An error occurred while punishing user {}", punishment.getUser().getUuid(), throwable);
+                punishment.getUser().sendErrorMessage();
+            }
+        });
     }
 
     @SuppressWarnings("unchecked")
@@ -175,17 +178,17 @@ public class VelocityUser implements NecrifyUser {
 
     @Override
     public @NotNull CompletableFuture<String> queryUsername(boolean update) {
-        HttpClient httpClient = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder(URI.create("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid)).GET().build();
-        return httpClient
-                .sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(response -> JsonParser.parseString(response.body()).getAsJsonObject().get("name").getAsString())
-                .thenApplyAsync(s -> {
-                    if (update)
-                        name = s;
-                    return s;
-                });
-
+        try (HttpClient httpClient = HttpClient.newHttpClient()) {
+            HttpRequest request = HttpRequest.newBuilder(URI.create("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid)).GET().build();
+            return httpClient
+                    .sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                    .thenApply(response -> JsonParser.parseString(response.body()).getAsJsonObject().get("name").getAsString())
+                    .thenApplyAsync(s -> {
+                        if (update)
+                            name = s;
+                        return s;
+                    });
+        }
     }
 
     public Optional<Player> queryPlayer() {
@@ -196,6 +199,16 @@ public class VelocityUser implements NecrifyUser {
     @Override
     public void sendMessage(@NotNull Component message) {
         queryPlayer().ifPresent(player -> player.sendMessage(message));
+    }
+
+    @Override
+    public void sendMessage(@NotNull String key, Component... args) {
+        sendMessage(messageProvider.provide(key, args));
+    }
+
+    @Override
+    public void sendErrorMessage() {
+        sendMessage(messageProvider.internalError());
     }
 
     @Override
@@ -220,8 +233,8 @@ public class VelocityUser implements NecrifyUser {
                 .withPunishmentUuid(punishmentUuid);
         Punishment punishment;
         switch (type) {
-            case BAN, PERMANENT_BAN -> punishment = builder.buildBan();
-            case MUTE, PERMANENT_MUTE -> punishment = builder.buildMute();
+            case TEMPORARY_BAN, PERMANENT_BAN -> punishment = builder.buildBan();
+            case TEMPORARY_MUTE, PERMANENT_MUTE -> punishment = builder.buildMute();
             case KICK -> punishment = builder.buildKick();
             default -> throw new UnsupportedOperationException("unhandled punishment type: " + type.getName());
         }
@@ -295,5 +308,13 @@ public class VelocityUser implements NecrifyUser {
     public void delete(@NotNull UserDeletionReason reason) {
         plugin.getEventDispatcher().dispatch(new UserDeletedEvent(this, reason));
         throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    @Override
+    public Locale getLocale() {
+        if (player != null) {
+            return player.getEffectiveLocale();
+        }
+        return plugin.getConfig().getConfiguration().getDefaultLanguage();
     }
 }

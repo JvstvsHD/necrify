@@ -63,7 +63,7 @@ public interface TemporalPunishment extends Punishment {
     CompletableFuture<Punishment> change(@NotNull PunishmentDuration newDuration, @Nullable Component newReason) throws PunishmentException;
 
     @Override
-    default CompletableFuture<Punishment> change(Component newReason) throws PunishmentException {
-        return change(getDuration(), newReason);
+    default  CompletableFuture<Punishment> change(@Nullable Component newReason) {
+        return null;
     }
 }

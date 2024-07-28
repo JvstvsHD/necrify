@@ -27,6 +27,7 @@ package de.jvstvshd.necrify.paper.listeners;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.common.plugin.MuteData;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -48,7 +49,7 @@ public class MuteInformation {
     }
 
     public static MuteInformation from(MuteData muteData) {
-        return new MuteInformation(LegacyComponentSerializer.legacySection().deserialize(muteData.getReason()),
+        return new MuteInformation(MiniMessage.miniMessage().deserialize(muteData.getReason()),
                 PunishmentDuration.from(muteData.getExpiration()), Bukkit.getPlayer(muteData.getUuid()), muteData.getPunishmentId());
     }
 

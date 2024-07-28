@@ -22,29 +22,23 @@
  * SOFTWARE.
  */
 
-package de.jvstvshd.necrify.api.punishment;
+package de.jvstvshd.necrify.common.commands;
 
-public interface PunishmentType {
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.incendo.cloud.caption.Caption;
+import org.incendo.cloud.context.CommandContext;
+import org.incendo.cloud.exception.parsing.ParserException;
 
-    String getName();
+public class UserNotFoundParseException extends ParserException {
 
-    /**
-     * Determines whether the punishment is a mute or not.
-     *
-     * @return true if the punishment is a mute, false otherwise.
-     * @since 1.0.1
-     */
-    default boolean isMute() {
-        return this == StandardPunishmentType.TEMPORARY_MUTE || this == StandardPunishmentType.PERMANENT_MUTE;
+    private final String playerName;
+
+    public UserNotFoundParseException(@NonNull Class<?> argumentParser, @NonNull CommandContext<?> context, String playerName) {
+        super(argumentParser, context, Caption.of(""));
+        this.playerName = playerName;
     }
 
-    /**
-     * Determines whether the punishment is a ban or not.
-     *
-     * @return true if the punishment is a ban, false otherwise.
-     * @since 1.0.1
-     */
-    default boolean isBan() {
-        return this == StandardPunishmentType.TEMPORARY_BAN || this == StandardPunishmentType.PERMANENT_BAN;
+    public String playerName() {
+        return playerName;
     }
 }
