@@ -28,6 +28,7 @@ import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
+import de.jvstvshd.necrify.api.user.UserDeletionReason;
 import de.jvstvshd.necrify.api.user.UserManager;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.util.PunishmentHelper;
@@ -43,6 +44,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.incendo.cloud.annotation.specifier.Greedy;
 import org.incendo.cloud.annotations.Argument;
 import org.incendo.cloud.annotations.Command;
+import org.incendo.cloud.annotations.Default;
 import org.incendo.cloud.annotations.Permission;
 import org.incendo.cloud.annotations.suggestion.Suggestions;
 import org.incendo.cloud.context.CommandContext;
@@ -64,6 +66,9 @@ public class NecrifyCommand {
     private final UserManager userManager;
     private final Logger logger;
     private final ExecutorService executor;
+
+    private static final List<String> PUNISHMENT_COMMAND_OPTIONS = List.of("cancel", "remove", "info", "change");
+    private static final List<String> USER_COMMAND_OPTIONS = List.of("info", "delete");
 
     public NecrifyCommand(AbstractNecrifyPlugin plugin) {
         this.plugin = plugin;
@@ -213,6 +218,59 @@ public class NecrifyCommand {
         removePunishments(sender, "unmute", punishments);
     }
 
+    @Command("necrify punishment <punishment> [option]")
+    @Permission(value = {"necrify.command.punishment", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
+    public void punishmentCommand(
+            NecrifyUser sender,
+            @Argument(value = "punishment", description = "Punishment to manage") Punishment punishment,
+            @Argument(value = "option", description = "Option to manage the punishment", suggestions = "suggestPunishmentCommandOptions") @Default("info") String option
+    ) {
+        switch (option) {
+            case "info" ->
+                    sender.sendMessage(buildComponent(PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider()), punishment));
+            case "cancel", "remove" -> {
+                punishment.cancel().whenCompleteAsync((unused, th) -> {
+                    if (th != null) {
+                        logException(sender, th);
+                        return;
+                    }
+                    sender.sendMessage("command.punishment.cancel.success");
+                }, plugin.getService());
+            }
+            case "change" -> {
+                sender.sendMessage(miniMessage("Soon (TM)").color(NamedTextColor.LIGHT_PURPLE));
+            }
+        }
+    }
+
+    @Command("necrify user <target> [option]")
+    @Permission(value = {"necrify.command.user", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
+    public void userCommand(
+            NecrifyUser sender,
+            @Argument(value = "target", description = "Player to manage", suggestions = "suggestOnlinePlayers") NecrifyUser target,
+            @Argument(value = "option", description = "Option to manage the player", suggestions = "suggestUserCommandOptions") @Default("info") String option
+    ) {
+        switch (option) {
+            case "info" -> {
+                var punishments = target.getPunishments();
+                for (Punishment punishment : punishments) {
+                    Component component = PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider())
+                            .clickEvent(ClickEvent.suggestCommand(punishment.getPunishmentUuid().toString().toLowerCase(Locale.ROOT)))
+                            .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(plugin.getMessageProvider().provide("commands.general.copy")
+                                    .color(NamedTextColor.GREEN)));
+                    sender.sendMessage(component);
+                }
+            }
+            case "delete" -> {
+                //TODO add confirmation
+                target.delete(UserDeletionReason.USER_DELETED);
+                sender.sendMessage("command.user.delete.success",
+                        miniMessage(target.getUsername()).color(NamedTextColor.YELLOW),
+                        copyComponent(target.getUuid().toString()).color(NamedTextColor.YELLOW));
+            }
+        }
+    }
+
     //SUGGESTIONS
 
     @Suggestions("suggestOnlinePlayers")
@@ -234,15 +292,34 @@ public class NecrifyCommand {
                 miniMessage(input.remainingInput())));
     }
 
+    @Suggestions("suggestPunishmentCommandOptions")
+    public List<? extends Suggestion> suggestPunishmentCommandOptions(CommandContext<NecrifyUser> context, CommandInput input) {
+        return PUNISHMENT_COMMAND_OPTIONS
+                .stream()
+                .filter(option -> option.toLowerCase().startsWith(input.peekString().toLowerCase()))
+                .map(option -> ComponentTooltipSuggestion.suggestion(option, miniMessage(option)))
+                .toList();
+    }
+
+    @Suggestions("suggestUserCommandOptions")
+    public List<? extends Suggestion> suggestUserCommandOptions(CommandContext<NecrifyUser> context, CommandInput input) {
+        return USER_COMMAND_OPTIONS
+                .stream()
+                .filter(option -> option.toLowerCase().startsWith(input.peekString().toLowerCase()))
+                .map(option -> ComponentTooltipSuggestion.suggestion(option, miniMessage(option)))
+                .toList();
+    }
+
     //HELPER METHODS
 
     private void removePunishments(NecrifyUser source, String commandName, List<Punishment> punishments) {
+        var type = commandName.substring(2);
         if (punishments.isEmpty()) {
-            source.sendMessage(plugin.getMessageProvider().provide("command.punishment.not-banned").color(NamedTextColor.RED));
+            source.sendMessage(plugin.getMessageProvider().provide("command.punishment.not-" + type).color(NamedTextColor.RED));
             return;
         }
         if (punishments.size() > 1) {
-            source.sendMessage(plugin.getMessageProvider().provide("command." + commandName + ".multiple-bans").color(NamedTextColor.YELLOW));
+            source.sendMessage(plugin.getMessageProvider().provide("command." + commandName + ".multiple-" + type + "s").color(NamedTextColor.YELLOW));
             for (Punishment punishment : punishments) {
                 source.sendMessage(buildComponent(PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider()), punishment));
             }
@@ -288,7 +365,6 @@ public class NecrifyCommand {
                         .provide("commands.general.copy")
                         .color(NamedTextColor.GREEN)));
     }
-
 
 
     private void logException(Throwable throwable) {

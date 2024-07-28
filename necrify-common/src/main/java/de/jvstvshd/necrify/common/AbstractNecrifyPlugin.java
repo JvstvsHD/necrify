@@ -26,13 +26,11 @@ package de.jvstvshd.necrify.common;
 
 import de.jvstvshd.necrify.api.Necrify;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
+import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
-import de.jvstvshd.necrify.common.commands.NecrifyCommand;
-import de.jvstvshd.necrify.common.commands.NecrifyUserParser;
-import de.jvstvshd.necrify.common.commands.PunishmentDurationParser;
+import de.jvstvshd.necrify.common.commands.*;
 import de.jvstvshd.necrify.common.punishment.NecrifyKick;
-import de.jvstvshd.necrify.common.commands.UserNotFoundParseException;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -93,6 +91,11 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
                 .registerHandler(UserNotFoundParseException.class, context -> {
                     context.context().sender().sendMessage("commands.general.not-found", Component.text(context.exception().playerName()).color(NamedTextColor.YELLOW));
                 });
+        manager.exceptionController()
+                .registerHandler(ArgumentParseException.class, ExceptionHandler.unwrappingHandler(PunishmentParser.PunishmentParseException.class))
+                .registerHandler(PunishmentParser.PunishmentParseException.class, context -> {
+                    context.context().sender().sendMessage(context.exception().getMessage());
+                });
         /*manager.exceptionController()//.registerHandler(ArgumentParseException.class, ExceptionHandler.unwrappingHandler(ArgumentParseException.class))
                 .registerHandler(ArgumentParseException.class, context -> {
                     context.context().sender().sendMessage("commands.general.invalid-argument");
@@ -106,6 +109,7 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
         parserRegistry.registerParser(ParserDescriptor.of(new NecrifyUserParser(this.getUserManager()), NecrifyUser.class));
         parserRegistry.registerParser(ComponentParser.componentParser(MiniMessage.miniMessage(), StringParser.StringMode.GREEDY));
         parserRegistry.registerParser(ParserDescriptor.of(new PunishmentDurationParser(), PunishmentDuration.class));
+        parserRegistry.registerParser(ParserDescriptor.of(new PunishmentParser(this), Punishment.class));
         var commands = new NecrifyCommand(this);
         parser.parse(commands);
     }

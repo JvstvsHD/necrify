@@ -361,10 +361,15 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     @SuppressWarnings("unchecked")
     @Override
     public <T extends Punishment> CompletableFuture<Optional<T>> getPunishment(@NotNull UUID punishmentId) {
-        return Util.executeAsync(() -> (Optional<T>) Query.query("SELECT u.* FROM punishment.necrify_user u " + "INNER JOIN punishment.necrify_punishment p ON u.uuid = p.uuid " + "WHERE p.punishment_id = ?;").single(Call.of().bind(punishmentId, Adapters.UUID_ADAPTER)).map(row -> {
-            var userId = row.getObject(1, UUID.class);
-            return createUser(userId).getPunishment(punishmentId).orElse(null);
-        }).first(), getExecutor());
+        System.out.println(punishmentId);
+        return Util.executeAsync(() -> (Optional<T>) Query
+                .query("SELECT u.* FROM punishment.necrify_user u INNER JOIN punishment.necrify_punishment p ON u.uuid = p.uuid WHERE p.punishment_id = ?;")
+                .single(Call.of().bind(punishmentId, Adapters.UUID_ADAPTER))
+                .map(row -> {
+                    var userId = row.getObject(1, UUID.class);
+                    System.out.println("User " + userId);
+                    return createUser(userId).getPunishment(punishmentId).orElse(null);
+                }).first(), getExecutor());
     }
 
     public NecrifyUser createUser(CommandSource source) {
