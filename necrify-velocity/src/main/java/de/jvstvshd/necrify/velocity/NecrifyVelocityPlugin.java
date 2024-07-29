@@ -169,6 +169,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         dataSource = createDataSource();
         QueryConfiguration.setDefault(QueryConfiguration.builder(dataSource).setExceptionHandler(e -> logger.error("An error occurred during a database request", e)).build());
         punishmentManager = new DefaultPunishmentManager(server, dataSource, this);
+        registerRegistries();
         this.userManager = new VelocityUserManager(getExecutor(), server, Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build(), Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build(), this);
         try {
             updateDatabase();

@@ -27,10 +27,15 @@ package de.jvstvshd.necrify.common;
 import de.jvstvshd.necrify.api.Necrify;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.punishment.Punishment;
+import de.jvstvshd.necrify.api.punishment.PunishmentType;
+import de.jvstvshd.necrify.api.punishment.PunishmentTypeRegistry;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.commands.*;
+import de.jvstvshd.necrify.common.punishment.NecrifyBan;
 import de.jvstvshd.necrify.common.punishment.NecrifyKick;
+import de.jvstvshd.necrify.common.punishment.NecrifyPunishmentFactory;
+import de.jvstvshd.necrify.common.punishment.PunishmentBuilder;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -46,10 +51,7 @@ import org.incendo.cloud.type.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 
 public abstract class AbstractNecrifyPlugin implements Necrify {
@@ -68,6 +70,17 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
     @Override
     public @NotNull ExecutorService getService() {
         return getExecutor();
+    }
+
+    /**
+     * Registers the punishment types of the plugin to the {@link PunishmentTypeRegistry}. This method should be called
+     * before any user-input is processed, as the registry is used to determine the type of punishment that should be created.
+     */
+    public final void registerRegistries() {
+        var registry = new NecrifyPunishmentFactory(this);
+        for (StandardPunishmentType type : StandardPunishmentType.values()) {
+            PunishmentTypeRegistry.registerType(type, registry);
+        }
     }
 
     /**

@@ -221,23 +221,22 @@ public class VelocityUser implements NecrifyUser {
     }
 
     public Punishment addPunishment(Row row) throws SQLException {
-        final StandardPunishmentType type = StandardPunishmentType.getById(row.getInt(1));
+
+        final StandardPunishmentType type = PunishmentTypeRegistry.getType(row.getInt(1)).standard();
         final Timestamp timestamp = row.getTimestamp(2);
         final PunishmentDuration duration = PunishmentDuration.fromTimestamp(timestamp);
         final Component reason = MiniMessage.miniMessage().deserialize(row.getString(3));
         final UUID punishmentUuid = row.getObject(4, UUID.class);
-        var builder = PunishmentBuilder.newBuilder(plugin)
-                .withDuration(duration)
-                .withReason(reason)
-                .withUser(this)
-                .withPunishmentUuid(punishmentUuid);
-        Punishment punishment;
-        switch (type) {
-            case TEMPORARY_BAN, PERMANENT_BAN -> punishment = builder.buildBan();
-            case TEMPORARY_MUTE, PERMANENT_MUTE -> punishment = builder.buildMute();
-            case KICK -> punishment = builder.buildKick();
-            default -> throw new UnsupportedOperationException("unhandled punishment type: " + type.getName());
-        }
+        final NecrifyUser user = this;
+        var data = new HashMap<String, Object>() {
+            {
+                put("duration", duration);
+                put("reason", reason);
+                put("punishmentUuid", punishmentUuid);
+                put("user", user);
+            }
+        };
+        Punishment punishment = PunishmentTypeRegistry.createPunishment(type, data);
         punishments.add(punishment);
         return punishment;
     }

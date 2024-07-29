@@ -24,8 +24,20 @@
 
 package de.jvstvshd.necrify.api.punishment;
 
+import de.jvstvshd.necrify.api.Necrify;
+
+import java.util.Map;
+
+/**
+ * Represents a type of punishment.
+ * @since 1.0.0
+ */
 public interface PunishmentType {
 
+    /**
+     * Gets the name of the punishment type.
+     * @return the name of the punishment type.
+     */
     String getName();
 
     /**
@@ -53,5 +65,19 @@ public interface PunishmentType {
      */
     default boolean isBan() {
         return this == StandardPunishmentType.TEMPORARY_BAN || this == StandardPunishmentType.PERMANENT_BAN;
+    }
+
+    /**
+     * Returns this value as an instance of {@link StandardPunishmentType} if it is a standard punishment type or throws otherwise.
+     * @return the standard punishment type.
+     * @throws IllegalStateException if the punishment type is not a standard punishment type.
+     * @since 1.2.0
+     */
+    default StandardPunishmentType standard() {
+        if (this instanceof StandardPunishmentType) {
+            return (StandardPunishmentType) this;
+        } else {
+            throw new IllegalStateException("Punishment type is not a standard punishment type.");
+        }
     }
 }
