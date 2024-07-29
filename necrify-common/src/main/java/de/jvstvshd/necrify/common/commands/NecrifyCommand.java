@@ -25,6 +25,7 @@
 package de.jvstvshd.necrify.common.commands;
 
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
+import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
@@ -32,6 +33,7 @@ import de.jvstvshd.necrify.api.user.UserDeletionReason;
 import de.jvstvshd.necrify.api.user.UserManager;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.util.PunishmentHelper;
+import de.jvstvshd.necrify.common.util.Util;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -56,6 +58,7 @@ import org.slf4j.Logger;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
@@ -66,6 +69,7 @@ public class NecrifyCommand {
     private final UserManager userManager;
     private final Logger logger;
     private final ExecutorService executor;
+    private final MessageProvider provider;
 
     private static final List<String> PUNISHMENT_COMMAND_OPTIONS = List.of("cancel", "remove", "info", "change");
     private static final List<String> USER_COMMAND_OPTIONS = List.of("info", "delete");
@@ -76,6 +80,7 @@ public class NecrifyCommand {
         this.miniMessage = MiniMessage.miniMessage();
         this.logger = plugin.getLogger();
         this.executor = plugin.getExecutor();
+        this.provider = plugin.getMessageProvider();
     }
 
     //COMMANDS
@@ -215,21 +220,22 @@ public class NecrifyCommand {
             @Argument(value = "target", description = "Player to unmute", suggestions = "suggestOnlinePlayers") NecrifyUser target
     ) {
         var punishments = target.getPunishments(StandardPunishmentType.TEMPORARY_MUTE, StandardPunishmentType.PERMANENT_MUTE);
+        System.out.println(punishments);
         removePunishments(sender, "unmute", punishments);
     }
 
-    @Command("necrify punishment <punishment> [option]")
+    @Command("necrify punishment <punishmentId> [option]")
     @Permission(value = {"necrify.command.punishment", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void punishmentCommand(
             NecrifyUser sender,
-            @Argument(value = "punishment", description = "Punishment to manage") Punishment punishment,
-            @Argument(value = "option", description = "Option to manage the punishment", suggestions = "suggestPunishmentCommandOptions") @Default("info") String option
+            @Argument(value = "punishmentId", description = "Punishment to manage") Punishment punishmentParsed,
+            @Argument(value = "option", description = "Option to manage the punishment", suggestions = "suggestPunishmentCommandOptions") @Default(value = "info") String option
     ) {
         switch (option) {
             case "info" ->
-                    sender.sendMessage(buildComponent(PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider()), punishment));
+                    sender.sendMessage(buildComponent(PunishmentHelper.buildPunishmentData(punishmentParsed, plugin.getMessageProvider()), punishmentParsed));
             case "cancel", "remove" -> {
-                punishment.cancel().whenCompleteAsync((unused, th) -> {
+                punishmentParsed.cancel().whenCompleteAsync((unused, th) -> {
                     if (th != null) {
                         logException(sender, th);
                         return;
@@ -253,11 +259,12 @@ public class NecrifyCommand {
         switch (option) {
             case "info" -> {
                 var punishments = target.getPunishments();
+                sender.sendMessage(provider.provide("command.user.overview",
+                        Util.copyComponent(Objects.requireNonNullElse(target.getUsername(), "null"), provider).color(NamedTextColor.YELLOW),
+                        Util.copyComponent(target.getUuid().toString(), provider).color(NamedTextColor.YELLOW),
+                        Component.text(punishments.size())));
                 for (Punishment punishment : punishments) {
-                    Component component = PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider())
-                            .clickEvent(ClickEvent.suggestCommand(punishment.getPunishmentUuid().toString().toLowerCase(Locale.ROOT)))
-                            .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(plugin.getMessageProvider().provide("commands.general.copy")
-                                    .color(NamedTextColor.GREEN)));
+                    Component component = buildComponent(PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider()), punishment);
                     sender.sendMessage(component);
                 }
             }
@@ -344,10 +351,12 @@ public class NecrifyCommand {
     //Communication, messaging, logging
 
     private Component buildComponent(Component dataComponent, Punishment punishment) {
-        return dataComponent.clickEvent(ClickEvent.runCommand("/punishment " + punishment.getPunishmentUuid()
-                        .toString().toLowerCase(Locale.ROOT) + " remove"))
-                .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(Component
-                        .text("Click to remove punishment").color(NamedTextColor.GREEN)));
+        var clickToRemove = provider.provide("command.punishment.click-to-remove");
+        return dataComponent.append(
+                clickToRemove
+                        .color(NamedTextColor.RED)
+                        .clickEvent(ClickEvent.runCommand("/necrify punishment " + punishment.getPunishmentUuid().toString().toLowerCase(Locale.ROOT) + " remove"))
+                        .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(clickToRemove.color(NamedTextColor.GREEN))));
     }
 
     private Component reasonOrDefaultTo(String reason, StandardPunishmentType type) {

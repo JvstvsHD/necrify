@@ -31,6 +31,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.event.HoverEventSource;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -61,6 +62,11 @@ public class Util {
 
     public static TextComponent copyComponent(String text, MessageProvider provider) {
         return Component.text(text).clickEvent(ClickEvent.suggestCommand(text))
+                .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(provider.provide("commands.general.copy").color(NamedTextColor.GREEN)));
+    }
+
+    public static Component copyComponent(Component base, String copy, MessageProvider provider) {
+        return base.clickEvent(ClickEvent.suggestCommand(copy))
                 .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(provider.provide("commands.general.copy").color(NamedTextColor.GREEN)));
     }
 

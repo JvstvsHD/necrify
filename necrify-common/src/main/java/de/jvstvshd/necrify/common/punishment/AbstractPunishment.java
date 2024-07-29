@@ -145,7 +145,8 @@ public abstract class AbstractPunishment implements Punishment {
         return "AbstractPunishment{" +
                 "reason=" + reason +
                 ", service=" + service +
-                ", user=" + user +
+                ", userUuid=" + user.getUuid() +
+                ", userName=" + user.getUsername() +
                 ", punishmentUuid=" + punishmentUuid +
                 ", messageProvider=" + messageProvider +
                 ", validity=" + validity +

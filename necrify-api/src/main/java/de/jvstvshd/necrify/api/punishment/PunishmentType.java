@@ -29,6 +29,13 @@ public interface PunishmentType {
     String getName();
 
     /**
+     * Gets the ID of the punishment type. This ID is unique for each punishment type.
+     * @since 1.2.0
+     * @return the ID of the punishment type.
+     */
+    int getId();
+
+    /**
      * Determines whether the punishment is a mute or not.
      *
      * @return true if the punishment is a mute, false otherwise.

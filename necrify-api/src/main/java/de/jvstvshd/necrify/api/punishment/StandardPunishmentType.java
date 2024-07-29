@@ -66,6 +66,7 @@ public enum StandardPunishmentType implements PunishmentType {
         return BY_ID.get(id);
     }
 
+    @Override
     public int getId() {
         return id;
     }

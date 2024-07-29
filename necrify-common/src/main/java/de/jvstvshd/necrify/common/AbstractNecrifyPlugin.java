@@ -47,6 +47,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -89,12 +90,17 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
         manager.exceptionController()
                 .registerHandler(ArgumentParseException.class, ExceptionHandler.unwrappingHandler(UserNotFoundParseException.class))
                 .registerHandler(UserNotFoundParseException.class, context -> {
-                    context.context().sender().sendMessage("commands.general.not-found", Component.text(context.exception().playerName()).color(NamedTextColor.YELLOW));
+                    var component = getMessageProvider()
+                            .provide("commands.general.not-found", Component.text(context.exception().playerName(), NamedTextColor.YELLOW))
+                            .color(NamedTextColor.RED);
+                    context.context().sender().sendMessage(component);
                 });
         manager.exceptionController()
                 .registerHandler(ArgumentParseException.class, ExceptionHandler.unwrappingHandler(PunishmentParser.PunishmentParseException.class))
                 .registerHandler(PunishmentParser.PunishmentParseException.class, context -> {
-                    context.context().sender().sendMessage(context.exception().getMessage());
+                    var replacements = Arrays.stream(context.exception().getReplacements()).map(s -> Component.text(s, NamedTextColor.YELLOW)).toArray(Component[]::new);
+                    var component = getMessageProvider().provide(context.exception().getMessage(), replacements).color(NamedTextColor.RED);
+                    context.context().sender().sendMessage(component);
                 });
         /*manager.exceptionController()//.registerHandler(ArgumentParseException.class, ExceptionHandler.unwrappingHandler(ArgumentParseException.class))
                 .registerHandler(ArgumentParseException.class, context -> {

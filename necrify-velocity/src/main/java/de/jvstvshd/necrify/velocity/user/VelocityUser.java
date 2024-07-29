@@ -268,6 +268,8 @@ public class VelocityUser implements NecrifyUser {
     }
 
     public void addPunishment(Punishment punishment) {
+        if (punishments.contains(punishment))
+            return;
         punishments.add(punishment);
     }
 

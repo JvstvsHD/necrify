@@ -49,14 +49,18 @@ public class PunishmentParser implements ArgumentParser.FutureArgumentParser<Nec
         var uuidString = commandInput.peekString();
         var uuid = Util.fromString(uuidString);
         if (uuid.isEmpty()) {
-            return CompletableFuture.completedFuture(ArgumentParseResult.failure(new PunishmentParseException("command.parse.uuid.invalid", uuidString)));
+            return CompletableFuture.completedFuture(ArgumentParseResult.failure(new PunishmentParseException("command.punishment.uuid-parse-error", uuidString)));
         }
         return necrify.getPunishment(uuid.get()).handle((punishment, throwable) -> {
             if (throwable != null) {
                 return ArgumentParseResult.failure(new PunishmentParseException("error.internal"));
             }
-            return punishment.map(ArgumentParseResult::success)
-                    .orElseGet(() -> ArgumentParseResult.failure(new PunishmentParseException("command.parse.punishment.notfound", uuidString)));
+            if (punishment.isPresent()) {
+                commandInput.readString();
+                return ArgumentParseResult.success(punishment.get());
+            } else {
+                return ArgumentParseResult.failure(new PunishmentParseException("command.punishment.unknown-punishment-id", uuidString));
+            }
         });
     }
 

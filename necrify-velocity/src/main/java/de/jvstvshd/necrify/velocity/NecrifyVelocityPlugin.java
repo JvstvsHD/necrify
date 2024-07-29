@@ -361,20 +361,19 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     @SuppressWarnings("unchecked")
     @Override
     public <T extends Punishment> CompletableFuture<Optional<T>> getPunishment(@NotNull UUID punishmentId) {
-        System.out.println(punishmentId);
         return Util.executeAsync(() -> (Optional<T>) Query
                 .query("SELECT u.* FROM punishment.necrify_user u INNER JOIN punishment.necrify_punishment p ON u.uuid = p.uuid WHERE p.punishment_id = ?;")
                 .single(Call.of().bind(punishmentId, Adapters.UUID_ADAPTER))
                 .map(row -> {
                     var userId = row.getObject(1, UUID.class);
-                    System.out.println("User " + userId);
-                    return createUser(userId).getPunishment(punishmentId).orElse(null);
+                    var user = createUser(userId, true);
+                    return user.getPunishment(punishmentId).orElse(null);
                 }).first(), getExecutor());
     }
 
     public NecrifyUser createUser(CommandSource source) {
         if (source instanceof Player) {
-            return createUser(((Player) source).getUniqueId());
+            return createUser(((Player) source).getUniqueId(), false);
         } else if (source instanceof ConsoleCommandSource) {
             return new VelocityConsoleUser(messageProvider, server.getConsoleCommandSource());
         } else {
@@ -387,19 +386,29 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
      * <p>Note: this user does not hold any valid data besides his uuid and maybe player instance (if online). After returning
      * the value, the missing user data will be loaded, whereafter the {@link UserLoadedEvent} will be fired.</p>
      *
-     * @param userId the UUID of the user to create.
+     * @param userId                  the UUID of the user to create.
+     * @param loadPunishmentsDirectly whether to load the punishments directly or not. This influences if punishments are
+     *                                loaded asynchronously or not. If set to true, punishments will be loaded blocking.
      * @return the created user.
      */
-    public NecrifyUser createUser(UUID userId) {
+    public NecrifyUser createUser(UUID userId, boolean loadPunishmentsDirectly) {
         var cachedUser = getUserManager().getUser(userId);
         if (cachedUser.isPresent()) {
             return cachedUser.get();
         }
         var user = new VelocityUser(userId, "unknown", false, this);
-        getExecutor().execute(() -> {
-            Query.query("SELECT type, expiration, reason, punishment_id FROM punishment.necrify_punishment WHERE uuid = ?;").single(Call.of().bind(userId, Adapters.UUID_ADAPTER)).map(user::addPunishment).all();
+        Runnable loadPunishments = () -> {
+            Query.query("SELECT type, expiration, reason, punishment_id FROM punishment.necrify_punishment WHERE uuid = ?;")
+                    .single(Call.of().bind(userId, Adapters.UUID_ADAPTER))
+                    .map(user::addPunishment)
+                    .all();
             getEventDispatcher().dispatch(new UserLoadedEvent(user).setOrigin(EventOrigin.ofClass(getClass())));
-        });
+        };
+        if (loadPunishmentsDirectly) {
+            loadPunishments.run();
+        } else {
+            getExecutor().execute(loadPunishments);
+        }
         return user;
     }
 

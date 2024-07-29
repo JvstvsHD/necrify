@@ -29,6 +29,7 @@ import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.TemporalPunishment;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 public class PunishmentHelper {
 
@@ -39,10 +40,13 @@ public class PunishmentHelper {
     public static Component buildPunishmentData(Punishment punishment, MessageProvider provider) {
         return Component.text()
                 .append(provider.provide("helper.type").color(NamedTextColor.AQUA),
-                        Component.text(punishment.getType().getName()).color(NamedTextColor.YELLOW),
+                        copyable("%s (%d)".formatted(punishment.getType().getName(), punishment.getType().getId()), NamedTextColor.YELLOW, provider),
                         Component.newline(),
                         provider.provide("helper.reason").color(NamedTextColor.AQUA),
-                        punishment.getReason(),
+                        Util.copyComponent(punishment.getReason(), PlainTextComponentSerializer.plainText().serialize(punishment.getReason()), provider),
+                        Component.newline(),
+                        provider.prefixed(Component.text("ID: ")).color(NamedTextColor.AQUA),
+                        copyable(punishment.getPunishmentUuid().toString(), NamedTextColor.YELLOW, provider),
                         Component.newline(),
                         punishment instanceof TemporalPunishment temporalPunishment ?
                                 buildPunishmentDataTemporal(temporalPunishment, provider) : Component.text(""),
@@ -52,12 +56,22 @@ public class PunishmentHelper {
     }
 
     public static Component buildPunishmentDataTemporal(TemporalPunishment punishment, MessageProvider provider) {
-        return punishment.isPermanent() ? Component.text("permanent").color(NamedTextColor.RED) : Component.text()
+        if (punishment.isPermanent()) {
+            return Component.text()
+                    .append(provider.provide("helper.temporal.duration").color(NamedTextColor.AQUA),
+                            Component.text("PERMANENT").color(NamedTextColor.RED))
+                    .build();
+        }
+        return Component.text()
                 .append(provider.provide("helper.temporal.duration").color(NamedTextColor.AQUA),
                         Component.text(punishment.getDuration().remainingDuration()).color(NamedTextColor.YELLOW),
                         Component.newline(),
                         provider.provide("helper.temporal.end").color(NamedTextColor.AQUA),
                         Component.text(punishment.getDuration().expirationAsString()).color(NamedTextColor.YELLOW))
                 .build();
+    }
+
+    private static Component copyable(String s, NamedTextColor color, MessageProvider provider) {
+        return Util.copyComponent(s, provider).color(color);
     }
 }
