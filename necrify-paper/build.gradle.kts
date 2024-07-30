@@ -65,10 +65,10 @@ val versionString: String = version as String
 val isRelease: Boolean = !versionString.contains('-')
 
 val suffixedVersion: String = if (isRelease) {
-    versionString
+    "$versionString-paper"
 } else {
     // Give the version a unique name by using the GitHub Actions run number
-    versionString + "+" + System.getenv("GITHUB_RUN_NUMBER")
+    versionString + "-paper-" + System.getenv("GITHUB_RUN_NUMBER")
 }
 
 val changelogContent: String = latestCommitMessage()
