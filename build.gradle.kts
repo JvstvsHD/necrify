@@ -5,6 +5,7 @@ plugins {
     `maven-publish`
     signing
     id("org.cadixdev.licenser") version "0.6.1"
+    id("io.papermc.hangar-publish-plugin") version "0.1.2"
     java
 }
 

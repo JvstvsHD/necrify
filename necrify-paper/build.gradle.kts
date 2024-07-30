@@ -1,8 +1,11 @@
+import io.papermc.hangarpublishplugin.model.Platforms
+
 plugins {
     java
     `java-library`
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("net.minecrell.plugin-yml.paper") version "0.6.0"
+    id("io.papermc.hangar-publish-plugin")
 }
 
 group = "de.jvstvshd.necrify"
@@ -40,6 +43,25 @@ tasks {
                 .filter { it.from.id is ProjectComponentIdentifier }
                 .filter { it.requested is ModuleComponentSelector },
         )
+    }
+}
+
+hangarPublish {
+    publications.register("necrify-paper") {
+        val pluginVersion = project.version as String
+        version.set(pluginVersion)
+        channel.set(if (pluginVersion.contains("-")) "Snapshot" else "Release")
+        id.set("necrify")
+        apiKey.set(System.getenv("HANGAR_API_TOKEN"))
+        platforms {
+            register(Platforms.VELOCITY) {
+                jar.set(tasks.shadowJar.flatMap { it.archiveFile })
+                val versions: List<String> = (property("velocityVersion") as String)
+                    .split(",")
+                    .map { it.trim() }
+                platformVersions.set(versions)
+            }
+        }
     }
 }
 

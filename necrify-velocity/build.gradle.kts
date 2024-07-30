@@ -1,8 +1,11 @@
+import io.papermc.hangarpublishplugin.model.Platforms
+
 plugins {
     java
+    `java-library`
     id("io.github.goooler.shadow") version "8.1.8"
     id("xyz.jpenilla.run-velocity") version "2.3.0"
-    `java-library`
+    id("io.papermc.hangar-publish-plugin")
 }
 
 version = rootProject.version
@@ -67,6 +70,25 @@ tasks {
     }
     build {
         dependsOn(shadowJar)
+    }
+}
+
+hangarPublish {
+    publications.register("necrify-paper") {
+        val pluginVersion = project.version as String
+        version.set(pluginVersion)
+        channel.set(if (pluginVersion.contains("-")) "Snapshot" else "Release")
+        id.set("necrify")
+        apiKey.set(System.getenv("HANGAR_API_TOKEN"))
+        platforms {
+            register(Platforms.PAPER) {
+                jar.set(tasks.jar.flatMap { it.archiveFile })
+                val versions: List<String> = (property("paperVersion") as String)
+                    .split(",")
+                    .map { it.trim() }
+                platformVersions.set(versions)
+            }
+        }
     }
 }
 
