@@ -1,4 +1,5 @@
 import io.papermc.hangarpublishplugin.model.Platforms
+import java.io.ByteArrayOutputStream
 
 plugins {
     java
@@ -46,17 +47,44 @@ tasks {
     }
 }
 
+//https://docs.papermc.io/misc/hangar-publishing
+fun executeGitCommand(vararg command: String): String {
+    val byteOut = ByteArrayOutputStream()
+    exec {
+        commandLine = listOf("git", *command)
+        standardOutput = byteOut
+    }
+    return byteOut.toString(Charsets.UTF_8.name()).trim()
+}
+
+fun latestCommitMessage(): String {
+    return executeGitCommand("log", "-1", "--pretty=%B")
+}
+
+val versionString: String = version as String
+val isRelease: Boolean = !versionString.contains('-')
+
+val suffixedVersion: String = if (isRelease) {
+    versionString
+} else {
+    // Give the version a unique name by using the GitHub Actions run number
+    versionString + "+" + System.getenv("GITHUB_RUN_NUMBER")
+}
+
+val changelogContent: String = latestCommitMessage()
+
 hangarPublish {
     publications.register("necrify-paper") {
         val pluginVersion = project.version as String
-        version.set(pluginVersion)
-        channel.set(if (pluginVersion.contains("-")) "Snapshot" else "Release")
+        version.set(suffixedVersion)
+        channel.set(if (!isRelease) "Snapshot" else "Release")
         id.set("necrify")
         apiKey.set(System.getenv("HANGAR_API_TOKEN"))
+        changelog.set(changelogContent)
         platforms {
-            register(Platforms.VELOCITY) {
+            register(Platforms.PAPER) {
                 jar.set(tasks.shadowJar.flatMap { it.archiveFile })
-                val versions: List<String> = (property("velocityVersion") as String)
+                val versions: List<String> = (property("paperVersion") as String)
                     .split(",")
                     .map { it.trim() }
                 platformVersions.set(versions)
