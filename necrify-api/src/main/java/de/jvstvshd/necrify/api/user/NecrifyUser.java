@@ -189,6 +189,14 @@ public interface NecrifyUser extends CommandSender {
         return getPunishments().stream().filter(punishment -> punishment.getPunishmentUuid().equals(punishmentUuid)).findFirst();
     }
 
+    /**
+     * Gets this player's current locale. This locale is used to provide messages in the user's language. If the locale
+     * is not set, the default locale is used. Note: The locale may be provided from the language the user has set in
+     * their Minecraft client. This information is only sent after the client connected to the server, so calls to this
+     * during the connection process usually return the default locale.
+     * @return the locale of the user.
+     */
+    @NotNull
     Locale getLocale();
 
     /*    *//**

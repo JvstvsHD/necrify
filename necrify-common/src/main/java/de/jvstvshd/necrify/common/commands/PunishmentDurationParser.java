@@ -26,6 +26,7 @@ package de.jvstvshd.necrify.common.commands;
 
 import com.mojang.brigadier.LiteralMessage;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
+import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -43,6 +44,12 @@ import java.util.concurrent.CompletableFuture;
 
 public class PunishmentDurationParser implements ArgumentParser<NecrifyUser, PunishmentDuration> {
 
+    private final MessageProvider provider;
+
+    public PunishmentDurationParser(MessageProvider provider) {
+        this.provider = provider;
+    }
+
     @Override
     public @NonNull ArgumentParseResult<@NonNull PunishmentDuration> parse(@NonNull CommandContext<@NonNull NecrifyUser> commandContext, @NonNull CommandInput commandInput) {
         var input = commandInput.peekString();
@@ -58,15 +65,21 @@ public class PunishmentDurationParser implements ArgumentParser<NecrifyUser, Pun
     }
     @Override
     public @NonNull SuggestionProvider<NecrifyUser> suggestionProvider() {
+        var unprefixedProvider = this.provider.unprefixedProvider();
         return (context, input) -> {
             var string = input.peekString();
             ComponentTooltipSuggestion suggestion;
+            var hoverOverMe = " (" + unprefixedProvider.provideString("suggestion.hover-over-me", context.sender().getLocale()).trim() + ")";// (hover over me)
             try {
                 var duration = PunishmentDuration.parse(string);
                 var expiration = duration.expirationAsString();
-                suggestion = ComponentTooltipSuggestion.suggestion(string + " | correct (hover over me)", MiniMessage.miniMessage().deserialize("<green>until " + expiration));
+                var correct = unprefixedProvider.provideString("suggestion.correct", context.sender().getLocale());
+                var until = unprefixedProvider.provideString("suggestion.until", context.sender().getLocale()) + " ";
+                suggestion = ComponentTooltipSuggestion.suggestion(string + " | " + correct + hoverOverMe, MiniMessage.miniMessage().deserialize("<green>" + until + expiration));
             } catch (PunishmentDuration.Parser.ParseException e) {
-                suggestion = ComponentTooltipSuggestion.suggestion(string + " | incorrect (hover over me)", MiniMessage.miniMessage().deserialize("<red>Invalid duration format: " + e.getMessage()));
+                var incorrect = unprefixedProvider.provideString("suggestion.incorrect", context.sender().getLocale());
+                var invalidDuration = unprefixedProvider.provideString("suggestion.invalid-duration", context.sender().getLocale()) + " ";
+                suggestion = ComponentTooltipSuggestion.suggestion(string + " | " + incorrect + hoverOverMe, MiniMessage.miniMessage().deserialize("<red>" + invalidDuration + e.getMessage()));
             }
             return CompletableFuture.completedFuture(List.of(suggestion));
         };

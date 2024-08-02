@@ -25,6 +25,7 @@
 package de.jvstvshd.necrify.api.message;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,13 +90,33 @@ public interface MessageProvider {
     Component prefix();
 
     /**
+     * Provides a message to the user with the given key in the default locale. This yields the same result content-wise
+     * as calling {@link #provide(String, Locale, Component...)}, but as String instead of a Component.
+     *
+     * @param key    an unique key identifying the message to provide.
+     * @param locale the locale in whose language the message should be provided. If locale is null, the system's {@link #defaultLocale() default Locale}
+     * @param args   additional components that fill in placeholders in the message.
+     * @return the translated and formatted message as a string.
+     */
+    @NotNull
+    default String provideString(@NotNull String key, @Nullable Locale locale, Component... args) {
+        return PlainTextComponentSerializer.plainText().serialize(provide(key, locale, args));
+    }
+
+    /**
      * Prefixes the provided components into one component.
+     *
      * @param args the components to prefix.
      * @return one prefixed component.
      */
     @NotNull
     default Component prefixed(Component... args) {
-        var comp = prefix();
+        Component comp;
+        if (autoPrefixed()) {
+            comp = prefix();
+        } else {
+            comp = Component.empty();
+        }
         for (Component arg : args) {
             comp = comp.append(arg);
         }
@@ -125,6 +146,15 @@ public interface MessageProvider {
      * @throws UnsupportedOperationException if this message provider does not support changing the auto-prefixing behavior (default behaviour)
      */
     default void autoPrefixed(boolean autoPrefixed) {
+        throw new UnsupportedOperationException("This message provider does not support changing the auto-prefixing behavior.");
+    }
+
+    /**
+     * Returns a new message provider that does not prefix messages.
+     *
+     * @return a new message provider that does not prefix messages.
+     */
+    default MessageProvider unprefixedProvider() {
         throw new UnsupportedOperationException("This message provider does not support changing the auto-prefixing behavior.");
     }
 }

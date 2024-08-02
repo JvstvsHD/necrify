@@ -101,12 +101,14 @@ val suffixedVersion: String = if (isRelease) {
 val changelogContent: String = latestCommitMessage()
 
 hangarPublish {
-    publications.register("necrify-paper") {
+    publications.register("necrify-velocity") {
         version.set(suffixedVersion)
         channel.set(if (!isRelease) "Snapshot" else "Release")
         id.set("necrify")
         apiKey.set(System.getenv("HANGAR_API_TOKEN"))
-        changelog.set(changelogContent)
+        if (!isRelease) {
+            changelog.set(changelogContent)
+        }
         platforms {
             register(Platforms.VELOCITY) {
                 jar.set(tasks.jar.flatMap { it.archiveFile })

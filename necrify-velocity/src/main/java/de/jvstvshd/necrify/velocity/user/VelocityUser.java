@@ -312,7 +312,7 @@ public class VelocityUser implements NecrifyUser {
     }
 
     @Override
-    public Locale getLocale() {
+    public @NotNull Locale getLocale() {
         if (player != null) {
             return player.getEffectiveLocale();
         }

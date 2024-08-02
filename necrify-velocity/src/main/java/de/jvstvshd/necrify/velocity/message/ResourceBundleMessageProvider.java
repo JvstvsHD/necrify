@@ -44,6 +44,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.PropertyResourceBundle;
@@ -56,51 +58,71 @@ public class ResourceBundleMessageProvider implements MessageProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResourceBundleMessageProvider.class);
     private static final Component PREFIX = MiniMessage.miniMessage().deserialize("<grey>[<gradient:#ff1c08:#ff3f2e>Necrify</gradient>]</grey> ");
 
-    private final ConfigData configData;
-
     static {
+        var registry = TranslationRegistry.create(Key.key("necrify"));
+        registry.defaultLocale(Locale.ENGLISH);
+        Path baseDir = null;
         try {
-            var registry = TranslationRegistry.create(Key.key("necrify"));
-            registry.defaultLocale(Locale.ENGLISH);
-            var baseDir = Path.of("plugins", "necrify", "translations");
+            baseDir = Path.of("plugins", "necrify", "translations");
             if (!Files.exists(baseDir)) {
                 Files.createDirectories(baseDir);
             }
-            try (Stream<Path> paths = Files.list(baseDir)) {
-                paths.filter(path -> path.getFileName().toString().endsWith(".properties")).forEach(path -> {
-                    PropertyResourceBundle resource;
-                    try {
-                        resource = new PropertyResourceBundle(Files.newInputStream(path));
-                        var locale = locale(path.getFileName().toString());//Objects.requireNonNull(Translator.parseLocale(path.getFileName().toString().substring(0, path.getFileName().toString().length() - ".properties".length())));
-                        registry.registerAll(locale, resource, false);
-
-                    } catch (IOException e) {
-                        LOGGER.error("An error occurred while loading translation file {}", path.getFileName(), e);
+        } catch (IOException e) {
+            LOGGER.error("An error occurred while creating the translation directory", e);
+        }
+        try (Stream<Path> paths = Files.list(baseDir)) {
+            List<Path> registeredPaths = new ArrayList<>();
+            try (JarFile jar = new JarFile(new File(NecrifyVelocityPlugin.class.getProtectionDomain().getCodeSource().getLocation().toURI()))) {
+                for (JarEntry translationEntry : jar.stream().filter(jarEntry -> jarEntry.getName().toLowerCase().contains("translations") && !jarEntry.isDirectory()).toList()) {
+                    var path = Path.of(baseDir.toString(), translationEntry.getName().split("/")[1]);
+                    if (Files.exists(path)) {
+                        continue;
                     }
-                });
-                try (JarFile jar = new JarFile(new File(NecrifyVelocityPlugin.class.getProtectionDomain().getCodeSource().getLocation().toURI()))) {
-                    for (JarEntry translationEntry : jar.stream().filter(jarEntry -> jarEntry.getName().toLowerCase().contains("translations") && !jarEntry.isDirectory()).toList()) {
-                        var path = Path.of(baseDir.toString(), translationEntry.getName().split("/")[1]);
-                        if (Files.exists(path)) {
-                            continue;
-                        }
-                        System.out.println("copying translation file " + translationEntry.getName());
-                        Files.copy(Objects.requireNonNull(NecrifyVelocityPlugin.class.getResourceAsStream("/" + translationEntry.getName())), path);
-                    }
+                    LOGGER.info("copying translation file {}", translationEntry.getName());
+                    Files.copy(Objects.requireNonNull(NecrifyVelocityPlugin.class.getResourceAsStream("/" + translationEntry.getName())), path);
+                    registeredPaths.add(path);
                 }
             }
+            registerFrom(paths, registry);
+            try (Stream<Path> registeredStream = registeredPaths.stream()) {
+                registerFrom(registeredStream, registry);
+            }
             GlobalTranslator.translator().addSource(registry);
-        } catch (IOException | URISyntaxException e) {
+        } catch (Exception e) {
             LOGGER.error("An error occurred while loading translations", e);
         }
     }
 
-    public ResourceBundleMessageProvider(@NotNull ConfigData configData) {
-        this.configData = configData;
+    private static void registerFrom(Stream<Path> paths, TranslationRegistry registry) {
+        paths.filter(path -> path.getFileName().toString().endsWith(".properties")).forEach(path -> {
+            PropertyResourceBundle resource;
+            try {
+                resource = new PropertyResourceBundle(Files.newInputStream(path));
+                var locale = locale(path.getFileName().toString());
+                registry.registerAll(locale, resource, false);
+
+            } catch (IOException e) {
+                LOGGER.error("An error occurred while loading translation file {}", path.getFileName(), e);
+            }
+        });
     }
 
     private static Locale locale(String fileName) {
         return Objects.requireNonNull(Translator.parseLocale(fileName.substring(0, fileName.length() - ".properties".length())));
+    }
+
+
+
+    private final ConfigData configData;
+    private final boolean autoPrefixed;
+
+    public ResourceBundleMessageProvider(@NotNull ConfigData configData) {
+        this(configData, true);
+    }
+
+    private ResourceBundleMessageProvider(@NotNull ConfigData configData, boolean autoPrefixed) {
+        this.configData = configData;
+        this.autoPrefixed = autoPrefixed;
     }
 
     @Override
@@ -131,11 +153,16 @@ public class ResourceBundleMessageProvider implements MessageProvider {
 
     @Override
     public boolean autoPrefixed() {
-        return true;
+        return autoPrefixed;
     }
 
     @NotNull
     private Locale orDefault(@Nullable Locale input) {
         return input == null ? configData.getDefaultLanguage() : input;
+    }
+
+    @Override
+    public MessageProvider unprefixedProvider() {
+        return new ResourceBundleMessageProvider(configData, false);
     }
 }

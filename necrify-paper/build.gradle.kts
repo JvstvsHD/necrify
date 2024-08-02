@@ -64,20 +64,22 @@ fun latestCommitMessage(): String {
 val versionString: String = version as String
 val isRelease: Boolean = !versionString.contains('-')
 
-val suffixedVersion: String = if (isRelease) {
-    "$versionString-paper"
+val suffixedVersion: String = "$versionString-Paper" + if (project.hasProperty("buildnumber")) {
+    "-" + project.property("buildnumber") as String
 } else {
-    // Give the version a unique name by using the GitHub Actions run number
-    versionString + "-paper-" + System.getenv("GITHUB_RUN_NUMBER")
+    val githubRunNumber = System.getenv("GITHUB_RUN_NUMBER")
+    versionString + if (githubRunNumber != null) "-$githubRunNumber" else ""
 }
 
 val changelogContent: String = latestCommitMessage()
 
 hangarPublish {
     publications.register("necrify-paper") {
-        val pluginVersion = project.version as String
+        project.version as String
         version.set(suffixedVersion)
-        channel.set(if (!isRelease) "Snapshot" else "Release")
+        if (!isRelease) {
+            changelog.set(changelogContent)
+        }
         id.set("necrify")
         apiKey.set(System.getenv("HANGAR_API_TOKEN"))
         changelog.set(changelogContent)

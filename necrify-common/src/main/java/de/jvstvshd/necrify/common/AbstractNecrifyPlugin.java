@@ -101,6 +101,11 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
         }
 
         manager.exceptionController()
+                .registerHandler(ArgumentParseException.class, context -> {
+                    var component = getMessageProvider().prefixed(Component.text(context.exception().getCause().getMessage()).color(NamedTextColor.DARK_RED));
+                    context.context().sender().sendMessage(component);
+                });
+        manager.exceptionController()
                 .registerHandler(ArgumentParseException.class, ExceptionHandler.unwrappingHandler(UserNotFoundParseException.class))
                 .registerHandler(UserNotFoundParseException.class, context -> {
                     var component = getMessageProvider()
@@ -115,11 +120,12 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
                     var component = getMessageProvider().provide(context.exception().getMessage(), replacements).color(NamedTextColor.RED);
                     context.context().sender().sendMessage(component);
                 });
-        /*manager.exceptionController()//.registerHandler(ArgumentParseException.class, ExceptionHandler.unwrappingHandler(ArgumentParseException.class))
-                .registerHandler(ArgumentParseException.class, context -> {
-                    context.context().sender().sendMessage("commands.general.invalid-argument");
-                    System.out.println(context.exception().getCause());
-                });*/
+        manager.exceptionController()
+                .registerHandler(ArgumentParseException.class, ExceptionHandler.unwrappingHandler(PunishmentDuration.Parser.ParseException.class))
+                .registerHandler(PunishmentDuration.Parser.ParseException.class, context -> {
+                    var component = getMessageProvider().provide("command.punishment.duration.invalid", Component.text(context.exception().getMessage(), NamedTextColor.YELLOW)).color(NamedTextColor.RED);
+                    context.context().sender().sendMessage(component);
+                });
         manager.captionRegistry().registerProvider((caption, user) -> {
             var component = getMessageProvider().provide(caption.key(), user.getLocale());
             return PlainTextComponentSerializer.plainText().serialize(component);
@@ -127,7 +133,7 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
         var parserRegistry = manager.parserRegistry();
         parserRegistry.registerParser(ParserDescriptor.of(new NecrifyUserParser(this.getUserManager()), NecrifyUser.class));
         parserRegistry.registerParser(ComponentParser.componentParser(MiniMessage.miniMessage(), StringParser.StringMode.GREEDY));
-        parserRegistry.registerParser(ParserDescriptor.of(new PunishmentDurationParser(), PunishmentDuration.class));
+        parserRegistry.registerParser(ParserDescriptor.of(new PunishmentDurationParser(getMessageProvider()), PunishmentDuration.class));
         parserRegistry.registerParser(ParserDescriptor.of(new PunishmentParser(this), Punishment.class));
         var commands = new NecrifyCommand(this);
         parser.parse(commands);

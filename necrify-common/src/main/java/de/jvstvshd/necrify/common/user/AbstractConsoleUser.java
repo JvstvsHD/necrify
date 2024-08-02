@@ -128,7 +128,7 @@ public abstract class AbstractConsoleUser implements NecrifyUser {
     }
 
     @Override
-    public Locale getLocale() {
+    public @NotNull Locale getLocale() {
         return locale;
     }
 

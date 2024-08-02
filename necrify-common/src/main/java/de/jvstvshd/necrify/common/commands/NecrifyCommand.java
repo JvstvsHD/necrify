@@ -206,7 +206,7 @@ public class NecrifyCommand {
     ) {
         var punishments = target.getPunishments(StandardPunishmentType.TEMPORARY_BAN, StandardPunishmentType.PERMANENT_BAN);
         try {
-            removePunishments(sender, "unban", punishments);
+            removePunishments(sender, punishments, "unban", "ban", "banned");
         } catch (Exception e) {
             logException(e);
         }
@@ -220,9 +220,10 @@ public class NecrifyCommand {
             @Argument(value = "target", description = "Player to unmute", suggestions = "suggestOnlinePlayers") NecrifyUser target
     ) {
         var punishments = target.getPunishments(StandardPunishmentType.TEMPORARY_MUTE, StandardPunishmentType.PERMANENT_MUTE);
-        System.out.println(punishments);
-        removePunishments(sender, "unmute", punishments);
+        removePunishments(sender, punishments, "unmute", "mute", "muted");
     }
+
+    //Informational/other
 
     @Command("necrify punishment <punishmentId> [option]")
     @Permission(value = {"necrify.command.punishment", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
@@ -240,7 +241,7 @@ public class NecrifyCommand {
                         logException(sender, th);
                         return;
                     }
-                    sender.sendMessage("command.punishment.cancel.success");
+                    sender.sendMessage(provider.provide("command.punishment.cancel.success").color(NamedTextColor.GREEN));
                 }, plugin.getService());
             }
             case "change" -> {
@@ -286,16 +287,19 @@ public class NecrifyCommand {
                 .getOnlinePlayers()
                 .stream()
                 .filter(pair -> pair.first().toLowerCase(Locale.ROOT).startsWith(input.peekString().toLowerCase(Locale.ROOT)))
-                .map(pair -> ComponentTooltipSuggestion.suggestion(pair.first(),
-                        miniMessage("<red>The player <yellow>(<name>/<uuid>)</yellow> you want to select.</red><yellow>",
-                                Placeholder.parsed("name", pair.first()),
-                                Placeholder.parsed("uuid", pair.second().toString()))
-                )).toList();
+                .map(pair -> {
+                    var select = provider.unprefixedProvider().provide("suggestion.select-player", context.sender().getLocale(), miniMessage(
+                            "<yellow>(<name>/<uuid>)</yellow>",
+                            Placeholder.parsed("name", pair.first()),
+                            Placeholder.parsed("uuid", pair.second().toString()))).color(NamedTextColor.RED);
+                    return ComponentTooltipSuggestion.suggestion(pair.first(), select);
+                }).toList();
     }
 
     @Suggestions("suggestMiniMessage")
     public List<? extends Suggestion> suggestMiniMessage(CommandContext<NecrifyUser> context, CommandInput input) {
-        return Collections.singletonList(ComponentTooltipSuggestion.suggestion(input.remainingInput() + " (hover for preview)",
+        return Collections.singletonList(ComponentTooltipSuggestion.suggestion(input.remainingInput()
+                        + " (" + provider.unprefixedProvider() .provideString("suggestion.hover-over-me", context.sender().getLocale()) + ")",
                 miniMessage(input.remainingInput())));
     }
 
@@ -319,14 +323,22 @@ public class NecrifyCommand {
 
     //HELPER METHODS
 
-    private void removePunishments(NecrifyUser source, String commandName, List<Punishment> punishments) {
-        var type = commandName.substring(2);
+    /**
+     * This will execute the punishment removal process for the given punishments. If more than one punishment is found,
+     * the user will be informed about it and can then decide which punishment to remove.
+     *
+     * @param source      the user who executed the command.
+     * @param punishments the list of punishments the target has.
+     * @param values      some strings for the message provider. Format: [0] = command name, [1] = punishment type, [2] = past
+     *                    of the verb form to indicate the process of punishing the target; for example: "unban", "ban", "banned"
+     */
+    private void removePunishments(NecrifyUser source, List<Punishment> punishments, String... values) {
         if (punishments.isEmpty()) {
-            source.sendMessage(plugin.getMessageProvider().provide("command.punishment.not-" + type).color(NamedTextColor.RED));
+            source.sendMessage(plugin.getMessageProvider().provide("command.punishment.not-" + values[2]).color(NamedTextColor.RED));
             return;
         }
         if (punishments.size() > 1) {
-            source.sendMessage(plugin.getMessageProvider().provide("command." + commandName + ".multiple-" + type + "s").color(NamedTextColor.YELLOW));
+            source.sendMessage(plugin.getMessageProvider().provide("command." + values[0] + ".multiple-" + values[1] + "s").color(NamedTextColor.YELLOW));
             for (Punishment punishment : punishments) {
                 source.sendMessage(buildComponent(PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider()), punishment));
             }
@@ -340,7 +352,7 @@ public class NecrifyCommand {
                         source.sendMessage(plugin.getMessageProvider().internalError());
                         return;
                     }
-                    source.sendMessage(plugin.getMessageProvider().provide("command." + commandName + ".success").color(NamedTextColor.GREEN));
+                    source.sendMessage(plugin.getMessageProvider().provide("command." + values[0] + ".success").color(NamedTextColor.GREEN));
                 }, plugin.getService());
             } catch (Exception e) {
                 logException(source, e);
