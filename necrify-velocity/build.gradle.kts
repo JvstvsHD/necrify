@@ -91,11 +91,11 @@ fun latestCommitMessage(): String {
 val versionString: String = version as String
 val isRelease: Boolean = !versionString.contains('-')
 
-val suffixedVersion: String = if (isRelease) {
-    "$versionString-velocity"
+val suffixedVersion: String = "$versionString-Velocity" + if (project.hasProperty("buildnumber")) {
+    "-" + project.property("buildnumber") as String
 } else {
-    // Give the version a unique name by using the GitHub Actions run number
-    versionString + "-velocity-" + System.getenv("GITHUB_RUN_NUMBER")
+    val githubRunNumber = System.getenv("GITHUB_RUN_NUMBER")
+    versionString + if (githubRunNumber != null) "-$githubRunNumber" else ""
 }
 
 val changelogContent: String = latestCommitMessage()
