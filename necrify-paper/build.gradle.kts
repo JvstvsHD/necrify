@@ -75,14 +75,13 @@ val changelogContent: String = latestCommitMessage()
 
 hangarPublish {
     publications.register("necrify-paper") {
-        project.version as String
         version.set(suffixedVersion)
+        channel.set(if (!isRelease) "Snapshot" else "Release")
+        id.set("necrify")
+        apiKey.set(System.getenv("HANGAR_API_TOKEN"))
         if (!isRelease) {
             changelog.set(changelogContent)
         }
-        id.set("necrify")
-        apiKey.set(System.getenv("HANGAR_API_TOKEN"))
-        changelog.set(changelogContent)
         platforms {
             register(Platforms.PAPER) {
                 jar.set(tasks.shadowJar.flatMap { it.archiveFile })
