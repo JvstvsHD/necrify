@@ -53,7 +53,7 @@ public abstract class AbstractConsoleUser implements NecrifyUser {
         this.locale = Locale.getDefault();
     }
 
-    private void throwUnsupported() {
+    private <T> T throwUnsupported() {
         throw new UnsupportedOperationException("This method is not supported for console users.");
     }
 
@@ -69,32 +69,27 @@ public abstract class AbstractConsoleUser implements NecrifyUser {
 
     @Override
     public @NotNull CompletableFuture<Ban> ban(@Nullable Component reason, @NotNull PunishmentDuration duration) {
-        throwUnsupported();
-        return null;
+        return throwUnsupported();
     }
 
     @Override
     public @NotNull CompletableFuture<Ban> banPermanent(@Nullable Component reason) {
-        throwUnsupported();
-        return null;
+        return throwUnsupported();
     }
 
     @Override
     public @NotNull CompletableFuture<Mute> mute(@Nullable Component reason, @NotNull PunishmentDuration duration) {
-        throwUnsupported();
-        return null;
+        return throwUnsupported();
     }
 
     @Override
     public @NotNull CompletableFuture<Mute> mutePermanent(@Nullable Component reason) {
-        throwUnsupported();
-        return null;
+        return throwUnsupported();
     }
 
     @Override
     public @NotNull CompletableFuture<Kick> kick(@Nullable Component reason) {
-        throwUnsupported();
-        return null;
+        return throwUnsupported();
     }
 
     @Override
@@ -118,8 +113,8 @@ public abstract class AbstractConsoleUser implements NecrifyUser {
     }
 
     @Override
-    public void delete(@NotNull UserDeletionReason reason) {
-        throwUnsupported();
+    public CompletableFuture<Integer> delete(@NotNull UserDeletionReason reason) {
+        return throwUnsupported();
     }
 
     @Override

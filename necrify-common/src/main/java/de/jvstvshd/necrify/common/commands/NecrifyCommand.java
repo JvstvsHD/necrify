@@ -271,10 +271,13 @@ public class NecrifyCommand {
             }
             case "delete" -> {
                 //TODO add confirmation
-                target.delete(UserDeletionReason.USER_DELETED);
-                sender.sendMessage("command.user.delete.success",
-                        miniMessage(target.getUsername()).color(NamedTextColor.YELLOW),
-                        copyComponent(target.getUuid().toString()).color(NamedTextColor.YELLOW));
+                target.delete(UserDeletionReason.USER_DELETED).whenComplete((integer, throwable) -> {
+                    if (throwable != null) {
+                        logException(sender, throwable);
+                        return;
+                    }
+                    sender.sendMessage(provider.provide("command.user.delete.success", Component.text(integer).color(NamedTextColor.YELLOW)).color(NamedTextColor.RED));
+                });
             }
         }
     }

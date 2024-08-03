@@ -39,6 +39,7 @@ import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserDeletionReason;
 import de.jvstvshd.necrify.common.io.Adapters;
 import de.jvstvshd.necrify.common.punishment.PunishmentBuilder;
+import de.jvstvshd.necrify.common.user.MojangAPI;
 import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import de.jvstvshd.necrify.velocity.internal.Util;
 import net.kyori.adventure.text.Component;
@@ -62,7 +63,7 @@ public class VelocityUser implements NecrifyUser {
     private final UUID uuid;
     private final List<Punishment> punishments;
     private final DataSource dataSource;
-    private final ExecutorService service;
+    private final ExecutorService executor;
     private final MessageProvider messageProvider;
     private final ProxyServer server;
     private final NecrifyVelocityPlugin plugin;
@@ -78,7 +79,7 @@ public class VelocityUser implements NecrifyUser {
         this.name = name;
         this.uuid = uuid;
         this.dataSource = plugin.getDataSource();
-        this.service = plugin.getService();
+        this.executor = plugin.getService();
         this.messageProvider = plugin.getMessageProvider();
         this.server = plugin.getServer();
     }
@@ -92,7 +93,7 @@ public class VelocityUser implements NecrifyUser {
         this.name = name;
         this.uuid = uuid;
         this.dataSource = plugin.getDataSource();
-        this.service = plugin.getService();
+        this.executor = plugin.getService();
         this.messageProvider = plugin.getMessageProvider();
 
     }
@@ -178,17 +179,11 @@ public class VelocityUser implements NecrifyUser {
 
     @Override
     public @NotNull CompletableFuture<String> queryUsername(boolean update) {
-        try (HttpClient httpClient = HttpClient.newHttpClient()) {
-            HttpRequest request = HttpRequest.newBuilder(URI.create("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid)).GET().build();
-            return httpClient
-                    .sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                    .thenApply(response -> JsonParser.parseString(response.body()).getAsJsonObject().get("name").getAsString())
-                    .thenApplyAsync(s -> {
-                        if (update)
-                            name = s;
-                        return s;
-                    });
-        }
+        return MojangAPI.getPlayerNameAsync(uuid, executor).thenApplyAsync(s -> {
+            if (update)
+                name = s.orElse(null);
+            return s.orElse(null);
+        });
     }
 
     public Optional<Player> queryPlayer() {
@@ -221,7 +216,6 @@ public class VelocityUser implements NecrifyUser {
     }
 
     public Punishment addPunishment(Row row) throws SQLException {
-
         final StandardPunishmentType type = PunishmentTypeRegistry.getType(row.getInt(1)).standard();
         final Timestamp timestamp = row.getTimestamp(2);
         final PunishmentDuration duration = PunishmentDuration.fromTimestamp(timestamp);
@@ -259,7 +253,7 @@ public class VelocityUser implements NecrifyUser {
                 kick(messageProvider.provide("whitelist.removed"));
             }
             return null;
-        }, service);
+        }, executor);
     }
 
     public void setPlayer(Player player) {
@@ -295,7 +289,7 @@ public class VelocityUser implements NecrifyUser {
                 "uuid=" + uuid +
                 ", punishments=" + punishments +
                 ", dataSource=" + dataSource +
-                ", service=" + service +
+                ", service=" + executor +
                 ", messageProvider=" + messageProvider +
                 ", server=" + server +
                 ", plugin=" + plugin +
@@ -306,16 +300,19 @@ public class VelocityUser implements NecrifyUser {
     }
 
     @Override
-    public void delete(@NotNull UserDeletionReason reason) {
+    public CompletableFuture<Integer> delete(@NotNull UserDeletionReason reason) {
         plugin.getEventDispatcher().dispatch(new UserDeletedEvent(this, reason));
-        throw new UnsupportedOperationException("not implemented yet");
+        return Util.executeAsync(() -> Query.query("DELETE FROM punishment.necrify_user WHERE uuid = ?;")
+                .single(Call.of().bind(uuid, Adapters.UUID_ADAPTER))
+                .delete().rows(), executor);
     }
 
     @Override
     public @NotNull Locale getLocale() {
+        var defaultLocale = plugin.getConfig().getConfiguration().getDefaultLanguage();
         if (player != null) {
-            return player.getEffectiveLocale();
+            return Objects.requireNonNullElse(player.getEffectiveLocale(), defaultLocale);
         }
-        return plugin.getConfig().getConfiguration().getDefaultLanguage();
+        return defaultLocale;
     }
 }

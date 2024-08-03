@@ -176,7 +176,7 @@ public interface NecrifyUser extends CommandSender {
     /**
      * Deletes this user from the system. This will also delete all punishments associated with this user.
      */
-    void delete(@NotNull UserDeletionReason reason);
+    CompletableFuture<Integer> delete(@NotNull UserDeletionReason reason);
 
     /**
      * Gets a punishment by its UUID. This punishment has to be valid, i.e. it is still running. A punishment that

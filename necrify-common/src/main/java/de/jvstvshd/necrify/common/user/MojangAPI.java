@@ -27,6 +27,8 @@ package de.jvstvshd.necrify.common.user;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
@@ -35,14 +37,30 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
 public class MojangAPI {
 
     @NotNull
     public static Optional<String> getPlayerName(@NotNull UUID uuid) throws IOException, InterruptedException {
-        HttpClient httpClient = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder(URI.create("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid)).GET().build();
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        try (HttpClient httpClient = HttpClient.newHttpClient()) {
+            HttpRequest request = HttpRequest.newBuilder(URI.create("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid)).GET().build();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            return getPlayerName(response);
+        }
+    }
+
+    @NotNull
+    public static CompletableFuture<Optional<String>> getPlayerNameAsync(@NotNull UUID uuid, ExecutorService executor) {
+        try (HttpClient httpClient = HttpClient.newBuilder().executor(executor).build()) {
+            HttpRequest request = HttpRequest.newBuilder(URI.create("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid)).GET().build();
+            return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString()).thenApply(MojangAPI::getPlayerName);
+        }
+    }
+
+    @NotNull
+    private static Optional<String> getPlayerName(HttpResponse<String> response) {
         if (response.statusCode() != 200) {
             return Optional.empty();
         }
@@ -54,32 +72,33 @@ public class MojangAPI {
         return Optional.ofNullable(nameElement.getAsString());
     }
 
+
     @NotNull
     public static Optional<UUID> getUuid(@NotNull String name) throws IOException, InterruptedException {
-        HttpClient httpClient = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder(URI.create("https://api.mojang.com/users/profiles/minecraft/" + name)).GET().build();
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        if (response.statusCode() != 200) {
-            return Optional.empty();
+        try (HttpClient httpClient = HttpClient.newHttpClient()) {
+            HttpRequest request = HttpRequest.newBuilder(URI.create("https://api.mojang.com/users/profiles/minecraft/" + name)).GET().build();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                return Optional.empty();
+            }
+            JsonElement jsonElement = JsonParser.parseString(response.body());
+            if (jsonElement == null || jsonElement.isJsonNull()) {
+                return Optional.empty();
+            }
+            var idElement = jsonElement.getAsJsonObject().get("id");
+            if (idElement == null) {
+                return Optional.empty();
+            }
+            var result = idElement.getAsString();
+            UUID uuid;
+            try {
+                uuid = UUID.fromString(result);
+            } catch (IllegalArgumentException e) {
+                uuid = UUID.fromString(result.replaceAll(
+                        "(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})",
+                        "$1-$2-$3-$4-$5"));
+            }
+            return Optional.of(uuid);
         }
-        System.out.println(response.body());
-        JsonElement jsonElement = JsonParser.parseString(response.body());
-        if (jsonElement == null || jsonElement.isJsonNull()) {
-            return Optional.empty();
-        }
-        var idElement = jsonElement.getAsJsonObject().get("id");
-        if (idElement == null) {
-            return Optional.empty();
-        }
-        var result = idElement.getAsString();
-        UUID uuid;
-        try {
-            uuid = UUID.fromString(result);
-        } catch (IllegalArgumentException e) {
-            uuid = UUID.fromString(result.replaceAll(
-                    "(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})",
-                    "$1-$2-$3-$4-$5"));
-        }
-        return Optional.of(uuid);
     }
 }

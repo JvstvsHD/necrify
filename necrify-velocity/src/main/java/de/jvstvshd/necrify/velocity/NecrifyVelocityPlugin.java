@@ -48,6 +48,7 @@ import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import com.zaxxer.hikari.HikariDataSource;
 import de.chojo.sadu.core.databases.Database;
 import de.chojo.sadu.core.jdbc.RemoteJdbcConfig;
+import de.chojo.sadu.core.updater.SqlVersion;
 import de.chojo.sadu.datasource.DataSourceCreator;
 import de.chojo.sadu.datasource.stage.ConfigurationStage;
 import de.chojo.sadu.postgresql.databases.PostgreSql;
@@ -83,6 +84,8 @@ import de.jvstvshd.necrify.velocity.user.VelocityUser;
 import de.jvstvshd.necrify.velocity.user.VelocityUserManager;
 import io.leangen.geantyref.TypeToken;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.incendo.cloud.SenderMapper;
 import org.incendo.cloud.brigadier.suggestion.TooltipSuggestion;
 import org.incendo.cloud.execution.ExecutionCoordinator;
@@ -286,7 +289,18 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     private void updateDatabase() throws IOException, SQLException {
         if (configurationManager.getConfiguration().getDataBaseData().sqlType().name().equalsIgnoreCase("postgresql")) {
             SqlUpdater.builder(dataSource, PostgreSql.get()).setSchemas(configurationManager.getConfiguration().getDataBaseData().getPostgresSchema())
-                    //.preUpdateHook(new SqlVersion(1, 1), connection -> )
+                    .preUpdateHook(new SqlVersion(1, 1), connection -> {
+                        var updatedReasons = Query.query("SELECT reason, punishment_id FROM punishment.necrify_punishment WHERE reason LIKE '%§%';")
+                                .single()
+                                .map(row -> {
+                                    var reason = LegacyComponentSerializer.legacySection().deserialize(row.getString(1));
+                                    var punishmentId = Util.parseUuid(row.getString(2));
+                                    return Query.query("UPDATE punishment.necrify_punishment SET reason = ? WHERE punishment_id = ?;")
+                                            .single(Call.of().bind(MiniMessage.miniMessage().serialize(reason)).bind(punishmentId.toString()))
+                                            .update();
+                                }).all();
+                        logger.info("Updated {} reasons to minimessage format.", updatedReasons.size());
+                    })
                     .execute();
         } else {
             logger.warn("Database type is not (yet) supported for automatic updates. Please update the database manually.");
