@@ -7,15 +7,16 @@ maybe [Paper/BungeeCord in the future](https://github.com/users/JvstvsHD/project
 ## Table of contents
 
 1. [Plugin installation](#plugin-installation)
-2. [Duration](#duration)
-3. [Commands](#commands)
-4. [API](#punishment-api)
+2. [Mutes (only affects Velocity)](#mutes)
+3. [Duration](#duration)
+4. [Commands](#commands)
+5. [API](#punishment-api)
     * [installation](#installation)
     * [usage](#usage)
 
 ## Plugin installation
 
-1. [Download the latest version of the plugin](https://github.com/JvstvsHD/necrify/releases/latest) or download dev
+1. [Download the latest version of the plugin](https://hangar.papermc.io/JvstvsHD/Necrify/versions) or download dev
    builds [here](https://ci.jvstvshd.de/job/Necrify/) (may be unstable or not working)
 2. Put the downloaded file into the ```plugins``` folder of your server.
 3. (Re-)Start the server.
@@ -35,26 +36,28 @@ For further information about 1.19.1, please refer to
 the [official release notes](https://www.minecraft.net/en-us/article/minecraft-java-edition-1-19-1)
 
 ## Commands
-
+All commands are registered with the prefix `/necrify`. Moreover, it is possible to register top-level commands too by 
+setting `allow-top-level-commands` to true (which is per default)<br>
 <b>legend:</b>
 
 - \<arg\> means the argument is required
 - \[arg\] means the argument is optional
 - player as argument name means the a player name OR uuid is required
-- reason means a reason with legacy color codes
+- reason means a reason that supports [MiniMessage](https://docs.advntr.dev/minimessage/format.html)
 - duration as argument name means a [duration](#duration)
 
 ### Command overview
 
 - **/ban \<player\> \[reason\]** bans a player permanently for the given or the default reason
 - **/mute \<player\> \[reason\]** mutes a player permanently for the given or the default reason
-- **/punishment \<playerinfo\> \<player\>** shows information about a player's punishments
-- **/punishment <cancel|change|info|remove> \<punishment id\>** cancels/removes, changes or shows information about the
-  given punishment(must be a uuid)
 - **/tempban <player> <duration> [reason]** bans a player for the given duration for the given or the default reason
 - **/tempmute <player> <duration> [reason]** mutes a player for the given duration for the given or the default reason
 - **/unban <player>** unbans the given player
 - **/unmute <player>** unmutes the given player
+- **/necrify user \<player\> \<info|delete|whitelist\>** shows either information about a player's punishments and his whitelist status,
+  deletes this user including all punishments or inverts his whitelist status (from whitelisted to blacklisted or vice versa) 
+- **/necrify punishment \<punishment id\> <cancel|change|info|remove>** cancels/removes, changes or shows information about the
+  given punishment(must be a uuid)
 
 ### Duration
 
@@ -71,8 +74,8 @@ Example: <b>1d12h15m30s</b> means a duration of 1 day, 12 hours, 15 minutes and 
 
 ### Installation
 
-Replace ```{version}``` with the current version, e.g. 1.0.0. Note that the artifacts are not yet published. This
-section is currently subject to change.
+Replace ```{version}``` with the current version, e.g. 1.0.0. The latest version can be found [here](https://ci.jvstvshd.de/job/Necrify/lastSuccessfulBuild/).
+Note that you only want to use the string after necrify-{platform}- and without the version build number.
 
 #### Gradle (kotlin)
 
@@ -82,7 +85,7 @@ repositories {
 }
 
 depenencies {
-   implementation("de.jvstvshd.necrify:api:{version}")
+   implementation("de.jvstvshd.necrify:necrify-api:{version}")
 }
 ```
 
@@ -94,7 +97,7 @@ repositories {
 }
 
 dependencies {
-   implementation 'de.jvstvshd.necrify:api:{version}'
+   implementation 'de.jvstvshd.necrify:necrify-api:{version}'
 }
 ```
 
@@ -105,11 +108,15 @@ dependencies {
 <dependencies>
    <dependency>
       <groupId>de.jvstvshd.necrify</groupId>
-      <artifactId>api</artifactId>
+      <artifactId>necrify-api</artifactId>
       <version>{version}</version>
    </dependency>
 </dependencies>
 ```
+
+You can also depend on the plugin modules or common module. In order to do so, replace the artifactId with the desired module name. 
+Note that code outside the API module is always subject to change and may not be stable. It is also not designed to allow
+access and modifications from outside the plugin itself and is often not documented.
 
 ### Usage
 
@@ -127,23 +134,36 @@ If the [plugin](#plugin-installation) is used, you can obtain an instance of the
 
 #### Punishing a player
 
-All punishments are imposed via the punishment manager (obtainable via Necrify#getPunishmentManager). For
-example, banning a player could be done this way:
+All punishments are issued via the target user. For example, banning a player could be done this way:
 
 ```java
-    PunishmentManager punishmentManager = api.getPunishmentManager();
+    //Firstly, obtain the user instance
+    NecrifyUser user = api.getUserManager().getUser(uuid).orElseThrow(() -> new NoSuchElementException("User not found"));
+    MiniMessage miniMessage = MiniMessage.miniMessage();
     //temporary ban:
-    Ban temporaryBan = punishmentManager.createBan(uuid, Component.text("You are banned from this server.").color(NamedTextColor.RED), PunishmentDuration.parse("1d"));//1d equals 1 day, the duration is relative to the current time until the punishment is imposed.
+    Ban temporaryBan = user.ban(PunishmentDuration.parse(miniMessage.deserialize("<red>You broke the server's rules! Don't cheat!"), PunishmentDuration.parse("1d"))).join();//1d equals 1 day, the duration is relative to the current time until the punishment is imposed.
     //permanent ban:
-    Ban permanentBan = punishmentManager.createPermanentBan(uuid2, Component.text("You are banned permanently from this server").color(NamedTextColor.RED))
-    //To finally punish the player, use Punishment#punish which will return a CompletableFuture with the punishment was imposed
-    temporaryBan.punish().whenCompleteAsync((ban,throwable) -> {
-    if (throwable != null) {
-        logger.error("Error punishing player", throwable);
-        return;
-    }
-    logger.info("The player was successfully banned. Punishment id: " + ban.getPunishmentUuid());
+    Ban permanentBan = user.banPermanent(miniMessage.deserialize("<red>You broke the server's rules again! You are not allowed to join someday again!")).join();
+    //The ban instance you get via #join is the punishment that was issued. Note that using #join blocks the current 
+    //Thread and since database operations take some time to complete, it is recommended to use #whenComplete or other.
+    //You can now use this instance to change or cancel the punishment:
+    temporaryBan.cancel().whenComplete((punishment, throwable) -> {
+        if(throwable != null) {
+            logger.error("An error occurred while cancelling the punishment", throwable);
+            return;
+        }
+        logger.info("The punishment was successfully cancelled");
+    });
+    //#cancel should always return the same instance that you called the method on
+    //Event tough a permanent ban was issued for an indefinite time, you can still change the duration and the reason:        
+    permanentBan.change(PunishmentDuration.parse("300d"), miniMessage.deseriaize("<green>Okay, you may join again in 300 days!")).whenComplete((punishment, throwable) -> {
+        if(throwable != null) {
+            logger.error("An error occurred while changing the punishment", throwable);
+            return;
+        }
+        logger.info("The punishment was successfully changed");
     });
 ```
-
-Muting a player is similar, just replace 'ban' with 'mute'.
+Muting a player is similar, just replace 'ban' with 'mute'.<br>
+Kicking a player can be done by calling `user.kick(Reason).join();` where it is safe to call #join since there is no 
+database query done synchronously. This form of punishment cannot be changed nor cancelled as it only lasts a single moment.<br>
