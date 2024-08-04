@@ -167,17 +167,23 @@ implements <a href="../api/Necrify.html" title="interface in de.jvstvshd.necrify
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the executor service used by the plugin.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#registerCommands(org.incendo.cloud.CommandManager,boolean)" class="member-name-link">registerCommands</a><wbr>(org.incendo.cloud.CommandManager&lt;<a href="../api/user/NecrifyUser.html" title="interface in de.jvstvshd.necrify.api.user">NecrifyUser</a>&gt;&nbsp;manager,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isWhitelistActive()" class="member-name-link">isWhitelistActive</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#registerCommands(org.incendo.cloud.CommandManager,boolean)" class="member-name-link">registerCommands</a><wbr>(org.incendo.cloud.CommandManager&lt;<a href="../api/user/NecrifyUser.html" title="interface in de.jvstvshd.necrify.api.user">NecrifyUser</a>&gt;&nbsp;manager,
  boolean&nbsp;topLevelCommands)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Registers commands for the plugin via the <code>AnnotationParser</code> from the cloud framework.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#registerRegistries()" class="member-name-link">registerRegistries</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#registerRegistries()" class="member-name-link">registerRegistries</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Registers the punishment types of the plugin to the <a href="../api/punishment/PunishmentTypeRegistry.html" title="class in de.jvstvshd.necrify.api.punishment"><code>PunishmentTypeRegistry</code></a>.</div>
 </div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#setWhitelistActive(boolean)" class="member-name-link">setWhitelistActive</a><wbr>(boolean&nbsp;active)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -303,6 +309,23 @@ implements <a href="../api/Necrify.html" title="interface in de.jvstvshd.necrify
 <section class="detail" id="getOnlinePlayers()">
 <h3>getOnlinePlayers</h3>
 <div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;org.incendo.cloud.type.tuple.Pair&lt;<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&gt;&gt;</span>&nbsp;<span class="element-name">getOnlinePlayers</span>()</div>
+</section>
+</li>
+<li>
+<section class="detail" id="isWhitelistActive()">
+<h3>isWhitelistActive</h3>
+<div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isWhitelistActive</span>()</div>
+</section>
+</li>
+<li>
+<section class="detail" id="setWhitelistActive(boolean)">
+<h3>setWhitelistActive</h3>
+<div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">setWhitelistActive</span><wbr><span class="parameters">(boolean&nbsp;active)</span>
+                                 throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<dl class="notes">
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
+</dl>
 </section>
 </li>
 </ul>
