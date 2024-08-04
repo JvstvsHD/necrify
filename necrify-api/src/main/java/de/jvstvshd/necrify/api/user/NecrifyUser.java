@@ -171,7 +171,7 @@ public interface NecrifyUser extends CommandSender {
      *
      * @param whitelisted true if the user is whitelisted, false otherwise.
      */
-    void setWhitelisted(boolean whitelisted);
+    CompletableFuture<Boolean> setWhitelisted(boolean whitelisted);
 
     /**
      * Deletes this user from the system. This will also delete all punishments associated with this user.

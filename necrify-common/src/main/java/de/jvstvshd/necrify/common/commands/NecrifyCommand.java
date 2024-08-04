@@ -30,7 +30,6 @@ import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserDeletionReason;
-import de.jvstvshd.necrify.api.user.UserManager;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.util.PunishmentHelper;
 import de.jvstvshd.necrify.common.util.Util;
@@ -55,31 +54,27 @@ import org.incendo.cloud.minecraft.extras.suggestion.ComponentTooltipSuggestion;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.slf4j.Logger;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 
 public class NecrifyCommand {
 
     private final AbstractNecrifyPlugin plugin;
     private final MiniMessage miniMessage;
-    private final UserManager userManager;
     private final Logger logger;
-    private final ExecutorService executor;
     private final MessageProvider provider;
 
     private static final List<String> PUNISHMENT_COMMAND_OPTIONS = List.of("cancel", "remove", "info", "change");
-    private static final List<String> USER_COMMAND_OPTIONS = List.of("info", "delete");
+    private static final List<String> USER_COMMAND_OPTIONS = List.of("info", "delete", "whitelist");
+    private static final List<String> WHITELIST_COMMAND_OPTIONS = List.of("enable", "disable", "status");
 
     public NecrifyCommand(AbstractNecrifyPlugin plugin) {
         this.plugin = plugin;
-        this.userManager = plugin.getUserManager();
         this.miniMessage = MiniMessage.miniMessage();
         this.logger = plugin.getLogger();
-        this.executor = plugin.getExecutor();
         this.provider = plugin.getMessageProvider();
     }
 
@@ -235,18 +230,15 @@ public class NecrifyCommand {
         switch (option) {
             case "info" ->
                     sender.sendMessage(buildComponent(PunishmentHelper.buildPunishmentData(punishmentParsed, plugin.getMessageProvider()), punishmentParsed));
-            case "cancel", "remove" -> {
-                punishmentParsed.cancel().whenCompleteAsync((unused, th) -> {
-                    if (th != null) {
-                        logException(sender, th);
-                        return;
-                    }
-                    sender.sendMessage(provider.provide("command.punishment.cancel.success").color(NamedTextColor.GREEN));
-                }, plugin.getService());
-            }
-            case "change" -> {
-                sender.sendMessage(miniMessage("Soon (TM)").color(NamedTextColor.LIGHT_PURPLE));
-            }
+            case "cancel", "remove" -> punishmentParsed.cancel().whenCompleteAsync((unused, th) -> {
+                if (th != null) {
+                    logException(sender, th);
+                    return;
+                }
+                sender.sendMessage(provider.provide("command.punishment.cancel.success").color(NamedTextColor.GREEN));
+            }, plugin.getService());
+            case "change" -> sender.sendMessage(miniMessage("Soon (TM)").color(NamedTextColor.LIGHT_PURPLE));
+            default -> sender.sendMessage(unknownOption(option, PUNISHMENT_COMMAND_OPTIONS));
         }
     }
 
@@ -260,6 +252,7 @@ public class NecrifyCommand {
         switch (option) {
             case "info" -> {
                 var punishments = target.getPunishments();
+                sender.sendMessage(whitelistStatus(target));
                 sender.sendMessage(provider.provide("command.user.overview",
                         Util.copyComponent(Objects.requireNonNullElse(target.getUsername(), "null"), provider).color(NamedTextColor.YELLOW),
                         Util.copyComponent(target.getUuid().toString(), provider).color(NamedTextColor.YELLOW),
@@ -269,16 +262,52 @@ public class NecrifyCommand {
                     sender.sendMessage(component);
                 }
             }
-            case "delete" -> {
-                //TODO add confirmation
-                target.delete(UserDeletionReason.USER_DELETED).whenComplete((integer, throwable) -> {
+            case "delete" -> //TODO add confirmation
+                    target.delete(UserDeletionReason.USER_DELETED).whenComplete((integer, throwable) -> {
+                        if (throwable != null) {
+                            logException(sender, throwable);
+                            return;
+                        }
+                        sender.sendMessage(provider.provide("command.user.delete.success", Component.text(integer).color(NamedTextColor.YELLOW)).color(NamedTextColor.RED));
+                    });
+            case "whitelist" -> {
+                var newState = target.isWhitelisted();
+                target.setWhitelisted(!newState).whenComplete((unused, throwable) -> {
                     if (throwable != null) {
                         logException(sender, throwable);
                         return;
                     }
-                    sender.sendMessage(provider.provide("command.user.delete.success", Component.text(integer).color(NamedTextColor.YELLOW)).color(NamedTextColor.RED));
+                    sender.sendMessage(provider.provide("command.whitelist.success").color(NamedTextColor.GREEN));
+                    sender.sendMessage(whitelistStatus(target));
                 });
             }
+            default -> sender.sendMessage(unknownOption(option, USER_COMMAND_OPTIONS));
+        }
+    }
+
+    @Command("necrify whitelist [option]")
+    @Permission(value = {"necrify.command.whitelist", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
+    public void whitelistCommand(
+            NecrifyUser sender,
+            @Argument(value = "option", description = "Option to manage the whitelist", suggestions = "suggestWhitelistCommandOptions") @Default("status") String option
+    ) {
+        switch (option) {
+            case "status" -> {
+                var whitelist = plugin.isWhitelistActive();
+                var activeState = whitelist ? "active" : "inactive";
+                sender.sendMessage(provider.provide("command.whitelist." + activeState).color(NamedTextColor.GRAY));
+            }
+            case "enable", "disable" -> {
+                var state = "enable".equals(option);
+                try {
+                    plugin.setWhitelistActive(state);
+                } catch (IOException e) {
+                    logException(sender, e);
+                    return;
+                }
+                sender.sendMessage(provider.provide("command.whitelist." + (state ? "enabled" : "disabled")).color(NamedTextColor.GREEN));
+            }
+            default -> sender.sendMessage(unknownOption(option, WHITELIST_COMMAND_OPTIONS));
         }
     }
 
@@ -302,7 +331,7 @@ public class NecrifyCommand {
     @Suggestions("suggestMiniMessage")
     public List<? extends Suggestion> suggestMiniMessage(CommandContext<NecrifyUser> context, CommandInput input) {
         return Collections.singletonList(ComponentTooltipSuggestion.suggestion(input.remainingInput()
-                        + " (" + provider.unprefixedProvider() .provideString("suggestion.hover-over-me", context.sender().getLocale()) + ")",
+                        + " (" + provider.unprefixedProvider().provideString("suggestion.hover-over-me", context.sender().getLocale()) + ")",
                 miniMessage(input.remainingInput())));
     }
 
@@ -318,6 +347,15 @@ public class NecrifyCommand {
     @Suggestions("suggestUserCommandOptions")
     public List<? extends Suggestion> suggestUserCommandOptions(CommandContext<NecrifyUser> context, CommandInput input) {
         return USER_COMMAND_OPTIONS
+                .stream()
+                .filter(option -> option.toLowerCase().startsWith(input.peekString().toLowerCase()))
+                .map(option -> ComponentTooltipSuggestion.suggestion(option, miniMessage(option)))
+                .toList();
+    }
+
+    @Suggestions("suggestWhitelistCommandOptions")
+    public List<? extends Suggestion> suggestWhitelistCommandOptions(CommandContext<NecrifyUser> context, CommandInput input) {
+        return WHITELIST_COMMAND_OPTIONS
                 .stream()
                 .filter(option -> option.toLowerCase().startsWith(input.peekString().toLowerCase()))
                 .map(option -> ComponentTooltipSuggestion.suggestion(option, miniMessage(option)))
@@ -390,6 +428,22 @@ public class NecrifyCommand {
                         .color(NamedTextColor.GREEN)));
     }
 
+    private Component whitelistStatus(NecrifyUser user) {
+        var whitelisted = user.isWhitelisted();
+        return provider.provide("command.whitelist.status",
+                Component.text(Objects.requireNonNullElse(user.getUsername(), "Unknown Username")).color(NamedTextColor.YELLOW),
+                provider
+                        .unprefixedProvider()
+                        .provide("whitelist.status." + (whitelisted ? "whitelisted" : "disallowed"))
+                        .color(whitelisted ? NamedTextColor.GREEN : NamedTextColor.RED))
+                .color(NamedTextColor.GRAY);
+    }
+
+    private Component unknownOption(String option, List<String> options) {
+        return provider.provide("commands.general.unknown-option",
+                Component.text(option).color(NamedTextColor.RED),
+                Component.text(String.join(", ", options)).color(NamedTextColor.YELLOW)).color(NamedTextColor.GRAY);
+    }
 
     private void logException(Throwable throwable) {
         logger.error("An error occurred while executing a command", throwable);

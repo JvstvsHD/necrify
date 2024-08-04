@@ -25,7 +25,6 @@
 package de.jvstvshd.necrify.velocity.user;
 
 import com.google.common.collect.ImmutableList;
-import com.google.gson.JsonParser;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import de.chojo.sadu.mapper.wrapper.Row;
@@ -43,15 +42,12 @@ import de.jvstvshd.necrify.common.user.MojangAPI;
 import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import de.jvstvshd.necrify.velocity.internal.Util;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.sql.DataSource;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.*;
@@ -241,18 +237,18 @@ public class VelocityUser implements NecrifyUser {
     }
 
     @Override
-    public void setWhitelisted(boolean whitelisted) {
+    public CompletableFuture<Boolean> setWhitelisted(boolean whitelisted) {
         if (whitelisted == this.whitelisted)
-            return;
-        Util.executeAsync(() -> {
+            CompletableFuture.completedFuture(false);
+        return Util.executeAsync(() -> {
             Query.query("UPDATE punishment.necrify_user SET whitelisted = ? WHERE uuid = ?;")
                     .single(Call.of().bind(whitelisted).bind(uuid, Adapters.UUID_ADAPTER))
                     .update();
             this.whitelisted = whitelisted;
-            if (!whitelisted && plugin.whitelistActive()) {
-                kick(messageProvider.provide("whitelist.removed"));
+            if (!whitelisted && plugin.isWhitelistActive()) {
+                kick(messageProvider.provide("whitelist.removed").color(NamedTextColor.RED));
             }
-            return null;
+            return true;
         }, executor);
     }
 

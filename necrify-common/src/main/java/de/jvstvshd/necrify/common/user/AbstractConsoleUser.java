@@ -108,8 +108,8 @@ public abstract class AbstractConsoleUser implements NecrifyUser {
     }
 
     @Override
-    public void setWhitelisted(boolean whitelisted) {
-        throwUnsupported();
+    public CompletableFuture<Boolean> setWhitelisted(boolean whitelisted) {
+        return throwUnsupported();
     }
 
     @Override

@@ -30,7 +30,6 @@ subprojects {
     java {
         toolchain.languageVersion = JavaLanguageVersion.of(21)
     }
-
     repositories {
         mavenCentral()
         maven("https://repo.papermc.io/repository/maven-public/")
@@ -121,7 +120,7 @@ gradle.projectsLoaded {
                 }
 
                 register(Platforms.VELOCITY) {
-                    jar.set((project(":necrify-velocity").tasks.getByName("shadowJar") as TaskProvider<Jar>).flatMap { it.archiveFile })
+                    jar.set((project(":necrify-velocity").tasks.getByName("shadowJar") as Jar).archiveFile)
                     val versions: List<String> = (property("velocityVersion") as String)
                         .split(",")
                         .map { it.trim() }

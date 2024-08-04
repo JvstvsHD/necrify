@@ -24,7 +24,7 @@ class Version(val project: Project) {
         "-" + project.property("buildnumber") as String
     } else {
         val githubRunNumber = System.getenv("GITHUB_RUN_NUMBER")
-        versionString + if (githubRunNumber != null) "-$githubRunNumber" else ""
+        if (githubRunNumber != null) "-$githubRunNumber" else ""
     }
 }
 
