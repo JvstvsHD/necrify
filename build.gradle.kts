@@ -66,7 +66,7 @@ subprojects {
                     create<MavenPublication>(rootProject.name) {
                         from(this@subprojects.components["java"])
                         groupId = rootProject.group.toString().lowercase(Locale.getDefault())
-                        artifactId = "necrify-${project.name}"
+                        artifactId = project.name
                         version = project.version.toString()
 
                         pom {
