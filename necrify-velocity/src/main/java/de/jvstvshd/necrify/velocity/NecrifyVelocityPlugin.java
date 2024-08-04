@@ -91,7 +91,6 @@ import org.incendo.cloud.brigadier.suggestion.TooltipSuggestion;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.minecraft.extras.parser.ComponentParser;
 import org.incendo.cloud.minecraft.extras.suggestion.ComponentTooltipSuggestion;
-import org.incendo.cloud.parser.standard.StringParser;
 import org.incendo.cloud.type.tuple.Pair;
 import org.incendo.cloud.velocity.CloudInjectionModule;
 import org.incendo.cloud.velocity.VelocityCommandManager;
@@ -161,7 +160,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         try {
             configurationManager.load();
             if (configurationManager.getConfiguration().isWhitelistActivated()) {
-                logger.info("Whitelist is activated. This means that nobody can join this server beside players you have explicitly allowed to join this server via /whitelist <player> add");
+                logger.info("Whitelist is activated. This means that nobody can join this server beside players you have explicitly allowed to join this server via /necrify user <player> whitelist (toggles current state).");
             }
             this.messageProvider = new ResourceBundleMessageProvider(configurationManager.getConfiguration());
         } catch (IOException e) {
@@ -220,18 +219,12 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
             return TooltipSuggestion.suggestion(suggestion.suggestion(), VelocityBrigadierMessage.tooltip(componentTooltipSuggestion.tooltip()));
         });
         var brigadierManager = cManager.brigadierManager();
-        /*brigadierManager.setNativeSuggestions(new TypeToken<StringParser<NecrifyUser>>() {
-        }, true);*/
         brigadierManager.setNativeNumberSuggestions(true);
         registerCommands(cManager, getConfig().getConfiguration().isAllowTopLevelCommands());
         brigadierManager.registerMapping(new TypeToken<ComponentParser<NecrifyUser>>() {
         }, builder -> {
-            builder.to(necrifyUserParser -> {
-                return StringArgumentType.greedyString();
-            }).nativeSuggestions();
+            builder.to(necrifyUserParser -> StringArgumentType.greedyString()).nativeSuggestions();
         });
-        /*brigadierManager.setNativeSuggestions(new TypeToken<ComponentParser<NecrifyUser>>() {
-        }, true);*/
     }
 
     @SuppressWarnings({"unchecked", "UnstableApiUsage"})
@@ -355,8 +348,15 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         return logger;
     }
 
-    public boolean whitelistActive() {
+    @Override
+    public boolean isWhitelistActive() {
         return configurationManager.getConfiguration().isWhitelistActivated();
+    }
+
+    @Override
+    public void setWhitelistActive(boolean active) throws IOException {
+        configurationManager.getConfiguration().setWhitelistActivated(active);
+        configurationManager.save();
     }
 
     public ConfigurationManager getConfig() {

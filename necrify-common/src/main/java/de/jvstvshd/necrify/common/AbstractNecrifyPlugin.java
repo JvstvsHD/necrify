@@ -51,6 +51,7 @@ import org.incendo.cloud.type.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 
@@ -153,4 +154,9 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
     public abstract Logger getLogger();
 
     public abstract Set<Pair<String, UUID>> getOnlinePlayers();
+
+    public abstract boolean isWhitelistActive();
+
+    //TODO kick all non-whitelisted players
+    public abstract void setWhitelistActive(boolean active) throws IOException;
 }

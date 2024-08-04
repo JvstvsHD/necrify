@@ -72,9 +72,9 @@ public final class ConnectListener {
             return;
         }
         List<Punishment> punishments = new ArrayList<>(user.getPunishments());
-        if (plugin.whitelistActive()) {
+        if (plugin.isWhitelistActive()) {
             if (!user.isWhitelisted()) {
-                event.setResult(ResultedEvent.ComponentResult.denied(Component.translatable("whitelist.blacklisted").color(NamedTextColor.DARK_RED)));
+                event.setResult(ResultedEvent.ComponentResult.denied(Component.translatable("whitelist.blacklisted").color(NamedTextColor.RED)));
                 return;
             }
         }

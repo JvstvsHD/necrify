@@ -30,7 +30,6 @@ subprojects {
     java {
         toolchain.languageVersion = JavaLanguageVersion.of(21)
     }
-
     repositories {
         mavenCentral()
         maven("https://repo.papermc.io/repository/maven-public/")
@@ -101,32 +100,30 @@ subprojects {
     }
 }
 
-gradle.projectsLoaded {
-    hangarPublish {
-        publications.register("necrify") {
-            version.set(buildVersion())
-            channel.set(if (!isRelease()) "Snapshot" else "Release")
-            id.set("necrify")
-            apiKey.set(System.getenv("HANGAR_API_TOKEN"))
-            if (!isRelease()) {
-                changelog.set(latestGitCommitMessage())
+hangarPublish {
+    publications.register("necrify") {
+        version.set(buildVersion())
+        channel.set(if (!isRelease()) "Snapshot" else "Release")
+        id.set("necrify")
+        apiKey.set(System.getenv("HANGAR_API_TOKEN"))
+        if (!isRelease()) {
+            changelog.set(latestGitCommitMessage())
+        }
+        platforms {
+            register(Platforms.PAPER) {
+                jar.set(project(":necrify-paper").tasks.jar.flatMap { it.archiveFile })
+                val versions: List<String> = (property("paperVersion") as String)
+                    .split(",")
+                    .map { it.trim() }
+                platformVersions.set(versions)
             }
-            platforms {
-                register(Platforms.PAPER) {
-                    jar.set(project(":necrify-paper").tasks.jar.flatMap { it.archiveFile })
-                    val versions: List<String> = (property("paperVersion") as String)
-                        .split(",")
-                        .map { it.trim() }
-                    platformVersions.set(versions)
-                }
 
-                register(Platforms.VELOCITY) {
-                    jar.set((project(":necrify-velocity").tasks.getByName("shadowJar") as TaskProvider<Jar>).flatMap { it.archiveFile })
-                    val versions: List<String> = (property("velocityVersion") as String)
-                        .split(",")
-                        .map { it.trim() }
-                    platformVersions.set(versions)
-                }
+            register(Platforms.VELOCITY) {
+                jar.set((project(":necrify-velocity").tasks.getByName("shadowJar") as Jar).archiveFile)
+                val versions: List<String> = (property("velocityVersion") as String)
+                    .split(",")
+                    .map { it.trim() }
+                platformVersions.set(versions)
             }
         }
     }

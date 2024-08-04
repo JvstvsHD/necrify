@@ -42,8 +42,7 @@ tasks {
         velocityVersion("3.3.0-SNAPSHOT")
     }
     shadowJar {
-        archiveFileName.set("${rootProject.name}-Velocity-${project.version}.jar")
-        archiveBaseName.set("necrify")
+        archiveFileName.set("Necrify-Velocity-${project.buildVersion()}.jar")
         dependencies {
             //Do not relocate sqlite since it loads some native libraries
             val prefix: (String) -> String = { "de.jvstvshd.necrify.lib.$it" }

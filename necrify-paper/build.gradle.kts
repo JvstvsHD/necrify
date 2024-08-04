@@ -19,7 +19,7 @@ dependencies {
 
 tasks {
     shadowJar {
-        archiveFileName.set("${rootProject.name}-Paper-${project.version}.jar")
+        archiveFileName.set("Necrify-Paper-${project.buildVersion()}.jar")
         dependencies {
             include(project(":necrify-common"))
             include(project(":necrify-api"))
