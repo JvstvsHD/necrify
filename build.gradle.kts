@@ -99,3 +99,12 @@ subprojects {
         }
     }
 }
+
+tasks {
+    register<Javadoc>("alljavadoc") {
+        setDestinationDir(file("${layout.buildDirectory.get()}/docs/javadoc"))
+        val projects = rootProject.allprojects
+        setSource(projects.map { project -> project.sourceSets.main.get().allJava })
+        classpath = files(projects.map { project -> project.sourceSets.main.get().compileClasspath })
+    }
+}
