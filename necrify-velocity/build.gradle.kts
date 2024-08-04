@@ -74,53 +74,6 @@ tasks {
     }
 }
 
-//https://docs.papermc.io/misc/hangar-publishing
-fun executeGitCommand(vararg command: String): String {
-    val byteOut = ByteArrayOutputStream()
-    exec {
-        commandLine = listOf("git", *command)
-        standardOutput = byteOut
-    }
-    return byteOut.toString(Charsets.UTF_8.name()).trim()
-}
-
-fun latestCommitMessage(): String {
-    return executeGitCommand("log", "-1", "--pretty=%B")
-}
-
-val versionString: String = version as String
-val isRelease: Boolean = !versionString.contains('-')
-
-val suffixedVersion: String = "$versionString-Velocity" + if (project.hasProperty("buildnumber")) {
-    "-" + project.property("buildnumber") as String
-} else {
-    val githubRunNumber = System.getenv("GITHUB_RUN_NUMBER")
-    versionString + if (githubRunNumber != null) "-$githubRunNumber" else ""
-}
-
-val changelogContent: String = latestCommitMessage()
-
-hangarPublish {
-    publications.register("necrify-velocity") {
-        version.set(suffixedVersion)
-        channel.set(if (!isRelease) "Snapshot" else "Release")
-        id.set("necrify")
-        apiKey.set(System.getenv("HANGAR_API_TOKEN"))
-        if (!isRelease) {
-            changelog.set(changelogContent)
-        }
-        platforms {
-            register(Platforms.VELOCITY) {
-                jar.set(tasks.jar.flatMap { it.archiveFile })
-                val versions: List<String> = (property("velocityVersion") as String)
-                    .split(",")
-                    .map { it.trim() }
-                platformVersions.set(versions)
-            }
-        }
-    }
-}
-
 java {
     withSourcesJar()
     withJavadocJar()
