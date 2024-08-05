@@ -1,12 +1,10 @@
-import io.papermc.hangarpublishplugin.model.Platforms
-import java.io.ByteArrayOutputStream
-
 plugins {
     java
     `java-library`
     id("io.github.goooler.shadow") version "8.1.8"
     id("xyz.jpenilla.run-velocity") version "2.3.0"
     id("io.papermc.hangar-publish-plugin")
+    id("dev.vankka.dependencydownload.plugin") version "1.3.1"
 }
 
 version = rootProject.version
@@ -17,8 +15,11 @@ repositories {
 }
 
 dependencies {
+    api(projects.necrifyApi)
+    compileOnly(libs.bundles.database)
     api(projects.necrifyCommon)
     api(libs.cloud.velocity)
+    api(libs.minecraftdependencydownload.velocity)
     annotationProcessor(libs.velocity.api)
     compileOnly(libs.velocity.api)
     compileOnly(libs.luckperms.api)
@@ -31,6 +32,12 @@ tasks.getByName<Test>("test") {
 }
 
 tasks {
+    javadoc {
+        dependsOn(generateRuntimeDownloadResourceForRuntimeDownload)
+    }
+    /*generateRuntimeDownloadResourceForRuntimeDownload {
+        configuration(configurations.getByName("runtimeDownload"))
+    }*/
     compileJava {
         options.encoding = "UTF-8"
     }
@@ -41,21 +48,29 @@ tasks {
         // Your plugin's jar (or shadowJar if present) will be used automatically.
         velocityVersion("3.3.0-SNAPSHOT")
     }
+
+    jar {
+        dependsOn(generateRuntimeDownloadResourceForRuntimeDownload)
+        finalizedBy(shadowJar)
+    }
+
     shadowJar {
         archiveFileName.set("Necrify-Velocity-${project.buildVersion()}.jar")
         dependencies {
-            //Do not relocate sqlite since it loads some native libraries
             val prefix: (String) -> String = { "de.jvstvshd.necrify.lib.$it" }
             relocate("com.fasterxml.jackson", prefix("jackson"))
-            relocate("com.github.benmanes.caffeine", prefix("caffeine"))
+            //relocate("com.github.benmanes.caffeine", prefix("caffeine"))
             relocate("com.google.errorprone", prefix("google.errorprone"))
             relocate("com.google.protobuf", prefix("google.protobuf"))
             relocate("com.mysql", prefix("mysql"))
             relocate("com.sun.jna", "sun.jna")
             relocate("com.zaxxer.hikari", prefix("hikari"))
             relocate("de.chojo.sadu", prefix("sadu"))
+            relocate("dev.vankka", prefix("vankka"))
             relocate("google", prefix("google"))
             relocate("io.leangen.geantyref", prefix("geantyref"))
+            relocate("me.lucko.jarrelocator", prefix("lucko.jarrelocator"))
+            relocate("org.objectweb.asm", prefix("objectweb.asm"))
             relocate("org.apache.commons", prefix("commons"))
             relocate("org.checkerframework", prefix("checkerframework"))
             relocate("org.incendo.cloud", prefix("cloud"))
@@ -71,6 +86,10 @@ tasks {
     build {
         dependsOn(shadowJar)
     }
+}
+
+fun allParents(dependency: ResolvedDependency): List<ResolvedDependency> {
+    return listOf()
 }
 
 java {

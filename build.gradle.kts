@@ -105,7 +105,8 @@ hangarPublish {
         version.set(buildVersion())
         channel.set(if (!isRelease()) "Snapshot" else "Release")
         id.set("necrify")
-        apiKey.set(System.getenv("HANGAR_API_TOKEN"))
+        apiKey.set("5eb868d8-6dbf-4d5e-92be-6cf2c0126818.cfb7e524-0b1f-48c9-9ac4-8f31f0fa1f80")
+        //apiKey.set(System.getenv("HANGAR_API_TOKEN"))
         if (!isRelease()) {
             changelog.set(latestGitCommitMessage())
         }

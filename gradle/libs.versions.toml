@@ -20,6 +20,7 @@ cloud = "2.0.0-SNAPSHOT"
 eventbus = "3.3.1"
 jetbrains-annotations = "24.1.0"
 slf4j = "2.0.13"
+minecraftdependencydownload = "1.0.0"
 
 [libraries]
 
@@ -50,10 +51,11 @@ cloud-brigadier = { group = "org.incendo", name = "cloud-brigadier", version.ref
 jetbrains-annotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrains-annotations" }
 eventbus = { group = "org.greenrobot", name = "eventbus-java", version.ref = "eventbus" }
 slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
+minecraftdependencydownload-velocity = { group = "dev.vankka", name = "minecraftdependencydownload-velocity", version.ref = "minecraftdependencydownload" }
 
 [bundles]
 
-database = ["postgresql", "hikari", "sadu", "mariadb", "sqlite", "mysql", "sadu-queries"]
+database = ["postgresql", "hikari", "mariadb", "sqlite", "mysql"]
 jackson = ["jackson-databind", "jackson-yaml", "jackson-datatype-jsr310"]
 adventure = ["adventure-api", "adventure-text-minimessage", "adventure-text-serializer-plain"]
 cloud = ["cloud-core", "cloud-annotations", "cloud-minecraft-extras"]

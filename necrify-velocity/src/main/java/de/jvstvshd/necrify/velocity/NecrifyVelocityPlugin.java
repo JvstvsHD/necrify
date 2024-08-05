@@ -82,6 +82,9 @@ import de.jvstvshd.necrify.velocity.message.ResourceBundleMessageProvider;
 import de.jvstvshd.necrify.velocity.user.VelocityConsoleUser;
 import de.jvstvshd.necrify.velocity.user.VelocityUser;
 import de.jvstvshd.necrify.velocity.user.VelocityUserManager;
+import dev.vankka.dependencydownload.DependencyManager;
+import dev.vankka.dependencydownload.repository.StandardRepository;
+import dev.vankka.mcdependencydownload.velocity.classpath.VelocityClasspathAppender;
 import io.leangen.geantyref.TypeToken;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -101,10 +104,12 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
@@ -155,8 +160,20 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
 
     //TODO keep changed implementations and do not override them.
     @Subscribe
-    public void onProxyInitialization(ProxyInitializeEvent event) {
+    public void onProxyInitialization(ProxyInitializeEvent event) throws IOException {
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> logger.error("An error occurred in thread {}", t.getName(), e));
+        try {
+            DependencyManager manager = new DependencyManager(dataDirectory.resolve("cache"));
+            manager.loadFromResource(getClass().getClassLoader().getResource("runtimeDownload.txt"));
+
+            Executor executor = Executors.newCachedThreadPool();
+            manager.downloadAll(executor, Collections.singletonList(new StandardRepository("https://repo1.maven.org/maven2"))).join();
+            manager.relocateAll(executor).join();
+            manager.loadAll(executor, new VelocityClasspathAppender(this, server)).join();
+        } catch (Exception e) {
+            logger.error("Could not load required dependencies. Aborting start-up", e);
+            return;
+        }
         try {
             configurationManager.load();
             if (configurationManager.getConfiguration().isWhitelistActivated()) {
@@ -222,9 +239,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         brigadierManager.setNativeNumberSuggestions(true);
         registerCommands(cManager, getConfig().getConfiguration().isAllowTopLevelCommands());
         brigadierManager.registerMapping(new TypeToken<ComponentParser<NecrifyUser>>() {
-        }, builder -> {
-            builder.to(necrifyUserParser -> StringArgumentType.greedyString()).nativeSuggestions();
-        });
+        }, builder -> builder.to(necrifyUserParser -> StringArgumentType.greedyString()).nativeSuggestions());
     }
 
     @SuppressWarnings({"unchecked", "UnstableApiUsage"})
