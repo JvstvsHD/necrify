@@ -35,6 +35,9 @@ subprojects {
     }
     tasks {
         gradle.projectsEvaluated {
+            javadoc {
+                (options as StandardJavadocDocletOptions).tags("apiNote:a:API Note", "implSpec:a:Implementation Requirements", "implNote:a:Implementation Note")
+            }
             signing {
                 val signingKey = findProperty("signingKey")?.toString() ?: System.getenv("SIGNING_KEY")
                 val signingPassword = findProperty("signingPassword")?.toString() ?: System.getenv("SIGNING_PASSWORD")
@@ -132,6 +135,7 @@ hangarPublish {
 
 tasks {
     register<Javadoc>("alljavadoc") {
+
         setDestinationDir(file("${layout.buildDirectory.get()}/docs/javadoc"))
         val projects = rootProject.allprojects
         setSource(projects.map { project -> project.sourceSets.main.get().allJava })
