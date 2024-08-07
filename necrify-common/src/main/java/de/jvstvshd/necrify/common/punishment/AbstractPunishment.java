@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.common.punishment;
 
 
@@ -38,6 +37,7 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.UUID;
@@ -48,28 +48,38 @@ import java.util.concurrent.ExecutorService;
 public abstract class AbstractPunishment implements Punishment {
 
     private final Component reason;
-    private final ExecutorService service;
+    private final ExecutorService executor;
     private final NecrifyUser user;
     private final UUID punishmentUuid;
     private final MessageProvider messageProvider;
     private final EventDispatcher eventDispatcher;
     private final AbstractNecrifyPlugin plugin;
+    private LocalDateTime creationTime;
     private Punishment successor;
 
     @Language("sql")
     protected final static String APPLY_PUNISHMENT = "INSERT INTO punishment.necrify_punishment" +
-            " (uuid, type, expiration, reason, punishment_id) VALUES (?, ?, ?, ?, ?)";
+            " (uuid, type, expiration, reason, punishment_id, issued_at) VALUES (?, ?, ?, ?, ?, ?)";
     @Language("sql")
     protected final static String APPLY_CANCELLATION
             = "DELETE FROM punishment.necrify_punishment WHERE punishment_id = ?";
     @Language("sql")
-    protected final static String APPLY_CHANGE = "UPDATE necrify_punishment SET reason = ?, expiration = ?, permanent = ? WHERE punishment_id = ?";
+    protected final static String APPLY_CHANGE = "UPDATE punishment.necrify_punishment SET reason = ?, expiration = ?, issued_at = ? WHERE punishment_id = ?";
+    @Language("sql")
+    protected final static String APPLY_SUCCESSOR = "UPDATE punishment.necrify_punishment SET successor = ? WHERE punishment_id = ?";
+    @Language("sql")
+    protected final static String APPLY_TIMESTAMP_UPDATE = "UPDATE punishment.necrify_punishment SET expiration = ?, issued_at = ? WHERE punishment_id = ?";
+
     private final boolean validity;
 
-
-    public AbstractPunishment(@NotNull NecrifyUser user, @NotNull Component reason, @NotNull UUID punishmentUuid, @NotNull AbstractNecrifyPlugin plugin, @Nullable Punishment successor) {
+    public AbstractPunishment(@NotNull NecrifyUser user,
+                              @NotNull Component reason,
+                              @NotNull UUID punishmentUuid,
+                              @NotNull AbstractNecrifyPlugin plugin,
+                              @Nullable Punishment successor,
+                              @Nullable LocalDateTime issuedAt) {
         this.reason = Objects.requireNonNull(reason, "punishment must be reasoned");
-        this.service = plugin.getService();
+        this.executor = plugin.getService();
         this.user = Objects.requireNonNull(user, "punishment must be bound to a user");
         this.punishmentUuid = Objects.requireNonNull(punishmentUuid, "punishment must have a uuid");
         this.successor = successor;
@@ -77,14 +87,15 @@ public abstract class AbstractPunishment implements Punishment {
         this.messageProvider = plugin.getMessageProvider();
         this.eventDispatcher = plugin.getEventDispatcher();
         this.plugin = plugin;
+        this.creationTime = issuedAt;
     }
 
     public @NotNull Component getReason() {
         return reason;
     }
 
-    public ExecutorService getService() {
-        return service;
+    public ExecutorService getExecutor() {
+        return executor;
     }
 
     protected <T> CompletableFuture<T> executeAsync(Callable<T> task, ExecutorService executorService) {
@@ -118,6 +129,7 @@ public abstract class AbstractPunishment implements Punishment {
 
     @Override
     public final CompletableFuture<Punishment> punish() {
+        creationTime = LocalDateTime.now();
         return applyPunishment().whenCompleteAsync((punishment, throwable) -> {
             if (punishment != null) {
                 plugin.getEventDispatcher().dispatch(new PunishmentPersecutedEvent(punishment));
@@ -144,7 +156,7 @@ public abstract class AbstractPunishment implements Punishment {
     public String toString() {
         return "AbstractPunishment{" +
                 "reason=" + reason +
-                ", service=" + service +
+                ", service=" + executor +
                 ", userUuid=" + user.getUuid() +
                 ", userName=" + user.getUsername() +
                 ", punishmentUuid=" + punishmentUuid +
@@ -156,9 +168,8 @@ public abstract class AbstractPunishment implements Punishment {
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof AbstractPunishment that)) return false;
-
-        return punishmentUuid.equals(that.punishmentUuid);
+        if (!(o instanceof Punishment that)) return false;
+        return punishmentUuid.equals(that.getPunishmentUuid());
     }
 
     @Override
@@ -206,7 +217,19 @@ public abstract class AbstractPunishment implements Punishment {
     }
 
     @Override
-    public void setSuccessor(@NotNull Punishment successor) {
+    public @NotNull LocalDateTime getCreationTime() {
+        if (creationTime == null) {
+            throw new IllegalStateException("punishment has not been created yet");
+        }
+        return creationTime;
+    }
+
+    @Override
+    public boolean hasBeenCreated() {
+        return creationTime != null;
+    }
+
+    void setSuccessor0(Punishment successor) {
         this.successor = successor;
     }
 }

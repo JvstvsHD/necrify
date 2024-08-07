@@ -21,16 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.api.punishment;
 
 import de.jvstvshd.necrify.api.PunishmentException;
+import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.punishment.util.ReasonHolder;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -39,6 +40,9 @@ import java.util.concurrent.CompletableFuture;
  * Super interface for all sort of punishments..<br>
  * To punish a player, obtain a {@link NecrifyUser} instance from {@link de.jvstvshd.necrify.api.user.UserManager} and
  * select an adequate method (e.g. {@link NecrifyUser#banPermanent(Component)}) for the punishment you wish.<br>
+ * @implSpec This classes instances expire either immediately (have no duration) or do not in an infinite amount of time. It is
+ * extremely important that this behaviour is guaranteed as otherwise this will result in unexpected behaviour. If your punishment
+ * instance does expire in a definite amount of time, use {@link TemporalPunishment} instead.
  */
 public interface Punishment extends ReasonHolder {
 
@@ -129,11 +133,44 @@ public interface Punishment extends ReasonHolder {
     Punishment getSuccessor();
 
     /**
+     * Returns the successor of this punishment or null if there is no successor. This is used to chain punishments so that one punishment of the same kind
+     * is paused until the previous one is finished. This may especially be useful for punishments of differing reasons.
+     * @return the successor of this punishment or null if there is no successor
+     */
+    @Nullable
+    default Punishment getSuccessorOrNull() {
+        if (hasSuccessor())
+            return getSuccessor();
+        return null;
+    }
+
+    /**
      * Sets the successor of this punishment. This is used to chain punishments so that one punishment of the same kind
      * is paused until the previous one is finished. This may especially be useful for punishments of differing reasons.
      *
      * @param successor the successor of this punishment
      * @throws UnsupportedOperationException if the underlying punishment does not support succeeding punishments (e.g. Kicks)
+     * @throws IllegalArgumentException if {@code successor} is not related to this punishment or if the succeeding punishment is not applied the same user
+     * @throws IllegalStateException if {@code successor} is in a circular chain with this punishment
+     * @since 1.2.0
      */
-    void setSuccessor(@NotNull Punishment successor);
+    @NotNull
+    CompletableFuture<Punishment> setSuccessor(@NotNull Punishment successor);
+
+    /**
+     * Returns the creation time of this punishment.
+     * @since 1.2.0
+     * @return the creation time of this punishment
+     * @throws IllegalStateException if the punishment has not been created yet
+     * @see #hasBeenCreated()
+     */
+    @NotNull
+    LocalDateTime getCreationTime();
+
+    /**
+     * Returns whether this punishment has been created or not.
+     * @return true, if this punishment has been created, otherwise false
+     * @since 1.2.0
+     */
+    boolean hasBeenCreated();
 }

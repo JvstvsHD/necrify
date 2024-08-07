@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.velocity;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -71,6 +70,7 @@ import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.io.Adapters;
 import de.jvstvshd.necrify.common.plugin.MuteData;
 import de.jvstvshd.necrify.common.punishment.NecrifyKick;
+import de.jvstvshd.necrify.common.user.UserLoader;
 import de.jvstvshd.necrify.velocity.commands.*;
 import de.jvstvshd.necrify.velocity.config.ConfigurationManager;
 import de.jvstvshd.necrify.velocity.impl.DefaultPlayerResolver;
@@ -104,6 +104,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
@@ -162,6 +163,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) throws IOException {
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> logger.error("An error occurred in thread {}", t.getName(), e));
+        long start = System.currentTimeMillis();
         try {
             DependencyManager manager = new DependencyManager(dataDirectory.resolve("cache"));
             manager.loadFromResource(getClass().getClassLoader().getResource("runtimeDownload.txt"));
@@ -174,6 +176,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
             logger.error("Could not load required dependencies. Aborting start-up", e);
             return;
         }
+        logger.info("Successfully loaded all dependencies in {}ms", System.currentTimeMillis() - start);
         try {
             configurationManager.load();
             if (configurationManager.getConfiguration().isWhitelistActivated()) {
@@ -421,6 +424,9 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
      *                                loaded asynchronously or not. If set to true, punishments will be loaded blocking.
      * @return the created user.
      */
+    //TODO allow for other implementations of UserManager to work with this -- extract this into its own class (with
+    //TODO maybe some other internal stuff) and make it a component like user manager etc.
+    //TODO 06.08.2024
     public NecrifyUser createUser(UUID userId, boolean loadPunishmentsDirectly) {
         var cachedUser = getUserManager().getUser(userId);
         if (cachedUser.isPresent()) {
@@ -428,10 +434,12 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         }
         var user = new VelocityUser(userId, "unknown", false, this);
         Runnable loadPunishments = () -> {
-            Query.query("SELECT type, expiration, reason, punishment_id FROM punishment.necrify_punishment WHERE uuid = ?;")
+            var loader = new UserLoader(user);
+            Query.query("SELECT type, expiration, reason, punishment_id, successor, issued_at FROM punishment.necrify_punishment WHERE uuid = ?;")
                     .single(Call.of().bind(userId, Adapters.UUID_ADAPTER))
-                    .map(user::addPunishment)
+                    .map(loader::addDataFromRow)
                     .all();
+            ((VelocityUserManager) userManager).loadPunishmentsToUser(loader);
             getEventDispatcher().dispatch(new UserLoadedEvent(user).setOrigin(EventOrigin.ofClass(getClass())));
         };
         if (loadPunishmentsDirectly) {
@@ -467,7 +475,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
 
     @Override
     public NecrifyKick createKick(Component reason, NecrifyUser user, UUID punishmentUuid) {
-        return new VelocityKick(user, reason, punishmentUuid, this);
+        return new VelocityKick(user, reason, punishmentUuid, this, LocalDateTime.now());
     }
 
     @Override

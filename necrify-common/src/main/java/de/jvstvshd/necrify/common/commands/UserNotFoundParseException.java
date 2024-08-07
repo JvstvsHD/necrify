@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.common.commands;
 
 import org.checkerframework.checker.nullness.qual.NonNull;

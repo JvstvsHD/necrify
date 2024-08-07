@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.common.punishment;
 
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
@@ -30,6 +29,7 @@ import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import net.kyori.adventure.text.Component;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class PunishmentBuilder {
@@ -40,6 +40,7 @@ public class PunishmentBuilder {
     private PunishmentDuration duration;
     private UUID punishmentUuid;
     private Punishment successor;
+    private LocalDateTime creationTime;
 
     public PunishmentBuilder(AbstractNecrifyPlugin plugin) {
         this.plugin = plugin;
@@ -94,9 +95,18 @@ public class PunishmentBuilder {
         return this;
     }
 
+    public LocalDateTime creationTime() {
+        return creationTime;
+    }
+
+    public PunishmentBuilder withCreationTime(LocalDateTime creationTime) {
+        this.creationTime = creationTime;
+        return this;
+    }
+
     public NecrifyBan buildBan() {
         validateValues();
-        return new NecrifyBan(user, reason, punishmentUuid, duration.absolute(), plugin, successor);
+        return new NecrifyBan(user, reason, punishmentUuid, duration.absolute(), plugin, successor, creationTime);
     }
 
     /**
@@ -111,7 +121,7 @@ public class PunishmentBuilder {
 
     public NecrifyMute buildMute() {
         validateValues();
-        return new NecrifyMute(user, reason, punishmentUuid, duration.absolute(), plugin, successor);
+        return new NecrifyMute(user, reason, punishmentUuid, duration.absolute(), plugin, successor, creationTime);
     }
 
     private void validateValues() {

@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.common.punishment;
 
 import de.jvstvshd.necrify.api.PunishmentException;
@@ -45,8 +44,8 @@ import java.util.concurrent.CompletableFuture;
 
 public class NecrifyBan extends AbstractTemporalPunishment implements Ban {
 
-    public NecrifyBan(NecrifyUser user, Component reason, UUID punishmentUuid, PunishmentDuration duration, AbstractNecrifyPlugin plugin, Punishment successor) {
-        super(user, reason, punishmentUuid, duration, plugin, successor);
+    public NecrifyBan(NecrifyUser user, Component reason, UUID punishmentUuid, PunishmentDuration duration, AbstractNecrifyPlugin plugin, Punishment successor, LocalDateTime issuedAt) {
+        super(user, reason, punishmentUuid, duration, plugin, successor, issuedAt);
     }
 
     @Override

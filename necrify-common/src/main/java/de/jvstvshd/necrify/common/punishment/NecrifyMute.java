@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.common.punishment;
 
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
@@ -43,8 +42,8 @@ import java.util.UUID;
 
 public class NecrifyMute extends AbstractTemporalPunishment implements Mute {
 
-    public NecrifyMute(NecrifyUser user, Component reason, UUID punishmentUuid, PunishmentDuration duration, AbstractNecrifyPlugin plugin, Punishment successor) {
-        super(user, reason, punishmentUuid, duration, plugin, successor);
+    public NecrifyMute(NecrifyUser user, Component reason, UUID punishmentUuid, PunishmentDuration duration, AbstractNecrifyPlugin plugin, Punishment successor, LocalDateTime creationTime) {
+        super(user, reason, punishmentUuid, duration, plugin, successor, creationTime);
     }
 
     @Override

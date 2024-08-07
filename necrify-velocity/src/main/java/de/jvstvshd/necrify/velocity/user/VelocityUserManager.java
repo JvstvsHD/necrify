@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.velocity.user;
 
 import com.github.benmanes.caffeine.cache.Cache;
@@ -29,25 +28,37 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.proxy.ProxyServer;
+import de.chojo.sadu.mapper.wrapper.Row;
 import de.chojo.sadu.queries.api.call.Call;
 import de.chojo.sadu.queries.api.query.Query;
+import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.event.origin.EventOrigin;
 import de.jvstvshd.necrify.api.event.punishment.PunishmentCancelledEvent;
 import de.jvstvshd.necrify.api.event.punishment.PunishmentChangedEvent;
 import de.jvstvshd.necrify.api.event.punishment.PunishmentPersecutedEvent;
 import de.jvstvshd.necrify.api.event.user.UserLoadedEvent;
+import de.jvstvshd.necrify.api.punishment.Punishment;
+import de.jvstvshd.necrify.api.punishment.PunishmentTypeRegistry;
+import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
+import de.jvstvshd.necrify.api.user.UserLoadOrderCoordinator;
 import de.jvstvshd.necrify.api.user.UserManager;
 import de.jvstvshd.necrify.common.io.Adapters;
 import de.jvstvshd.necrify.common.user.MojangAPI;
+import de.jvstvshd.necrify.common.user.UserLoader;
 import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import de.jvstvshd.necrify.velocity.internal.Util;
+import de.jvstvshd.necrify.velocity.user.VelocityUser;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.incendo.cloud.type.tuple.Pair;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
-import java.util.UUID;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
@@ -65,7 +76,7 @@ public class VelocityUserManager implements UserManager {
 
     @Language("sql")
     private static final String SELECT_USER_PUNISHMENTS_QUERY =
-            "SELECT type, expiration, reason, punishment_id FROM punishment.necrify_punishment WHERE uuid = ?;";
+            "SELECT type, expiration, reason, punishment_id, successor, issued_at FROM punishment.necrify_punishment WHERE uuid = ?;";
 
     @Language("sql")
     private static final String INSERT_NEW_USER = "INSERT INTO punishment.necrify_user (uuid, name, whitelisted) VALUES (?, ?, ?) ON CONFLICT (uuid) DO NOTHING;";
@@ -111,9 +122,11 @@ public class VelocityUserManager implements UserManager {
                     .map(row -> new VelocityUser(uuid, row.getString(1), row.getBoolean(2), player.orElse(null), plugin))
                     .first();
             user.ifPresent(velocityUser -> {
+                var loader = new UserLoader(velocityUser);
                 Query.query(SELECT_USER_PUNISHMENTS_QUERY)
                         .single(Call.of().bind(uuid, Adapters.UUID_ADAPTER))
-                        .map(velocityUser::addPunishment).all();
+                        .map(loader::addDataFromRow).all();
+                loadPunishmentsToUser(loader);
             });
             //will cause compilation error: return user.map(this::cache);
             return user.map(velocityUser -> {
@@ -123,7 +136,6 @@ public class VelocityUserManager implements UserManager {
             });
         }, executor);
     }
-
 
     @Override
     public @NotNull CompletableFuture<Optional<NecrifyUser>> loadUser(@NotNull String player) {
@@ -141,9 +153,11 @@ public class VelocityUserManager implements UserManager {
                     .map(row -> new VelocityUser(row.getObject(1, UUID.class), player, row.getBoolean(2), plugin))
                     .first();
             user.ifPresent(velocityUser -> {
+                var loader = new UserLoader(velocityUser);
                 Query.query(SELECT_USER_PUNISHMENTS_QUERY)
                         .single(Call.of().bind(velocityUser.getUuid(), Adapters.UUID_ADAPTER))
-                        .map(velocityUser::addPunishment).all();
+                        .map(loader::addDataFromRow).all();
+                loadPunishmentsToUser(loader);
             });
             //will cause compilation error: return user.map(this::cache);
             return user.map(velocityUser -> {
@@ -228,6 +242,12 @@ public class VelocityUserManager implements UserManager {
             nameCache.put(user.getUsername(), user.getUuid());
         }
         return user;
+    }
+
+    public void loadPunishmentsToUser(UserLoader loader) {
+        for (Punishment loadedPunishment : loader.loadPunishments()) {
+            ((VelocityUser) loader.getUser()).addPunishment(loadedPunishment);
+        }
     }
 
     @Subscribe

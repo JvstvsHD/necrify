@@ -21,10 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.common.util;
 
 import de.jvstvshd.necrify.api.message.MessageProvider;
+import de.jvstvshd.necrify.api.punishment.Punishment;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -32,6 +32,7 @@ import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.event.HoverEventSource;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -49,7 +50,7 @@ public class Util {
         service.execute(() -> {
             try {
                 cf.complete(task.call());
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 cf.completeExceptionally(e);
             }
         });
@@ -84,5 +85,23 @@ public class Util {
             }
         }
         return Optional.of(uuid);
+    }
+
+    public static boolean circularSuccessionChain(Punishment base, Punishment successor) {
+        Punishment successorsSuccessor = successor;
+        do {
+            if (successorsSuccessor.equals(base)) {
+                return true;
+            }
+        } while ((successorsSuccessor = successorOrNull(successorsSuccessor)) != null);
+        return false;
+    }
+
+    @Nullable
+    public static Punishment successorOrNull(Punishment punishment) {
+        if (punishment.hasSuccessor()) {
+            return punishment.getSuccessor();
+        }
+        return null;
     }
 }

@@ -21,17 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.api.punishment;
 
-import de.jvstvshd.necrify.api.Necrify;
-import de.jvstvshd.necrify.api.duration.PunishmentDuration;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.jetbrains.annotations.NotNull;
 
-import java.sql.Timestamp;
-import java.util.Map;
-import java.util.UUID;
+import java.util.List;
 
 /**
  * A collection of standard punishment types which are also used by the default implementation of the punishment system.
@@ -66,5 +60,14 @@ public enum StandardPunishmentType implements PunishmentType {
     @Override
     public int getId() {
         return id;
+    }
+
+    @Override
+    public @NotNull List<PunishmentType> getRelatedTypes() {
+        return switch (this) {
+            case TEMPORARY_BAN, PERMANENT_BAN -> List.of(TEMPORARY_BAN, PERMANENT_BAN);
+            case TEMPORARY_MUTE, PERMANENT_MUTE -> List.of(TEMPORARY_MUTE, PERMANENT_MUTE);
+            default -> List.of(this);
+        };
     }
 }

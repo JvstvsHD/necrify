@@ -21,13 +21,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.common.io;
 
 import de.chojo.sadu.queries.api.call.adapter.Adapter;
 
 import java.sql.PreparedStatement;
 import java.sql.Types;
+import java.util.Objects;
 import java.util.UUID;
 
 public class Adapters {

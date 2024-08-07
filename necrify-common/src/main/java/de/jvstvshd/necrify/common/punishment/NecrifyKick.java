@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.common.punishment;
 
 import de.jvstvshd.necrify.api.punishment.Kick;
@@ -32,13 +31,14 @@ import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.UUID;
 
 public abstract class NecrifyKick extends AbstractPunishment implements Kick {
 
-    public NecrifyKick(NecrifyUser user, Component reason, UUID punishmentUuid, AbstractNecrifyPlugin plugin) {
-        super(user, reason, punishmentUuid, plugin, null);
+    public NecrifyKick(NecrifyUser user, Component reason, UUID punishmentUuid, AbstractNecrifyPlugin plugin, LocalDateTime issuedAt) {
+        super(user, reason, punishmentUuid, plugin, null, issuedAt);
     }
 
     @Override

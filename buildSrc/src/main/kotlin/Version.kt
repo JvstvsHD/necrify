@@ -17,6 +17,10 @@ class Version(val project: Project) {
         return executeGitCommand("log", "-1", "--pretty=%B")
     }
 
+    fun latestCommitHash(): String {
+        return executeGitCommand("rev-parse", "HEAD")
+    }
+
     val versionString: String = project.version as String
     val isRelease: Boolean = !versionString.contains('-')
 
@@ -30,6 +34,8 @@ class Version(val project: Project) {
 
 fun Project.buildVersion() = Version(this).suffixedVersion
 
-fun Project.latestGitCommitMessage() = Version(this).latestCommitMessage()
+fun Project.changelogMessage() = with(Version(this)) {
+    "https://github.com/JvstvsHD/necrify/commit/${latestCommitHash()}: ${latestCommitMessage()}"
+}
 
 fun Project.isRelease() = Version(this).isRelease

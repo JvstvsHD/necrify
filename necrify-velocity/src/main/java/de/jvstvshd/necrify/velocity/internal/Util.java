@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.velocity.internal;
 
 import com.google.common.collect.ImmutableList;
@@ -103,6 +102,7 @@ public class Util {
         }
     }
 
+    @Deprecated(forRemoval = true)
     public static Optional<UUID> fromString(String uuidString) {
         UUID uuid;
         try {
@@ -124,6 +124,7 @@ public class Util {
                 .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(provider.provide("commands.general.copy").color(NamedTextColor.GREEN)));
     }
 
+    @Deprecated(forRemoval = true)
     public static <T> CompletableFuture<T> executeAsync(Callable<T> task, Executor service) {
         CompletableFuture<T> cf = new CompletableFuture<>();
         service.execute(() -> {

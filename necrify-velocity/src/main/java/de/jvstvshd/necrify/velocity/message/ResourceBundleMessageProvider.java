@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.velocity.message;
 
 import de.jvstvshd.necrify.api.message.MessageProvider;
@@ -163,6 +162,9 @@ public class ResourceBundleMessageProvider implements MessageProvider {
 
     @Override
     public MessageProvider unprefixedProvider() {
+        if (!autoPrefixed) {
+            return this;
+        }
         return new ResourceBundleMessageProvider(configData, false);
     }
 }

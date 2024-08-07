@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.velocity.impl;
 
 import de.jvstvshd.necrify.api.punishment.Punishment;
@@ -31,13 +30,14 @@ import de.jvstvshd.necrify.common.punishment.NecrifyKick;
 import de.jvstvshd.necrify.velocity.user.VelocityUser;
 import net.kyori.adventure.text.Component;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class VelocityKick extends NecrifyKick {
 
-    public VelocityKick(NecrifyUser user, Component reason, UUID punishmentUuid, AbstractNecrifyPlugin plugin) {
-        super(user, reason, punishmentUuid, plugin);
+    public VelocityKick(NecrifyUser user, Component reason, UUID punishmentUuid, AbstractNecrifyPlugin plugin, LocalDateTime issuedAt) {
+        super(user, reason, punishmentUuid, plugin, issuedAt);
     }
 
     @Override

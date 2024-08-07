@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.api.punishment;
 
 import de.jvstvshd.necrify.api.PunishmentException;
@@ -66,8 +65,9 @@ public interface Kick extends Punishment {
         throw new UnsupportedOperationException("kick lasts only one moment");
     }
 
+    @NotNull
     @Override
-    default void setSuccessor(@NotNull Punishment successor) {
+    default CompletableFuture<Punishment> setSuccessor(@NotNull Punishment successor) {
         throw new UnsupportedOperationException("kick lasts only one moment");
     }
 }

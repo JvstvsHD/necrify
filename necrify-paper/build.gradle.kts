@@ -1,10 +1,7 @@
-import io.papermc.hangarpublishplugin.model.Platforms
-import java.io.ByteArrayOutputStream
-
 plugins {
     java
     `java-library`
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("io.github.goooler.shadow")
     id("net.minecrell.plugin-yml.paper") version "0.6.0"
     id("io.papermc.hangar-publish-plugin")
 }
@@ -45,6 +42,11 @@ tasks {
                 .filter { it.requested is ModuleComponentSelector },
         )
     }
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
 }
 
 tasks.getByName<Test>("test") {

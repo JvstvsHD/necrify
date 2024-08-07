@@ -21,12 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.common.commands;
 
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
+import de.jvstvshd.necrify.api.punishment.PunishmentType;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserDeletionReason;
@@ -59,6 +59,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 public class NecrifyCommand {
 
@@ -220,12 +221,13 @@ public class NecrifyCommand {
 
     //Informational/other
 
-    @Command("necrify punishment <punishmentId> [option]")
+    @Command("necrify punishment <punishmentId> [option] [otherPunishment]")
     @Permission(value = {"necrify.command.punishment", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void punishmentCommand(
             NecrifyUser sender,
             @Argument(value = "punishmentId", description = "Punishment to manage") Punishment punishmentParsed,
-            @Argument(value = "option", description = "Option to manage the punishment", suggestions = "suggestPunishmentCommandOptions") @Default(value = "info") String option
+            @Argument(value = "option", description = "Option to manage the punishment", suggestions = "suggestPunishmentCommandOptions") @Default(value = "info") String option,
+            @Argument(value = "otherPunishment", description = "Another punishment to chain") Punishment otherPunishment
     ) {
         switch (option) {
             case "info" ->
@@ -238,6 +240,27 @@ public class NecrifyCommand {
                 sender.sendMessage(provider.provide("command.punishment.cancel.success").color(NamedTextColor.GREEN));
             }, plugin.getService());
             case "change" -> sender.sendMessage(miniMessage("Soon (TM)").color(NamedTextColor.LIGHT_PURPLE));
+            case "chain" -> {
+                if (!punishmentParsed.getType().getRelatedTypes().contains(otherPunishment.getType())) {
+                    sender.sendMessage(provider.provide("command.punishment.chain.unrelated-types").color(NamedTextColor.RED));
+                    return;
+                }
+                if (!punishmentParsed.getUser().equals(otherPunishment.getUser())) {
+                    sender.sendMessage(provider.provide("command.punishment.chain.user-mismatch").color(NamedTextColor.RED));
+                    return;
+                }
+                if (Util.circularSuccessionChain(punishmentParsed, otherPunishment)) {
+                    sender.sendMessage(provider.provide("command.punishment.circular-chain").color(NamedTextColor.RED));
+                    return;
+                }
+                punishmentParsed.setSuccessor(otherPunishment).whenComplete((unused, th) -> {
+                    if (th != null) {
+                        logException(sender, th);
+                        return;
+                    }
+                    sender.sendMessage(provider.provide("command.punishment.chain.success").color(NamedTextColor.GREEN));
+                });
+            }
             default -> sender.sendMessage(unknownOption(option, PUNISHMENT_COMMAND_OPTIONS));
         }
     }
@@ -401,15 +424,31 @@ public class NecrifyCommand {
         }
     }
 
+    private void tryChainPunishments(NecrifyUser sender, NecrifyUser target, Punishment newPunishment) {
+        var types = newPunishment.getType().getRelatedTypes();
+        var matchingPunishments = target.getPunishments(types.toArray(new PunishmentType[0]));
+        if (matchingPunishments.isEmpty()) {
+            return;
+        }
+        var unchainedPunishments = matchingPunishments.stream().filter(punishment -> !punishment.hasSuccessor()).toList();
+        if (unchainedPunishments.isEmpty()) {
+            //This should not happen since the chained punishment only gets activated after is predecessor runs out
+            throw new IllegalStateException("No unchained punishments found. Did you forget to remove a reference?");
+        }
+        sender.sendMessage(provider.provide("command.punishment.chain.info"));
+        for (Punishment unchainedPunishment : unchainedPunishments) {
+            sender.sendMessage(provider.provide("command.punishment.chain",
+                    Component.text(unchainedPunishment.getPunishmentUuid().toString()).color(NamedTextColor.YELLOW)).color(NamedTextColor.GRAY)
+                    .clickEvent(ClickEvent.runCommand("/necrify punishment " + unchainedPunishment.getPunishmentUuid().toString().toLowerCase(Locale.ROOT)
+                            + " chain " + newPunishment.getPunishmentUuid().toString().toLowerCase(Locale.ROOT)))
+                    .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(provider.provide("command.punishment.chain.hover").color(NamedTextColor.GREEN))));
+        }
+    }
+
     //Communication, messaging, logging
 
     private Component buildComponent(Component dataComponent, Punishment punishment) {
-        var clickToRemove = provider.provide("command.punishment.click-to-remove");
-        return dataComponent.append(
-                clickToRemove
-                        .color(NamedTextColor.RED)
-                        .clickEvent(ClickEvent.runCommand("/necrify punishment " + punishment.getPunishmentUuid().toString().toLowerCase(Locale.ROOT) + " remove"))
-                        .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(clickToRemove.color(NamedTextColor.GREEN))));
+        return dataComponent;
     }
 
     private Component reasonOrDefaultTo(String reason, StandardPunishmentType type) {
@@ -431,11 +470,11 @@ public class NecrifyCommand {
     private Component whitelistStatus(NecrifyUser user) {
         var whitelisted = user.isWhitelisted();
         return provider.provide("command.whitelist.status",
-                Component.text(Objects.requireNonNullElse(user.getUsername(), "Unknown Username")).color(NamedTextColor.YELLOW),
-                provider
-                        .unprefixedProvider()
-                        .provide("whitelist.status." + (whitelisted ? "whitelisted" : "disallowed"))
-                        .color(whitelisted ? NamedTextColor.GREEN : NamedTextColor.RED))
+                        Component.text(Objects.requireNonNullElse(user.getUsername(), "Unknown Username")).color(NamedTextColor.YELLOW),
+                        provider
+                                .unprefixedProvider()
+                                .provide("whitelist.status." + (whitelisted ? "whitelisted" : "disallowed"))
+                                .color(whitelisted ? NamedTextColor.GREEN : NamedTextColor.RED))
                 .color(NamedTextColor.GRAY);
     }
 

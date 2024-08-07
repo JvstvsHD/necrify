@@ -46,3 +46,9 @@ UPDATE punishment.necrify_user
 SET whitelisted = TRUE
 WHERE uuid IN (SELECT uuid FROM punishment.necrify_whitelist);
 DROP TABLE punishment.necrify_whitelist;
+ALTER TABLE punishment.necrify_punishment ADD COLUMN IF NOT EXISTS issued_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE punishment.necrify_punishment
+    ADD CONSTRAINT unique_punishment_id UNIQUE (punishment_id);
+
+ALTER TABLE punishment.necrify_punishment
+    ADD COLUMN IF NOT EXISTS successor UUID DEFAULT NULL REFERENCES punishment.necrify_punishment (punishment_id) ON DELETE SET NULL;

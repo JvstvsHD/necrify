@@ -1,7 +1,7 @@
 plugins {
     java
     `java-library`
-    id("io.github.goooler.shadow") version "8.1.8"
+    id("io.github.goooler.shadow")
     id("xyz.jpenilla.run-velocity") version "2.3.0"
     id("io.papermc.hangar-publish-plugin")
     id("dev.vankka.dependencydownload.plugin") version "1.3.1"
@@ -35,9 +35,6 @@ tasks {
     javadoc {
         dependsOn(generateRuntimeDownloadResourceForRuntimeDownload)
     }
-    /*generateRuntimeDownloadResourceForRuntimeDownload {
-        configuration(configurations.getByName("runtimeDownload"))
-    }*/
     compileJava {
         options.encoding = "UTF-8"
     }
@@ -59,7 +56,6 @@ tasks {
         dependencies {
             val prefix: (String) -> String = { "de.jvstvshd.necrify.lib.$it" }
             relocate("com.fasterxml.jackson", prefix("jackson"))
-            //relocate("com.github.benmanes.caffeine", prefix("caffeine"))
             relocate("com.google.errorprone", prefix("google.errorprone"))
             relocate("com.google.protobuf", prefix("google.protobuf"))
             relocate("com.mysql", prefix("mysql"))
@@ -86,10 +82,6 @@ tasks {
     build {
         dependsOn(shadowJar)
     }
-}
-
-fun allParents(dependency: ResolvedDependency): List<ResolvedDependency> {
-    return listOf()
 }
 
 java {

@@ -1,13 +1,13 @@
+import com.diffplug.gradle.spotless.SpotlessPlugin
 import io.papermc.hangarpublishplugin.model.Platforms
-import org.cadixdev.gradle.licenser.Licenser
-import java.io.ByteArrayOutputStream
 import java.util.*
 
 plugins {
     `maven-publish`
     signing
-    id("org.cadixdev.licenser") version "0.6.1"
     id("io.papermc.hangar-publish-plugin") version "0.1.2"
+    id("io.github.goooler.shadow") version "8.1.8" apply false
+    id("com.diffplug.spotless") version "6.25.0"
     java
 }
 
@@ -16,16 +16,15 @@ version = "1.2.0-SNAPSHOT"
 
 subprojects {
     apply {
-        plugin<Licenser>()
         plugin<MavenPublishPlugin>()
         plugin<SigningPlugin>()
         plugin("java")
+        plugin<SpotlessPlugin>()
     }
-
-    license {
-        header(rootProject.file("HEADER.txt"))
-        include("**/*.java")
-        newLine(true)
+    spotless {
+        java {
+            licenseHeaderFile(rootProject.file("HEADER.txt"))
+        }
     }
     java {
         toolchain.languageVersion = JavaLanguageVersion.of(21)
@@ -105,14 +104,15 @@ hangarPublish {
         version.set(buildVersion())
         channel.set(if (!isRelease()) "Snapshot" else "Release")
         id.set("necrify")
-        apiKey.set("5eb868d8-6dbf-4d5e-92be-6cf2c0126818.cfb7e524-0b1f-48c9-9ac4-8f31f0fa1f80")
-        //apiKey.set(System.getenv("HANGAR_API_TOKEN"))
+        apiKey.set(System.getenv("HANGAR_API_TOKEN"))
         if (!isRelease()) {
-            changelog.set(latestGitCommitMessage())
+            changelog.set(changelogMessage())
+        } else {
+            changelog.set("Changes will be provided shortly.\nComplete changelog can be found on GitHub: https://www.github.com/JvstvsHD/necrify/releases/tag/v$version")
         }
         platforms {
             register(Platforms.PAPER) {
-                jar.set(project(":necrify-paper").tasks.jar.flatMap { it.archiveFile })
+                jar.set((project(":necrify-paper").tasks.getByName("shadowJar") as Jar).archiveFile)
                 val versions: List<String> = (property("paperVersion") as String)
                     .split(",")
                     .map { it.trim() }

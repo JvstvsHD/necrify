@@ -21,12 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.api.duration;
 
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.Temporal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -180,6 +180,16 @@ public interface PunishmentDuration extends Comparable<PunishmentDuration> {
      */
     default PunishmentDuration initialDuration() {
         throw new UnsupportedOperationException("Initial durations are not stored.");
+    }
+
+    /**
+     * The remaining duration as a {@link Duration} object.
+     * @return the remaining duration
+     * @since 1.2.0
+     * @see Duration#between(Temporal, Temporal)
+     */
+    default Duration javaDuration() {
+        return Duration.between(LocalDateTime.now(), expiration());
     }
 
     /**

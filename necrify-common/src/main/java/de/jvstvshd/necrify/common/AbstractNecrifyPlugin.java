@@ -21,10 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.common;
 
 import de.jvstvshd.necrify.api.Necrify;
+import de.jvstvshd.necrify.api.PunishmentException;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.PunishmentType;

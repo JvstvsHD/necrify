@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.velocity.user;
 
 import com.google.common.collect.ImmutableList;
@@ -209,26 +208,6 @@ public class VelocityUser implements NecrifyUser {
 
     public Player getPlayer() {
         return player;
-    }
-
-    public Punishment addPunishment(Row row) throws SQLException {
-        final StandardPunishmentType type = PunishmentTypeRegistry.getType(row.getInt(1)).standard();
-        final Timestamp timestamp = row.getTimestamp(2);
-        final PunishmentDuration duration = PunishmentDuration.fromTimestamp(timestamp);
-        final Component reason = MiniMessage.miniMessage().deserialize(row.getString(3));
-        final UUID punishmentUuid = row.getObject(4, UUID.class);
-        final NecrifyUser user = this;
-        var data = new HashMap<String, Object>() {
-            {
-                put("duration", duration);
-                put("reason", reason);
-                put("punishmentUuid", punishmentUuid);
-                put("user", user);
-            }
-        };
-        Punishment punishment = PunishmentTypeRegistry.createPunishment(type, data);
-        punishments.add(punishment);
-        return punishment;
     }
 
     @Override

@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.common.punishment;
 
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
@@ -33,6 +32,7 @@ import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
@@ -50,11 +50,15 @@ public class NecrifyPunishmentFactory implements PunishmentFactory {
         final Component reason = (Component) data.get("reason");
         final UUID punishmentUuid = (UUID) data.get("punishmentUuid");
         final NecrifyUser user = (NecrifyUser) data.get("user");
+        final Punishment successor = (Punishment) data.get("successor");
+        final LocalDateTime creationTime = (LocalDateTime) data.get("issued_at");
         var builder = PunishmentBuilder.newBuilder(plugin)
                 .withDuration(duration)
                 .withReason(reason)
                 .withUser(user)
-                .withPunishmentUuid(punishmentUuid);
+                .withPunishmentUuid(punishmentUuid)
+                .withSuccessor(successor)
+                .withCreationTime(creationTime);
         Punishment punishment;
         switch (type.standard()) {
             case TEMPORARY_BAN, PERMANENT_BAN -> punishment = builder.buildBan();

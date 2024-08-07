@@ -21,11 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.api.punishment;
 
 import de.jvstvshd.necrify.api.Necrify;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -80,4 +81,14 @@ public interface PunishmentType {
             throw new IllegalStateException("Punishment type is not a standard punishment type.");
         }
     }
+
+    /**
+     * Creates a list that contains all punishment types that are related to this one in the sense that they are
+     * similar in nature. This is useful for e.g. a permanent ban being related to a temporary ban when having to check
+     * something for both types.
+     * @return a list of related punishment types
+     * @since 1.2.0
+     */
+    @NotNull
+    List<PunishmentType> getRelatedTypes();
 }

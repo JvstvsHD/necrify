@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package de.jvstvshd.necrify.api.punishment;
 
 import de.jvstvshd.necrify.api.PunishmentException;
@@ -30,10 +29,15 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
 
 /**
  * An interface containing some methods to only punish a player for a defined duration.
+ * @implSpec Instances of this interface must expire sometime in the future. This means that you may use non-permanent
+ * {@link PunishmentDuration punishment durations} for this type of punishment; but you may also use
+ * {@link de.jvstvshd.necrify.api.duration.PermanentPunishmentDuration permanent ones} as long as they expire sometime,
+ * which may be the year 10,000 or so. If your punishment does not expire or has no infinite duration, use {@link Punishment} instead.
  *
  * @see Ban
  * @see Mute
@@ -54,16 +58,26 @@ public interface TemporalPunishment extends Punishment {
     /**
      * Changes the duration and reason of this punishment. This method can be used if a player created an appeal an it was accepted.
      *
-     * @param newDuration the new duration of this punishment
-     * @param newReason   the new reason which should be displayed to the player, or null if it should remain the same
+     * @param newDuration  the new duration of the punishment (relative to the point of punishment issuance)
+     * @param creationTime the new creation time of the punishment, or null if it should remain the same
+     * @param newReason    the new reason which should be displayed to the player, or null if it should remain the same
      * @return a {@link CompletableFuture} containing the new punishment
      * @see #cancel()
      * @see #change(Component)
      */
-    CompletableFuture<Punishment> change(@NotNull PunishmentDuration newDuration, @Nullable Component newReason) throws PunishmentException;
+    CompletableFuture<Punishment> change(@NotNull PunishmentDuration newDuration, @Nullable LocalDateTime creationTime, @Nullable Component newReason) throws PunishmentException;
 
     @Override
-    default  CompletableFuture<Punishment> change(@Nullable Component newReason) {
+    default CompletableFuture<Punishment> change(@Nullable Component newReason) {
         return null;
     }
+
+    /**
+     * Returns the total duration of this punishment from {@link #getCreationTime()} until the expiration date.
+     *
+     * @return the total duration of this punishment
+     * @since 1.2.0
+     */
+    @NotNull
+    PunishmentDuration totalDuration();
 }
