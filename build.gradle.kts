@@ -135,7 +135,8 @@ hangarPublish {
 
 tasks {
     register<Javadoc>("alljavadoc") {
-
+        title = "Necrify " + buildVersion()
+        (options as StandardJavadocDocletOptions).tags("apiNote:a:API Note", "implSpec:a:Implementation Requirements", "implNote:a:Implementation Note")
         setDestinationDir(file("${layout.buildDirectory.get()}/docs/javadoc"))
         val projects = rootProject.allprojects
         setSource(projects.map { project -> project.sourceSets.main.get().allJava })
