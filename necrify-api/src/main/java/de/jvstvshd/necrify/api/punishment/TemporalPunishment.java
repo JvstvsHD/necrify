@@ -39,11 +39,15 @@ import java.util.concurrent.CompletableFuture;
 public interface TemporalPunishment extends Punishment {
 
     /**
+     * Returns the duration of this punishment. This only provides information about when the punishment will end, not its
+     * creation time.
      * @return the duration of the underlying punishment
      */
+    @NotNull
     PunishmentDuration getDuration();
 
     /**
+     * Whether or not this punishment is permanent. This is equivalent to {@code getDuration().isPermanent()}.
      * @return true if the punishment is permanent, otherwise false
      * @see PunishmentDuration#isPermanent()
      */
@@ -59,6 +63,7 @@ public interface TemporalPunishment extends Punishment {
      * @see #cancel()
      * @see #change(Component)
      */
+    @NotNull
     CompletableFuture<Punishment> change(@NotNull PunishmentDuration newDuration, @Nullable LocalDateTime creationTime, @Nullable Component newReason) throws PunishmentException;
 
     @Override

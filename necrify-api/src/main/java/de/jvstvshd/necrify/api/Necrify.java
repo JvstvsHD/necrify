@@ -108,30 +108,53 @@ public interface Necrify {
     @NotNull
     ExecutorService getExecutor();
 
+    /**
+     * Returns the message provider used by this system. A message provider provides localized messages for users based
+     * on a key and optional arguments.
+     * @return the message provider.
+     */
     @NotNull
     MessageProvider getMessageProvider();
 
+    /**
+     * Sets the message provider used by this system. A message provider provides localized messages for users based
+     * on a key and optional arguments.
+     * <p>
+     * This may does not affect anything after the system has been initialized fully.
+     * @param messageProvider the message provider to set.
+     */
     void setMessageProvider(@NotNull MessageProvider messageProvider);
 
+    /**
+     * Returns the user manager used by this system. The user manager is responsible for loading and saving users and
+     * keeping their data accurate and up-to-date.
+     * @return the user manager.
+     */
     @NotNull
     UserManager getUserManager();
 
+    /**
+     * Sets the user manager used by this system. The user manager is responsible for loading and saving users and
+     * keeping their data accurate and up-to-date.
+     * <p>
+     * This may does not affect anything after the system has been initialized fully.
+     * @param userManager
+     */
     void setUserManager(@NotNull UserManager userManager);
 
     /**
-     * Retrieves a punishment by its id.
+     * Retrieves a punishment by its id. This will also completely load the user this punishment is affecting.
      *
      * @param punishmentId the id of the punishment.
      * @param <T>          the type of the punishment.
      * @return a future containing the punishment or {@link Optional#empty()} if not found.
      * @since 1.2.0
      */
-    default <T extends Punishment> CompletableFuture<Optional<T>> getPunishment(@NotNull UUID punishmentId) {
-        return getPunishmentManager().getPunishment(punishmentId, getService());
-    }
+    <T extends Punishment> CompletableFuture<Optional<T>> getPunishment(@NotNull UUID punishmentId);
 
     /**
-     * Returns the system's event dispatcher.
+     * Returns the system's event dispatcher. The event dispatcher is responsible for dispatching events to the
+     * corresponding listeners.
      *
      * @return the event dispatcher.
      */
@@ -139,7 +162,9 @@ public interface Necrify {
     EventDispatcher getEventDispatcher();
 
     /**
-     * Sets the event dispatcher.
+     * Sets the event dispatcher. The event dispatcher is responsible for dispatching events to the corresponding listeners.
+     * <p>
+     * This may does not affect anything after the system has been initialized fully.
      *
      * @param eventDispatcher the event dispatcher to set.
      */

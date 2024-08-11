@@ -103,7 +103,7 @@ public interface PunishmentManager {
      * @param service      an {@link Executor} which will be used to perform async operations
      * @param <T>          the type of punishment
      * @return an {@link Optional} containing the queried punishment or {@link Optional#empty()} if it was not found
-     * @deprecated This method is deprecated and will be removed in 2.0.0. Use {@link de.jvstvshd.necrify.api.Necrify#getPunishment(UUID)} instead.
+     * @deprecated This method is deprecated and will be removed in 1.3.0. Use {@link de.jvstvshd.necrify.api.Necrify#getPunishment(UUID)} instead.
      */
     <T extends Punishment> CompletableFuture<Optional<T>> getPunishment(UUID punishmentId, Executor service);
 

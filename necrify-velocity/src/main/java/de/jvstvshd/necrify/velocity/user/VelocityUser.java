@@ -32,8 +32,8 @@ import de.jvstvshd.necrify.api.user.UserDeletionReason;
 import de.jvstvshd.necrify.common.io.Adapters;
 import de.jvstvshd.necrify.common.punishment.PunishmentBuilder;
 import de.jvstvshd.necrify.common.user.MojangAPI;
+import de.jvstvshd.necrify.common.util.Util;
 import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
-import de.jvstvshd.necrify.velocity.internal.Util;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -213,8 +213,8 @@ public class VelocityUser implements NecrifyUser {
     public CompletableFuture<Boolean> setWhitelisted(boolean whitelisted) {
         if (whitelisted == this.whitelisted)
             CompletableFuture.completedFuture(false);
-        return Util.executeAsync(() -> {
-            Query.query("UPDATE punishment.necrify_user SET whitelisted = ? WHERE uuid = ?;")
+        return de.jvstvshd.necrify.common.util.Util.executeAsync(() -> {
+            Query.query("UPDATE necrify_user SET whitelisted = ? WHERE uuid = ?;")
                     .single(Call.of().bind(whitelisted).bind(uuid, Adapters.UUID_ADAPTER))
                     .update();
             this.whitelisted = whitelisted;
@@ -271,9 +271,10 @@ public class VelocityUser implements NecrifyUser {
     @Override
     public CompletableFuture<Integer> delete(@NotNull UserDeletionReason reason) {
         plugin.getEventDispatcher().dispatch(new UserDeletedEvent(this, reason));
-        return Util.executeAsync(() -> Query.query("DELETE FROM punishment.necrify_user WHERE uuid = ?;")
+        return Util.executeAsync(() -> Query
+                .query("DELETE FROM necrify_user WHERE uuid = ?;")
                 .single(Call.of().bind(uuid, Adapters.UUID_ADAPTER))
-                .delete().rows(), executor);
+                .delete().rows() + punishments.size(), executor);
     }
 
     @Override

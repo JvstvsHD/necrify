@@ -52,17 +52,17 @@ public abstract class AbstractPunishment implements Punishment {
     private Punishment successor;
 
     @Language("sql")
-    protected final static String APPLY_PUNISHMENT = "INSERT INTO punishment.necrify_punishment" +
+    protected final static String APPLY_PUNISHMENT = "INSERT INTO necrify_punishment" +
             " (uuid, type, expiration, reason, punishment_id, issued_at) VALUES (?, ?, ?, ?, ?, ?)";
     @Language("sql")
     protected final static String APPLY_CANCELLATION
-            = "DELETE FROM punishment.necrify_punishment WHERE punishment_id = ?";
+            = "DELETE FROM necrify_punishment WHERE punishment_id = ?";
     @Language("sql")
-    protected final static String APPLY_CHANGE = "UPDATE punishment.necrify_punishment SET reason = ?, expiration = ?, issued_at = ? WHERE punishment_id = ?";
+    protected final static String APPLY_CHANGE = "UPDATE necrify_punishment SET reason = ?, expiration = ?, issued_at = ? WHERE punishment_id = ?";
     @Language("sql")
-    protected final static String APPLY_SUCCESSOR = "UPDATE punishment.necrify_punishment SET successor = ? WHERE punishment_id = ?";
+    protected final static String APPLY_SUCCESSOR = "UPDATE necrify_punishment SET successor = ? WHERE punishment_id = ?";
     @Language("sql")
-    protected final static String APPLY_TIMESTAMP_UPDATE = "UPDATE punishment.necrify_punishment SET expiration = ?, issued_at = ? WHERE punishment_id = ?";
+    protected final static String APPLY_TIMESTAMP_UPDATE = "UPDATE necrify_punishment SET expiration = ?, issued_at = ? WHERE punishment_id = ?";
 
     private final boolean validity;
 

@@ -17,10 +17,16 @@
  */
 package de.jvstvshd.necrify.api.event.origin;
 
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * Represents an event origin that is a string. This can be used to determine the origin of an event by a string.
+ * @param origin the origin of the event.
+ */
 public record StringEventOrigin(String origin) implements EventOrigin {
 
     @Override
-    public boolean originatesFrom(Object object) {
+    public boolean originatesFrom(@NotNull Object object) {
         return object instanceof String string && string.equals(origin);
     }
 }

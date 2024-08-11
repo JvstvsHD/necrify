@@ -52,7 +52,7 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
         this.duration = Objects.requireNonNull(duration, "temporal punishment must have a duration");
     }
 
-    public PunishmentDuration getDuration() {
+    public @NotNull PunishmentDuration getDuration() {
         return duration;
     }
 
@@ -76,7 +76,7 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
     }
 
     @Override
-    public final CompletableFuture<Punishment> change(@NotNull PunishmentDuration newDuration, @Nullable LocalDateTime creationTime, Component newReason) throws PunishmentException {
+    public final @NotNull CompletableFuture<Punishment> change(@NotNull PunishmentDuration newDuration, @Nullable LocalDateTime creationTime, Component newReason) throws PunishmentException {
         if (!getType().isBan() && !getType().isMute()) {
             throw new IllegalStateException("only bans and mutes can be changed");
         }
@@ -190,7 +190,7 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
         }
         return Util.executeAsync(() -> {
             Query.query(APPLY_SUCCESSOR)
-                    .single(Call.of().bind(successor.getUuid(), Adapters.UUID_ADAPTER).bind(getPunishmentUuid(), Adapters.UUID_ADAPTER))
+                    .single(Call.of().bind(successor.getPunishmentUuid(), Adapters.UUID_ADAPTER).bind(getPunishmentUuid(), Adapters.UUID_ADAPTER))
                     .update();
             setSuccessor0(successor);
             LocalDateTime successorNewExpiration;

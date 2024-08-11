@@ -18,6 +18,7 @@
 package de.jvstvshd.necrify.api.event;
 
 import de.jvstvshd.necrify.api.event.origin.EventOrigin;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents an event that can be dispatched by the {@link EventDispatcher}.
@@ -31,10 +32,19 @@ public abstract class NecrifyEvent {
     private EventOrigin origin = EventOrigin.nullOrigin();
     private EventDispatcher executingDispatcher = null;
 
+    /**
+     * Creates a new event with the given name. The name should be unique and describe the event.
+     * @param name the name of the event.
+     */
     public NecrifyEvent(String name) {
         this.name = name;
     }
 
+    /**
+     * Gets the name of this event. The name should be unique and describe the event.
+     * @return the name of this event.
+     */
+    @NotNull
     public String getName() {
         return name;
     }

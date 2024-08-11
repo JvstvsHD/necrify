@@ -29,11 +29,19 @@ public abstract class NecrifyStateEvent extends NecrifyEvent {
 
     private final State state;
 
+    /**
+     * Creates a new {@link NecrifyStateEvent} with the given state. There should only be one class of this event for each state.
+     * @param state the state of the Necrify API.
+     */
     public NecrifyStateEvent(State state) {
         super("necrify_state_" + state.name());
         this.state = state;
     }
 
+    /**
+     * Gets the state of the Necrify API. This can be used to determine the current state of the API.
+     * @return the state of the Necrify API.
+     */
     @NotNull
     public State getState() {
         return state;

@@ -22,58 +22,47 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.proxy.ProxyServer;
-import de.chojo.sadu.mapper.wrapper.Row;
 import de.chojo.sadu.queries.api.call.Call;
 import de.chojo.sadu.queries.api.query.Query;
-import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.event.origin.EventOrigin;
 import de.jvstvshd.necrify.api.event.punishment.PunishmentCancelledEvent;
 import de.jvstvshd.necrify.api.event.punishment.PunishmentChangedEvent;
 import de.jvstvshd.necrify.api.event.punishment.PunishmentPersecutedEvent;
 import de.jvstvshd.necrify.api.event.user.UserLoadedEvent;
 import de.jvstvshd.necrify.api.punishment.Punishment;
-import de.jvstvshd.necrify.api.punishment.PunishmentTypeRegistry;
-import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
-import de.jvstvshd.necrify.api.user.UserLoadOrderCoordinator;
 import de.jvstvshd.necrify.api.user.UserManager;
 import de.jvstvshd.necrify.common.io.Adapters;
 import de.jvstvshd.necrify.common.user.MojangAPI;
 import de.jvstvshd.necrify.common.user.UserLoader;
+import de.jvstvshd.necrify.common.util.Util;
 import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
-import de.jvstvshd.necrify.velocity.internal.Util;
-import de.jvstvshd.necrify.velocity.user.VelocityUser;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.incendo.cloud.type.tuple.Pair;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
-import static de.jvstvshd.necrify.velocity.internal.Util.executeAsync;
+import static de.jvstvshd.necrify.common.util.Util.executeAsync;
+import static de.jvstvshd.necrify.common.util.Util.getUuid;
 import static java.util.Optional.empty;
 
-//20.06.2024: Only stub implementation to allow ConnectionListener to work.
 public class VelocityUserManager implements UserManager {
 
     @Language("sql")
-    private static final String SELECT_USER_QUERY = "SELECT name, whitelisted FROM punishment.necrify_user WHERE uuid = ?;";
+    private static final String SELECT_USER_QUERY = "SELECT name, whitelisted FROM necrify_user WHERE uuid = ?;";
 
     @Language("sql")
-    private static final String SELECT_USER_BY_NAME_QUERY = "SELECT uuid, whitelisted FROM punishment.necrify_user WHERE name = ?";
+    private static final String SELECT_USER_BY_NAME_QUERY = "SELECT uuid, whitelisted FROM necrify_user WHERE name = ?";
 
     @Language("sql")
     private static final String SELECT_USER_PUNISHMENTS_QUERY =
-            "SELECT type, expiration, reason, punishment_id, successor, issued_at FROM punishment.necrify_punishment WHERE uuid = ?;";
+            "SELECT type, expiration, reason, punishment_id, successor, issued_at FROM necrify_punishment WHERE uuid = ?;";
 
     @Language("sql")
-    private static final String INSERT_NEW_USER = "INSERT INTO punishment.necrify_user (uuid, name, whitelisted) VALUES (?, ?, ?) ON CONFLICT (uuid) DO NOTHING;";
+    private static final String INSERT_NEW_USER = "INSERT INTO necrify_user (uuid, name, whitelisted) VALUES (?, ?, ?);";
 
     private final ExecutorService executor;
     private final ProxyServer server;
@@ -144,7 +133,7 @@ public class VelocityUserManager implements UserManager {
         return executeAsync(() -> {
             var user = Query.query(SELECT_USER_BY_NAME_QUERY)
                     .single(Call.of().bind(player))
-                    .map(row -> new VelocityUser(row.getObject(1, UUID.class), player, row.getBoolean(2), plugin))
+                    .map(row -> new VelocityUser(getUuid(row, 1), player, row.getBoolean(2), plugin))
                     .first();
             user.ifPresent(velocityUser -> {
                 var loader = new UserLoader(velocityUser);
@@ -194,8 +183,11 @@ public class VelocityUserManager implements UserManager {
         var result = Query.query(INSERT_NEW_USER)
                 .single(Call.of().bind(uuid, Adapters.UUID_ADAPTER).bind(name).bind(false))
                 .insert();
+        if (result.hasExceptions()) {
+            throw new RuntimeException("failed to create user", result.exceptions().getFirst());
+        }
         if (!result.changed()) {
-            throw new IllegalStateException("user already exists");
+            throw new IllegalStateException("User does already exist");
         }
         var user = new VelocityUser(uuid, name, false, plugin);
         plugin.getEventDispatcher().dispatch(new UserLoadedEvent(user));
@@ -210,11 +202,6 @@ public class VelocityUserManager implements UserManager {
     @Override
     public @NotNull CompletableFuture<Optional<NecrifyUser>> loadOrCreateUser(@NotNull String player) {
         return loadUser(player).thenApplyAsync(optional -> optional.or(() -> createUser(player).join()), executor);
-    }
-
-    @Override
-    public void putUser(@NotNull NecrifyUser user) {
-        cache(new VelocityUser(user.getUuid(), user.getUsername(), user.isWhitelisted(), plugin));
     }
 
     @Nullable

@@ -22,7 +22,6 @@ import com.google.gson.JsonParser;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
-import de.jvstvshd.necrify.velocity.internal.Util;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 

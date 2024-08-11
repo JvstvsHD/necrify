@@ -24,12 +24,13 @@ class Version(val project: Project) {
     val versionString: String = project.version as String
     val isRelease: Boolean = !versionString.contains('-')
 
-    val suffixedVersion: String = versionString + if (project.hasProperty("buildnumber")) {
-        "-" + project.property("buildnumber") as String
-    } else {
-        val githubRunNumber = System.getenv("GITHUB_RUN_NUMBER")
-        if (githubRunNumber != null) "-$githubRunNumber" else ""
-    }
+    val suffixedVersion: String = if (isRelease) versionString else versionString +
+            if (project.hasProperty("buildnumber")) {
+                "-" + project.property("buildnumber") as String
+            } else {
+                val githubRunNumber = System.getenv("GITHUB_RUN_NUMBER")
+                if (githubRunNumber != null) "-$githubRunNumber" else ""
+            }
 }
 
 fun Project.buildVersion() = Version(this).suffixedVersion

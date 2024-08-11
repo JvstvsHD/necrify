@@ -83,13 +83,16 @@ public interface Punishment extends ReasonHolder {
     PunishmentType getType();
 
     /**
+     * Returns the id of this punishment. This is a unique identifier for this punishment and is used to identify only this
+     * punishment instance. This is not the same as the player's uuid.
      * @return the id of this punishment.
      */
     @NotNull
     UUID getPunishmentUuid();
 
     /**
-     * This will return the value of {@link NecrifyUser#getUuid()} from {@link #getUser()}.
+     * This will return the same as {@link #getPunishmentUuid()}.
+     * <p><b>Change in 1.2.0: Use {@link NecrifyUser#getUuid()} to retrieve the UUID this punishment belongs to!</b></p>
      *
      * @return the uuid of the punished player.
      * @since 1.0.1
@@ -141,7 +144,10 @@ public interface Punishment extends ReasonHolder {
     /**
      * Sets the successor of this punishment. This is used to chain punishments so that one punishment of the same kind
      * is paused until the previous one is finished. This may especially be useful for punishments of differing reasons.
+     * After calling this method, do not access the data of successor anymore as it may be changed. Instead, use {@link #getSuccessor()}
+     * or {@link #getSuccessorOrNull()} as soon as the future completes.
      *
+     * @return a {@link CompletableFuture} containing this punishment with the successor set
      * @param successor the successor of this punishment
      * @throws UnsupportedOperationException if the underlying punishment does not support succeeding punishments (e.g. Kicks)
      * @throws IllegalArgumentException if {@code successor} is not related to this punishment or if the succeeding punishment is not applied the same user

@@ -42,6 +42,10 @@ public enum StandardPunishmentType implements PunishmentType {
         this.id = id;
     }
 
+    /**
+     * Checks if the punishment type is permanent.
+     * @return {@code true} if the punishment type is permanent, {@code false} otherwise.
+     */
     public boolean isPermanent() {
         return isPermanent;
     }

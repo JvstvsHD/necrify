@@ -17,10 +17,17 @@
  */
 package de.jvstvshd.necrify.api.event.origin;
 
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * A mean of origin for an event that is based on a class. This can be used to check if an event originates from a specific
+ * class. This is not bound to a specific instance of this class.
+ * @param origin the class that is the origin of the event.
+ */
 public record ClassEventOrigin(Class<?> origin) implements EventOrigin {
 
     @Override
-    public boolean originatesFrom(Object object) {
+    public boolean originatesFrom(@NotNull Object object) {
         return origin.isInstance(object);
     }
 }

@@ -23,8 +23,8 @@ import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.punishment.*;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.punishment.PunishmentBuilder;
+import de.jvstvshd.necrify.common.util.Util;
 import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
-import de.jvstvshd.necrify.velocity.internal.Util;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.ApiStatus;
 

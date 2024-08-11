@@ -47,13 +47,6 @@ public class RelativePunishmentDuration implements PunishmentDuration {
         return new RelativePunishmentDuration(Duration.ofMillis(0));
     }
 
-    /**
-     * @return the duration set in the constructor
-     */
-    public Duration duration() {
-        return duration;
-    }
-
     @Override
     public boolean isPermanent() {
         return !expiration().isBefore(LocalDateTime.MAX);
@@ -112,7 +105,7 @@ public class RelativePunishmentDuration implements PunishmentDuration {
 
     @Override
     public int compareTo(@NotNull PunishmentDuration other) {
-        return duration.compareTo(other.relative().duration());
+        return duration.compareTo(other.relative().javaDuration());
     }
 
     private String representDuration(Duration duration) {

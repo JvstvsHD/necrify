@@ -35,6 +35,10 @@ public abstract class UserEvent extends NecrifyEvent {
         this.user = user;
     }
 
+    /**
+     * Gets the user that is affected by this event.
+     * @return the user that is affected by this event.
+     */
     @NotNull
     public NecrifyUser getUser() {
         return user;

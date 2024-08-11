@@ -143,7 +143,7 @@ public interface NecrifyUser extends CommandSender {
      * the user name by setting the update parameter to true. If the username is updated, it is also returned. If not, only
      *
      * @param update Whether the username should be updated. If true, the username is updated and returned. If false, it will only be returned.
-     * @return
+     * @return a {@link CompletableFuture} containing the username of the user. This future may be completed exceptionally if the username could not be queried.
      */
     @NotNull
     CompletableFuture<String> queryUsername(boolean update);
@@ -163,11 +163,19 @@ public interface NecrifyUser extends CommandSender {
      * The user also gets kicked if they are online and get blacklisted if the whitelist is active.
      *
      * @param whitelisted true if the user is whitelisted, false otherwise.
+     * @return a {@link CompletableFuture} containing the result of the operation. This future completes with true if anything
+     * has changed and false if the whitelist status is already set to the given value.
      */
     CompletableFuture<Boolean> setWhitelisted(boolean whitelisted);
 
     /**
      * Deletes this user from the system. This will also delete all punishments associated with this user.
+     * This action is irreversible and should be used with caution.
+     * <p>
+     * The reason for the deletion is required and is used to log the deletion reason and inform listeners about the deletion
+     * and its reasoning.
+     * @param reason the reason for the deletion.
+     * @return a {@link CompletableFuture} containing the amount of affected rows and punishments.
      */
     CompletableFuture<Integer> delete(@NotNull UserDeletionReason reason);
 
@@ -187,6 +195,7 @@ public interface NecrifyUser extends CommandSender {
      * is not set, the default locale is used. Note: The locale may be provided from the language the user has set in
      * their Minecraft client. This information is only sent after the client connected to the server, so calls to this
      * during the connection process usually return the default locale.
+     *
      * @return the locale of the user.
      */
     @NotNull

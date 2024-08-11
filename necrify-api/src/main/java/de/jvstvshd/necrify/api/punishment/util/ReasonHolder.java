@@ -23,9 +23,14 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 
+/**
+ * Represents a data object that is capable of holding a reason. This can be used to store the reason of a punishment and to create
+ * a full reason with all information, including the expiration date of the punishment.
+ */
 public interface ReasonHolder {
 
     /**
+     * Gets the reason of this punishment.
      * @return the reason of this punishment as as component
      */
     @NotNull

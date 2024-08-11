@@ -24,7 +24,9 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
- *
+ * Manages the users of the plugin. This includes loading, creating and caching users. The user manager is responsible for
+ * the user's lifecycle and thus also for the accuracy and actuality of the user's data, including their punishments.
+ * All user instances created by this interface should be cached.
  */
 public interface UserManager {
 
@@ -106,11 +108,4 @@ public interface UserManager {
      */
     @NotNull
     CompletableFuture<Optional<NecrifyUser>> loadOrCreateUser(@NotNull String player);
-
-    /**
-     * Puts the user into the cache and the underlying storage.
-     *
-     * @param user the user to put
-     */
-    void putUser(@NotNull NecrifyUser user);
 }

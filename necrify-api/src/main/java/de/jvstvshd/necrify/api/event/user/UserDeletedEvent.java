@@ -40,6 +40,10 @@ public class UserDeletedEvent extends UserEvent {
         this.reason = reason;
     }
 
+    /**
+     * Gets the reason why the user was deleted.
+     * @return The reason why the user was deleted.
+     */
     public UserDeletionReason getReason() {
         return reason;
     }

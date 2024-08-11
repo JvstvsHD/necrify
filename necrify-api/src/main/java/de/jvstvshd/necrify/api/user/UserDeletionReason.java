@@ -17,11 +17,26 @@
  */
 package de.jvstvshd.necrify.api.user;
 
+/**
+ * Represents a reasoning why a user instance got deleted. This can have lots of causes, but may be done due to data protection
+ * regulations.
+ */
 public interface UserDeletionReason {
 
+    /**
+     * The user requested the deletion of their account, possibly due to privacy concerns and/or data protection regulations.
+     */
     UserDeletionReason USER_REQUESTED = new UserDeletionReasonImpl("User requested deletion.");
+
+    /**
+     * The user was deleted by the system or a team member.
+     */
     UserDeletionReason USER_DELETED = new UserDeletionReasonImpl("User was deleted by the system or a team member.");
 
+    /**
+     * The reasoning why this user was deleted.
+     * @return the reason why this user was deleted.
+     */
     String reason();
 
     record UserDeletionReasonImpl(String reason) implements UserDeletionReason {

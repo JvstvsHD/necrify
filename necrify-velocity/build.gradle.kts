@@ -16,7 +16,7 @@ repositories {
 
 dependencies {
     api(projects.necrifyApi)
-    compileOnly(libs.bundles.database)
+    compileOnly(libs.bundles.database.drivers)
     api(projects.necrifyCommon)
     api(libs.cloud.velocity)
     api(libs.minecraftdependencydownload.velocity)

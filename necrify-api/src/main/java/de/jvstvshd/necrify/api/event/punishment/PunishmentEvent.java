@@ -35,6 +35,10 @@ public abstract class PunishmentEvent extends UserEvent {
         this.punishment = punishment;
     }
 
+    /**
+     * Gets the punishment that is related to this event.
+     * @return the punishment that is related to this event.
+     */
     @NotNull
     public Punishment getPunishment() {
         return punishment;

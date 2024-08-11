@@ -15,12 +15,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package de.jvstvshd.necrify.api.punishment;
+package de.jvstvshd.necrify.common.io;
 
-/**
- * A punishment that mutes a player. This can be used to prevent a player from chatting or using the voice chat.
- * As this is a temporal punishment, it can be applied for a specific duration, after which it is automatically removed.
- */
-public interface Mute extends TemporalPunishment {
+public final class NecrifyDatabase {
 
+    public static String SQL_TYPE;
 }

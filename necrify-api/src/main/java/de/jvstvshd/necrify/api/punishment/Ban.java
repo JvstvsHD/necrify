@@ -17,6 +17,10 @@
  */
 package de.jvstvshd.necrify.api.punishment;
 
+/**
+ * Represents a ban, a punishment that restricts a player from joining the server. A ban is a {@link TemporalPunishment}
+ * and thus has a duration, after which it expires and the player is allowed to join the server again.
+ */
 public interface Ban extends TemporalPunishment {
 
 }

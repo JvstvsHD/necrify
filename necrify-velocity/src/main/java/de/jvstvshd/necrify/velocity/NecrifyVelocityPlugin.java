@@ -25,7 +25,6 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.VelocityBrigadierMessage;
 import com.velocitypowered.api.event.EventManager;
@@ -44,11 +43,12 @@ import de.chojo.sadu.core.jdbc.RemoteJdbcConfig;
 import de.chojo.sadu.core.updater.SqlVersion;
 import de.chojo.sadu.datasource.DataSourceCreator;
 import de.chojo.sadu.datasource.stage.ConfigurationStage;
+import de.chojo.sadu.mariadb.databases.MariaDb;
+import de.chojo.sadu.mysql.databases.MySql;
 import de.chojo.sadu.postgresql.databases.PostgreSql;
 import de.chojo.sadu.queries.api.call.Call;
 import de.chojo.sadu.queries.api.query.Query;
 import de.chojo.sadu.queries.configuration.QueryConfiguration;
-import de.chojo.sadu.sqlite.databases.SqLite;
 import de.chojo.sadu.updater.SqlUpdater;
 import de.jvstvshd.necrify.api.event.EventDispatcher;
 import de.jvstvshd.necrify.api.event.Slf4jLogger;
@@ -62,15 +62,15 @@ import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserManager;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.io.Adapters;
+import de.jvstvshd.necrify.common.io.NecrifyDatabase;
 import de.jvstvshd.necrify.common.plugin.MuteData;
 import de.jvstvshd.necrify.common.punishment.NecrifyKick;
 import de.jvstvshd.necrify.common.user.UserLoader;
-import de.jvstvshd.necrify.velocity.commands.*;
+import de.jvstvshd.necrify.common.util.Util;
 import de.jvstvshd.necrify.velocity.config.ConfigurationManager;
 import de.jvstvshd.necrify.velocity.impl.DefaultPlayerResolver;
 import de.jvstvshd.necrify.velocity.impl.DefaultPunishmentManager;
 import de.jvstvshd.necrify.velocity.impl.VelocityKick;
-import de.jvstvshd.necrify.velocity.internal.Util;
 import de.jvstvshd.necrify.velocity.listener.ConnectListener;
 import de.jvstvshd.necrify.velocity.message.ResourceBundleMessageProvider;
 import de.jvstvshd.necrify.velocity.user.VelocityConsoleUser;
@@ -95,20 +95,21 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-@Plugin(id = "necrify", name = "Necrify", version = "1.2.0-SNAPSHOT", description = "A simple punishment plugin for Velocity", authors = {"JvstvsHD"})
+@Plugin(id = "necrify", name = "Necrify", version = "1.2.0-beta.1", description = "A simple punishment plugin for Velocity", authors = {"JvstvsHD"})
 public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
 
     private final ProxyServer server;
@@ -161,10 +162,29 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         try {
             DependencyManager manager = new DependencyManager(dataDirectory.resolve("cache"));
             manager.loadFromResource(getClass().getClassLoader().getResource("runtimeDownload.txt"));
-
             Executor executor = Executors.newCachedThreadPool();
-            manager.downloadAll(executor, Collections.singletonList(new StandardRepository("https://repo1.maven.org/maven2"))).join();
-            manager.relocateAll(executor).join();
+            if (!manager.getAllPaths(true).stream().allMatch(Files::exists)) {
+                manager.downloadAll(executor, Collections.singletonList(new StandardRepository("https://repo1.maven.org/maven2"))).join();
+            /*final var dependencies = manager.getDependencies();
+            var relocationNeeded = manager.getDependencies().stream().filter(dependency -> manager
+                            .getRelocations()
+                            .stream()
+                            .anyMatch(relocation -> dependency.getMavenArtifact().startsWith(relocation.getPattern())))
+                    .toList();
+            var depField = manager.getClass().getDeclaredField("dependencies");
+            depField.setAccessible(true);
+            depField.set(manager, relocationNeeded);*/
+                logger.info("Relocating all dependencies...");
+                long relocateStart = System.currentTimeMillis();
+                manager.relocateAll(executor).join();
+                logger.info("Successfully relocated all dependencies in {}ms", System.currentTimeMillis() - relocateStart);
+                //depField.set(manager, dependencies);
+            } else {
+                var depField = manager.getClass().getDeclaredField("step");
+                depField.setAccessible(true);
+                AtomicInteger step = (AtomicInteger) depField.get(manager);
+                step.set(2);
+            }
             manager.loadAll(executor, new VelocityClasspathAppender(this, server)).join();
         } catch (Exception e) {
             logger.error("Could not load required dependencies. Aborting start-up", e);
@@ -192,7 +212,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         } catch (SQLException | IOException e) {
             logger.error("Could not create table necrify_punishment in database {}", dataSource.getDataSourceProperties().get("dataSource.databaseName"), e);
         }
-        setup(server.getCommandManager(), server.getEventManager());
+        setup(server.getEventManager());
         var notSupportedServers = communicator.testRecipients();
         if (!communicator.isSupportedEverywhere()) {
             logger.warn("Persecution of mutes cannot be granted on the following servers as the required paper plugin is not installed: {}",
@@ -200,25 +220,15 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         }
         eventDispatcher.register(communicator);
         eventDispatcher.register(userManager);
-        logger.info("Velocity Punishment Plugin v1.2.0-SNAPSHOT has been loaded. This is only a dev build and thus may be unstable.");
+        logger.info("Velocity Punishment Plugin v1.2.0-beta.1 has been loaded. This is only a dev build and thus may be unstable.");
     }
 
-    private void setup(CommandManager commandManager, EventManager eventManager) {
+    private void setup(EventManager eventManager) {
         eventManager.register(this, communicator);
         eventManager.register(this, new ConnectListener(this, Executors.newCachedThreadPool(), server));
         eventManager.register(this, userManager);
         logger.info(MUTES_DISABLED_STRING);
 
-        commandManager.register(BanCommand.banCommand(this));
-
-        commandManager.register(TempbanCommand.tempbanCommand(this));
-        commandManager.register(PunishmentRemovalCommand.unbanCommand(this));
-        commandManager.register(PunishmentRemovalCommand.unmuteCommand(this));
-        commandManager.register(PunishmentCommand.punishmentCommand(this));
-        commandManager.register(MuteCommand.muteCommand(this));
-        commandManager.register(TempmuteCommand.tempmuteCommand(this));
-        commandManager.register(KickCommand.kickCommand(this));
-        commandManager.register(WhitelistCommand.whitelistCommand(this));
         final Injector childInjector = injector.createChildInjector(
                 new CloudInjectionModule<>(
                         NecrifyUser.class,
@@ -242,14 +252,9 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     @SuppressWarnings({"unchecked", "UnstableApiUsage"})
     private HikariDataSource createDataSource() {
         var dbData = configurationManager.getConfiguration().getDataBaseData();
+        NecrifyDatabase.SQL_TYPE = dbData.sqlType().name().toLowerCase();
         var driverClass = getDriverClass(dbData.sqlType().name().toLowerCase());
         ConfigurationStage stage = switch (dbData.sqlType().name().toLowerCase()) {
-            case "sqlite" -> DataSourceCreator
-                    .create(SqLite.get())
-                    .configure(sqLiteJdbc -> sqLiteJdbc
-                            .driverClass(driverClass)
-                            .path(dataDirectory.resolve("punishment.db")))
-                    .create();
             case "postgresql" -> DataSourceCreator
                     .create(PostgreSql.get())
                     .configure(jdbcConfig -> jdbcConfig
@@ -282,7 +287,6 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
 
     private Class<? extends java.sql.Driver> getDriverClass(String type) {
         return switch (type) {
-            case "sqlite" -> org.sqlite.JDBC.class;
             case "postgresql", "postgres" -> org.postgresql.Driver.class;
             case "mariadb" -> org.mariadb.jdbc.Driver.class;
             case "mysql" -> com.mysql.cj.jdbc.Driver.class;
@@ -292,23 +296,31 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
 
     @SuppressWarnings("UnstableApiUsage")
     private void updateDatabase() throws IOException, SQLException {
-        if (configurationManager.getConfiguration().getDataBaseData().sqlType().name().equalsIgnoreCase("postgresql")) {
-            SqlUpdater.builder(dataSource, PostgreSql.get()).setSchemas(configurationManager.getConfiguration().getDataBaseData().getPostgresSchema())
-                    .preUpdateHook(new SqlVersion(1, 1), connection -> {
-                        var updatedReasons = Query.query("SELECT reason, punishment_id FROM punishment.necrify_punishment WHERE reason LIKE '%§%';")
-                                .single()
-                                .map(row -> {
-                                    var reason = LegacyComponentSerializer.legacySection().deserialize(row.getString(1));
-                                    var punishmentId = Util.parseUuid(row.getString(2));
-                                    return Query.query("UPDATE punishment.necrify_punishment SET reason = ? WHERE punishment_id = ?;")
-                                            .single(Call.of().bind(MiniMessage.miniMessage().serialize(reason)).bind(punishmentId.toString()))
-                                            .update();
-                                }).all();
-                        logger.info("Updated {} reasons to minimessage format.", updatedReasons.size());
-                    })
+        Consumer<Connection> preUpdateHook = connection -> {
+            var updatedReasons = Query.query("SELECT reason, punishment_id FROM necrify_punishment WHERE reason LIKE '%§%';")
+                    .single()
+                    .map(row -> {
+                        var reason = LegacyComponentSerializer.legacySection().deserialize(row.getString(1));
+                        var punishmentId = Util.parseUuid(row.getString(2));
+                        return Query.query("UPDATE necrify_punishment SET reason = ? WHERE punishment_id = ?;")
+                                .single(Call.of().bind(MiniMessage.miniMessage().serialize(reason)).bind(punishmentId.toString()))
+                                .update();
+                    }).all();
+            logger.info("Updated {} reasons to minimessage format.", updatedReasons.size());
+        };
+        switch (configurationManager.getConfiguration().getDataBaseData().sqlType().name().toLowerCase(Locale.ROOT)) {
+            case "postgresql", "postgres" ->
+                    SqlUpdater.builder(dataSource, PostgreSql.get()).setSchemas(configurationManager.getConfiguration().getDataBaseData().getPostgresSchema())
+                            .preUpdateHook(new SqlVersion(1, 1), preUpdateHook)
+                            .execute();
+            case "mariadb" -> SqlUpdater.builder(dataSource, MariaDb.get())
+                    .preUpdateHook(new SqlVersion(1, 1), preUpdateHook)
                     .execute();
-        } else {
-            logger.warn("Database type is not (yet) supported for automatic updates. Please update the database manually.");
+            case "mysql" -> SqlUpdater.builder(dataSource, MySql.get())
+                    .preUpdateHook(new SqlVersion(1, 1), preUpdateHook)
+                    .execute();
+            default ->
+                    logger.warn("Database type is not (yet) supported for automatic updates. Please update the database manually.");
         }
     }
 
@@ -389,10 +401,10 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     @Override
     public <T extends Punishment> CompletableFuture<Optional<T>> getPunishment(@NotNull UUID punishmentId) {
         return Util.executeAsync(() -> (Optional<T>) Query
-                .query("SELECT u.* FROM punishment.necrify_user u INNER JOIN punishment.necrify_punishment p ON u.uuid = p.uuid WHERE p.punishment_id = ?;")
+                .query("SELECT u.* FROM necrify_user u INNER JOIN necrify_punishment p ON u.uuid = p.uuid WHERE p.punishment_id = ?;")
                 .single(Call.of().bind(punishmentId, Adapters.UUID_ADAPTER))
                 .map(row -> {
-                    var userId = row.getObject(1, UUID.class);
+                    var userId = Util.getUuid(row, 1);
                     var user = createUser(userId, true);
                     return user.getPunishment(punishmentId).orElse(null);
                 }).first(), getExecutor());
@@ -429,7 +441,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         var user = new VelocityUser(userId, "unknown", false, this);
         Runnable loadPunishments = () -> {
             var loader = new UserLoader(user);
-            Query.query("SELECT type, expiration, reason, punishment_id, successor, issued_at FROM punishment.necrify_punishment WHERE uuid = ?;")
+            Query.query("SELECT type, expiration, reason, punishment_id, successor, issued_at FROM necrify_punishment WHERE uuid = ?;")
                     .single(Call.of().bind(userId, Adapters.UUID_ADAPTER))
                     .map(loader::addDataFromRow)
                     .all();

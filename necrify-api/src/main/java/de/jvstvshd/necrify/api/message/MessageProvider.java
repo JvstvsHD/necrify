@@ -128,6 +128,9 @@ public interface MessageProvider {
     }
 
     /**
+     * Returns whether this message provider automatically prefixes messages. If this is true, the message provider will
+     * automatically prefix messages with the result of {@link #prefix()}. This behaviour can be bypassed by using an
+     * {@link #unprefixedProvider()}, though this will only be supported on autoPrefixed variants.
      * @return whether this message provider automatically prefixes messages.
      */
     boolean autoPrefixed();
@@ -146,6 +149,8 @@ public interface MessageProvider {
      * Returns a new message provider that does not prefix messages.
      *
      * @return a new message provider that does not prefix messages.
+     * @throws UnsupportedOperationException if this message provider does not support changing the auto-prefixing
+     *                                       behavior (default behaviour) or does not have a fixed auto-prefix setting
      */
     default MessageProvider unprefixedProvider() {
         throw new UnsupportedOperationException("This message provider does not support changing the auto-prefixing behavior.");

@@ -17,26 +17,51 @@
  */
 package de.jvstvshd.necrify.common.util;
 
+import de.chojo.sadu.core.conversion.UUIDConverter;
+import de.chojo.sadu.mapper.wrapper.Row;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
+import de.jvstvshd.necrify.api.punishment.TemporalPunishment;
+import de.jvstvshd.necrify.common.io.NecrifyDatabase;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.event.HoverEventSource;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
-import java.util.UUID;
+import java.sql.SQLException;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 
 public class Util {
 
     private Util() {
+    }
+
+    public static UUID getUuid(Row row, int index) throws SQLException {
+        return switch (NecrifyDatabase.SQL_TYPE.toLowerCase(Locale.ROOT)) {
+            case "postgres", "postgresql", "mariadb" -> row.getObject(index, UUID.class);
+            default -> UUIDConverter.convert(row.getBytes(index));
+        };
+    }
+
+    public static UUID parseUuid(String uuidString) {
+        try {
+            return UUID.fromString(uuidString);
+        } catch (IllegalArgumentException e) {
+            try {
+                return UUID.fromString(uuidString.replaceAll(
+                        "(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})",
+                        "$1-$2-$3-$4-$5"));
+            } catch (Exception ex) {
+                return null;
+            }
+        }
     }
 
     public static <T> CompletableFuture<T> executeAsync(Callable<T> task, Executor service) {
@@ -49,10 +74,6 @@ public class Util {
             }
         });
         return cf;
-    }
-
-    public static String trimUuid(UUID origin) {
-        return origin.toString().toLowerCase().replace("-", "");
     }
 
     public static TextComponent copyComponent(String text, MessageProvider provider) {
@@ -97,5 +118,16 @@ public class Util {
             return punishment.getSuccessor();
         }
         return null;
+    }
+
+    public static <T extends TemporalPunishment> T getLongestPunishment(List<T> list) {
+        if (list.isEmpty())
+            return null;
+        List<T> sorted = sortPunishments(list);
+        return sorted.getLast();
+    }
+
+    public static <T extends TemporalPunishment> List<T> sortPunishments(List<T> list) {
+        return list.stream().sorted(Comparator.comparing(TemporalPunishment::getDuration)).collect(Collectors.toList());
     }
 }

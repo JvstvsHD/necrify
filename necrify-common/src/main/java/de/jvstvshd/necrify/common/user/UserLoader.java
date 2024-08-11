@@ -52,8 +52,8 @@ public final class UserLoader {
             final Timestamp timestamp = row.getTimestamp(2);
             final PunishmentDuration duration = PunishmentDuration.fromTimestamp(timestamp);
             final Component reason = MiniMessage.miniMessage().deserialize(row.getString(3));
-            final UUID punishmentUuid = row.getObject(4, UUID.class);
-            final UUID successorId = row.getObject(5, UUID.class);
+            final UUID punishmentUuid = Util.getUuid(row, 4);
+            final UUID successorId = Util.getUuid(row, 5);
             final LocalDateTime issuedAt = row.getTimestamp(6).toLocalDateTime();
             var data = new HashMap<String, Object>() {
                 {

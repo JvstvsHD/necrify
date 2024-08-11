@@ -1,3 +1,5 @@
+import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
+
 plugins {
     java
     `java-library`
@@ -10,11 +12,10 @@ version = rootProject.version
 dependencies {
     api(projects.necrifyApi)
     api(libs.bundles.jackson)
-    runtimeDownload(libs.bundles.database) {
+    runtimeDownload(libs.bundles.database.drivers) {
         exclude(group = "org.slf4j", module = "slf4j-api")
     }
-    api(libs.sadu)
-    api(libs.sadu.queries)
+    api(libs.bundles.database.helper)
     api(libs.bundles.cloud)
     compileOnly(libs.cloud.brigadier)
     compileOnly(libs.brigadier)

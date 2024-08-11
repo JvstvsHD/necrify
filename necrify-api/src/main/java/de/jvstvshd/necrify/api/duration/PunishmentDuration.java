@@ -18,6 +18,7 @@
 package de.jvstvshd.necrify.api.duration;
 
 import java.sql.Timestamp;
+import java.text.ParseException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.Temporal;
@@ -172,6 +173,7 @@ public interface PunishmentDuration extends Comparable<PunishmentDuration> {
      * @throws UnsupportedOperationException default; if this method is not implemented by its underlying implementation
      * @since 1.0.1
      */
+    //TODO support this since there is Punishment#creationTime and #totalDuration
     default PunishmentDuration initialDuration() {
         throw new UnsupportedOperationException("Initial durations are not stored.");
     }
@@ -270,6 +272,9 @@ public interface PunishmentDuration extends Comparable<PunishmentDuration> {
             return total;
         }
 
+        /**
+         * An exception that is thrown when a player input could not be parsed into a valid {@link PunishmentDuration}.
+         */
         public static class ParseException extends RuntimeException {
             public ParseException(String message) {
                 super(message);

@@ -43,6 +43,7 @@ public interface CommandSender {
      * <p>
      * Per default, this will use {@link de.jvstvshd.necrify.api.message.MessageProvider#provide(String, Component...)}
      * @param key a non-null string that represents the translation key of the message to be sent.
+     * @param args the arguments to be passed to the translation to fill placeholders.
      */
     void sendMessage(@NotNull String key, Component... args);
 

@@ -21,7 +21,7 @@ package de.jvstvshd.necrify.api.event.state;
  * This event signals that the necrify api on the underlying platform is now disabled. The API cannot be used anymore.
  * The last action of the API was calling this event which means no services are available anymore.
  *
- * @since 1.0.0
+ * @since 1.2.0
  */
 public class NecrifyDisabledEvent extends NecrifyStateEvent {
 

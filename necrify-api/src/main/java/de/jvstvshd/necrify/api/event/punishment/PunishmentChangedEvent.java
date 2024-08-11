@@ -34,6 +34,11 @@ public class PunishmentChangedEvent extends PunishmentEvent {
         this.oldPunishment = oldPunishment;
     }
 
+    /**
+     * Gets the old punishment that has been changed. This is the punishment that has been changed before the new punishment was set.
+     * Do not use this instance for any further actions that change any state bound to this instance.
+     * @return the old punishment that has been changed.
+     */
     @NotNull
     public Punishment getOldPunishment() {
         return oldPunishment;
