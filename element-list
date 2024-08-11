@@ -19,10 +19,8 @@ de.jvstvshd.necrify.common.util
 de.jvstvshd.necrify.paper
 de.jvstvshd.necrify.paper.listeners
 de.jvstvshd.necrify.velocity
-de.jvstvshd.necrify.velocity.commands
 de.jvstvshd.necrify.velocity.config
 de.jvstvshd.necrify.velocity.impl
-de.jvstvshd.necrify.velocity.internal
 de.jvstvshd.necrify.velocity.listener
 de.jvstvshd.necrify.velocity.message
 de.jvstvshd.necrify.velocity.user
