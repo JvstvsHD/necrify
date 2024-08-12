@@ -22,15 +22,14 @@ class Version(val project: Project) {
     }
 
     val versionString: String = project.version as String
-    val isRelease: Boolean = !versionString.contains('-')
-
-    val suffixedVersion: String = if (isRelease) versionString else versionString +
+    val isRelease: Boolean = !versionString.contains("-")
+    val suffixedVersion: String = if (project.isSnapshot) versionString +
             if (project.hasProperty("buildnumber")) {
                 "-" + project.property("buildnumber") as String
             } else {
                 val githubRunNumber = System.getenv("GITHUB_RUN_NUMBER")
                 if (githubRunNumber != null) "-$githubRunNumber" else ""
-            }
+            } else versionString
 }
 
 fun Project.buildVersion() = Version(this).suffixedVersion
@@ -40,3 +39,6 @@ fun Project.changelogMessage() = with(Version(this)) {
 }
 
 fun Project.isRelease() = Version(this).isRelease
+
+val Project.isSnapshot: Boolean
+    get() = version.toString().endsWith("-SNAPSHOT")

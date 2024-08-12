@@ -19,6 +19,8 @@ package de.jvstvshd.necrify.api.user;
 
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
@@ -39,13 +41,29 @@ public interface CommandSender {
     /**
      * Sends a message to the command sender. The message must contain a valid translation key that is present in the
      * language files of the server. The message will be translated to the correct language when being displayed, if a
-     * translation is available. If this key does not map to a translation, the key itself will be displayed.
+     * translation is available. If this key does not map to a translation, the key itself will be displayed. The base message
+     * (excluding any placeholders) will be colored with {@link NamedTextColor#WHITE}.
      * <p>
      * Per default, this will use {@link de.jvstvshd.necrify.api.message.MessageProvider#provide(String, Component...)}
      * @param key a non-null string that represents the translation key of the message to be sent.
      * @param args the arguments to be passed to the translation to fill placeholders.
      */
-    void sendMessage(@NotNull String key, Component... args);
+    default void sendMessage(@NotNull String key, Component... args) {
+        sendMessage(key, NamedTextColor.WHITE, args);
+    }
+
+    /**
+     * Sends a message to the command sender. The message must contain a valid translation key that is present in the
+     * language files of the server. The message will be translated to the correct language when being displayed, if a
+     * translation is available. If this key does not map to a translation, the key itself will be displayed. The base message
+     * (excluding any placeholders) will be colored with the given color.
+     * <p>
+     *     Per default, this will use {@link de.jvstvshd.necrify.api.message.MessageProvider#provide(String, Component...)}
+     * @param key a non-null string that represents the translation key of the message to be sent.
+     * @param color the color to be used for the base message.
+     * @param args the arguments to be passed to the translation to fill placeholders.
+     */
+    void sendMessage(@NotNull String key, TextColor color, Component... args);
 
     /**
      * Sends an error message to the command sender. This should be used to inform the command sender about an error

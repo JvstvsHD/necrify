@@ -122,18 +122,19 @@ public class VelocityUserManager implements UserManager {
 
     @Override
     public @NotNull CompletableFuture<Optional<NecrifyUser>> loadUser(@NotNull String player) {
-        var cached = getUser(player);
+        var pl = player.toLowerCase(Locale.ROOT);
+        var cached = getUser(pl);
         if (cached.isPresent()) {
             return CompletableFuture.completedFuture(cached);
         }
-        var parsedUuid = Util.parseUuid(player);
+        var parsedUuid = Util.parseUuid(pl);
         if (parsedUuid != null) {
             return loadUser(parsedUuid);
         }
         return executeAsync(() -> {
             var user = Query.query(SELECT_USER_BY_NAME_QUERY)
-                    .single(Call.of().bind(player))
-                    .map(row -> new VelocityUser(getUuid(row, 1), player, row.getBoolean(2), plugin))
+                    .single(Call.of().bind(pl))
+                    .map(row -> new VelocityUser(getUuid(row, 1), pl, row.getBoolean(2), plugin))
                     .first();
             user.ifPresent(velocityUser -> {
                 var loader = new UserLoader(velocityUser);
@@ -180,8 +181,9 @@ public class VelocityUserManager implements UserManager {
      * @throws IllegalStateException if the user already exists
      */
     private NecrifyUser createUser(UUID uuid, String name) {
+        var playerName = name.toLowerCase(Locale.ROOT);
         var result = Query.query(INSERT_NEW_USER)
-                .single(Call.of().bind(uuid, Adapters.UUID_ADAPTER).bind(name).bind(false))
+                .single(Call.of().bind(uuid, Adapters.UUID_ADAPTER).bind(playerName).bind(false))
                 .insert();
         if (result.hasExceptions()) {
             throw new RuntimeException("failed to create user", result.exceptions().getFirst());
@@ -189,7 +191,7 @@ public class VelocityUserManager implements UserManager {
         if (!result.changed()) {
             throw new IllegalStateException("User does already exist");
         }
-        var user = new VelocityUser(uuid, name, false, plugin);
+        var user = new VelocityUser(uuid, playerName, false, plugin);
         plugin.getEventDispatcher().dispatch(new UserLoadedEvent(user));
         return cache(user);
     }
@@ -214,13 +216,13 @@ public class VelocityUserManager implements UserManager {
         if (onlinePlayer.isPresent()) {
             return onlinePlayer.get().getUniqueId();
         }
-        return nameCache.getIfPresent(name);
+        return nameCache.getIfPresent(name.toLowerCase(Locale.ROOT));
     }
 
     private VelocityUser cache(@NotNull VelocityUser user) {
         userCache.put(user.getUuid(), user);
         if (user.getUsername() != null) {
-            nameCache.put(user.getUsername(), user.getUuid());
+            nameCache.put(user.getUsername().toLowerCase(Locale.ROOT), user.getUuid());
         }
         return user;
     }

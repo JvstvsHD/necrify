@@ -35,7 +35,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 @Deprecated(since = "1.2.0", forRemoval = true)
-@ApiStatus.ScheduledForRemoval(inVersion = "2.0.0")
+@ApiStatus.ScheduledForRemoval(inVersion = "1.3.0")
 public class DefaultPlayerResolver implements PlayerResolver {
 
     private final ProxyServer proxyServer;

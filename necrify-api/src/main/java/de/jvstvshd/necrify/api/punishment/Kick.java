@@ -20,7 +20,9 @@ package de.jvstvshd.necrify.api.punishment;
 import de.jvstvshd.necrify.api.PunishmentException;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -56,12 +58,18 @@ public interface Kick extends Punishment {
     @Override
     @NotNull
     default Punishment getSuccessor() {
-        throw new UnsupportedOperationException("kick lasts only one moment");
+        throw new NoSuchElementException("kicks do not have a successor");
     }
 
     @NotNull
     @Override
     default CompletableFuture<Punishment> setSuccessor(@NotNull Punishment successor) {
         throw new UnsupportedOperationException("kick lasts only one moment");
+    }
+
+    @Override
+    @Nullable
+    default Punishment getPredecessor() {
+        return null;
     }
 }

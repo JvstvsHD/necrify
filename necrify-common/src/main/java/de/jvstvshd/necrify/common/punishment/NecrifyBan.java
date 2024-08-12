@@ -43,11 +43,6 @@ public class NecrifyBan extends AbstractTemporalPunishment implements Ban {
     }
 
     @Override
-    public boolean isOngoing() {
-        return getDuration().expiration().isAfter(LocalDateTime.now());
-    }
-
-    @Override
     public CompletableFuture<Punishment> applyPunishment() throws PunishmentException {
         return super.applyPunishment().whenComplete((p, throwable) -> {
             tryKick();
@@ -70,7 +65,6 @@ public class NecrifyBan extends AbstractTemporalPunishment implements Ban {
                     .color(NamedTextColor.YELLOW);
             return getMessageProvider().provide("punishment.ban.temp.full-reason",
                     Component.text(getDuration().remainingDuration()).color(NamedTextColor.YELLOW), getReason(), until);
-
         }
     }
 

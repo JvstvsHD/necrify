@@ -91,9 +91,11 @@ public class NecrifyCommand {
                 return;
             }
             sender.sendMessage("command.ban.success",
+                    NamedTextColor.GRAY,
                     miniMessage(target.getUsername()).color(NamedTextColor.YELLOW),
                     copyComponent(target.getUuid().toString()).color(NamedTextColor.YELLOW),
                     finalReason);
+            tryChainPunishments(sender, target, ban);
         });
     }
 
@@ -112,9 +114,11 @@ public class NecrifyCommand {
                 return;
             }
             sender.sendMessage("command.mute.success",
+                    NamedTextColor.GRAY,
                     miniMessage(target.getUsername()).color(NamedTextColor.YELLOW),
                     copyComponent(target.getUuid().toString()).color(NamedTextColor.YELLOW),
                     finalReason);
+            tryChainPunishments(sender, target, mute);
         });
     }
 
@@ -133,6 +137,7 @@ public class NecrifyCommand {
                 return;
             }
             sender.sendMessage("command.kick.success",
+                    NamedTextColor.GRAY,
                     miniMessage(target.getUsername()).color(NamedTextColor.YELLOW),
                     copyComponent(target.getUuid().toString()).color(NamedTextColor.YELLOW),
                     finalReason);
@@ -155,10 +160,12 @@ public class NecrifyCommand {
                 return;
             }
             sender.sendMessage("command.tempban.success",
+                    NamedTextColor.GRAY,
                     miniMessage(target.getUsername()).color(NamedTextColor.YELLOW),
                     copyComponent(target.getUuid().toString()).color(NamedTextColor.YELLOW),
                     finalReason,
                     miniMessage(duration.expirationAsString()).color(NamedTextColor.YELLOW));
+            tryChainPunishments(sender, target, ban);
         });
     }
 
@@ -182,6 +189,7 @@ public class NecrifyCommand {
                     copyComponent(target.getUuid().toString()).color(NamedTextColor.YELLOW),
                     finalReason,
                     miniMessage(duration.expirationAsString()).color(NamedTextColor.YELLOW));
+            tryChainPunishments(sender, target, mute);
         });
     }
 
@@ -273,7 +281,7 @@ public class NecrifyCommand {
                 sender.sendMessage(provider.provide("command.user.overview",
                         Util.copyComponent(Objects.requireNonNullElse(target.getUsername(), "null"), provider).color(NamedTextColor.YELLOW),
                         Util.copyComponent(target.getUuid().toString(), provider).color(NamedTextColor.YELLOW),
-                        Component.text(punishments.size())));
+                        Component.text(punishments.size())).color(NamedTextColor.GRAY));
                 for (Punishment punishment : punishments) {
                     Component component = buildComponent(PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider()), punishment);
                     sender.sendMessage(component);
@@ -420,7 +428,7 @@ public class NecrifyCommand {
 
     private void tryChainPunishments(NecrifyUser sender, NecrifyUser target, Punishment newPunishment) {
         var types = newPunishment.getType().getRelatedTypes();
-        var matchingPunishments = target.getPunishments(types.toArray(new PunishmentType[0]));
+        var matchingPunishments = target.getPunishments(types.toArray(new PunishmentType[0])).stream().filter(punishment -> !punishment.equals(newPunishment)).toList();
         if (matchingPunishments.isEmpty()) {
             return;
         }
@@ -429,13 +437,13 @@ public class NecrifyCommand {
             //This should not happen since the chained punishment only gets activated after is predecessor runs out
             throw new IllegalStateException("No unchained punishments found. Did you forget to remove a reference?");
         }
-        sender.sendMessage(provider.provide("command.punishment.chain.info"));
+        sender.sendMessage(provider.provide("command.punishment.chain.info").color(NamedTextColor.GRAY));
         for (Punishment unchainedPunishment : unchainedPunishments) {
             sender.sendMessage(provider.provide("command.punishment.chain",
                     Component.text(unchainedPunishment.getPunishmentUuid().toString()).color(NamedTextColor.YELLOW)).color(NamedTextColor.GRAY)
                     .clickEvent(ClickEvent.runCommand("/necrify punishment " + unchainedPunishment.getPunishmentUuid().toString().toLowerCase(Locale.ROOT)
                             + " chain " + newPunishment.getPunishmentUuid().toString().toLowerCase(Locale.ROOT)))
-                    .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(provider.provide("command.punishment.chain.hover").color(NamedTextColor.GREEN))));
+                    .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(provider.provide("command.punishment.chain").color(NamedTextColor.GREEN))));
         }
     }
 

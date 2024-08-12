@@ -57,6 +57,11 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
     }
 
     @Override
+    public boolean isOngoing() {
+        return getDuration().expiration().isAfter(LocalDateTime.now());
+    }
+
+    @Override
     public String toString() {
         return "AbstractTemporalPunishment{" +
                 "duration=" + duration +

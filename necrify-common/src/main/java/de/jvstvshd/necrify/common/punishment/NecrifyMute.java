@@ -41,11 +41,6 @@ public class NecrifyMute extends AbstractTemporalPunishment implements Mute {
     }
 
     @Override
-    public boolean isOngoing() {
-        return getDuration().expiration().isAfter(LocalDateTime.now());
-    }
-
-    @Override
     public @NotNull StandardPunishmentType getType() {
         return isPermanent() ? StandardPunishmentType.PERMANENT_MUTE : StandardPunishmentType.TEMPORARY_MUTE;
     }

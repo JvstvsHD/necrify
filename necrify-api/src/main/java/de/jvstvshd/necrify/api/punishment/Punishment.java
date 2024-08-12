@@ -34,6 +34,7 @@ import java.util.concurrent.CompletableFuture;
  * Super interface for all sort of punishments..<br>
  * To punish a player, obtain a {@link NecrifyUser} instance from {@link de.jvstvshd.necrify.api.user.UserManager} and
  * select an adequate method (e.g. {@link NecrifyUser#banPermanent(Component)}) for the punishment you wish.<br>
+ *
  * @implSpec This classes instances expire either immediately (have no duration) or do not in an infinite amount of time. It is
  * extremely important that this behaviour is guaranteed as otherwise this will result in unexpected behaviour. If your punishment
  * instance does expire in a definite amount of time, use {@link TemporalPunishment} instead.
@@ -66,7 +67,7 @@ public interface Punishment extends ReasonHolder {
     /**
      * Changes the duration and reason of this punishment. This method can be used if a player created an appeal an it was accepted.
      *
-     * @param newReason   the new reason which should be displayed to the player or null if the reason should not be changed
+     * @param newReason the new reason which should be displayed to the player or null if the reason should not be changed
      * @return a {@link CompletableFuture} containing the new punishment
      * @throws PunishmentException if the punishment could not be changed
      * @see #cancel()
@@ -85,6 +86,7 @@ public interface Punishment extends ReasonHolder {
     /**
      * Returns the id of this punishment. This is a unique identifier for this punishment and is used to identify only this
      * punishment instance. This is not the same as the player's uuid.
+     *
      * @return the id of this punishment.
      */
     @NotNull
@@ -122,7 +124,6 @@ public interface Punishment extends ReasonHolder {
      *
      * @return the successor of this punishment
      * @throws java.util.NoSuchElementException if there is no successor punishment - check {@link #hasSuccessor()}
-     * @throws UnsupportedOperationException    if the underlying punishment does not support succeeding punishments (e.g. Kicks)
      * @see #hasSuccessor()
      * @since 1.2.0
      */
@@ -132,6 +133,7 @@ public interface Punishment extends ReasonHolder {
     /**
      * Returns the successor of this punishment or null if there is no successor. This is used to chain punishments so that one punishment of the same kind
      * is paused until the previous one is finished. This may especially be useful for punishments of differing reasons.
+     *
      * @return the successor of this punishment or null if there is no successor
      */
     @Nullable
@@ -147,11 +149,11 @@ public interface Punishment extends ReasonHolder {
      * After calling this method, do not access the data of successor anymore as it may be changed. Instead, use {@link #getSuccessor()}
      * or {@link #getSuccessorOrNull()} as soon as the future completes.
      *
-     * @return a {@link CompletableFuture} containing this punishment with the successor set
      * @param successor the successor of this punishment
+     * @return a {@link CompletableFuture} containing this punishment with the successor set
      * @throws UnsupportedOperationException if the underlying punishment does not support succeeding punishments (e.g. Kicks)
-     * @throws IllegalArgumentException if {@code successor} is not related to this punishment or if the succeeding punishment is not applied the same user
-     * @throws IllegalStateException if {@code successor} is in a circular chain with this punishment
+     * @throws IllegalArgumentException      if {@code successor} is not related to this punishment or if the succeeding punishment is not applied the same user
+     * @throws IllegalStateException         if {@code successor} is in a circular chain with this punishment
      * @since 1.2.0
      */
     @NotNull
@@ -159,18 +161,30 @@ public interface Punishment extends ReasonHolder {
 
     /**
      * Returns the creation time of this punishment.
-     * @since 1.2.0
+     *
      * @return the creation time of this punishment
      * @throws IllegalStateException if the punishment has not been created yet
      * @see #hasBeenCreated()
+     * @since 1.2.0
      */
     @NotNull
     LocalDateTime getCreationTime();
 
     /**
      * Returns whether this punishment has been created or not.
+     *
      * @return true, if this punishment has been created, otherwise false
      * @since 1.2.0
      */
     boolean hasBeenCreated();
+
+    /**
+     * Returns the punishment that will precede this punishment. This means that the returned punishment has to run out
+     * before this punishment is active. This punishment {@link #getCreationTime() begins} when the predecessor ends.
+     *
+     * @return the predecessor of this punishment or null if there is no predecessor
+     * @since 1.2.0
+     */
+    @Nullable
+    Punishment getPredecessor();
 }

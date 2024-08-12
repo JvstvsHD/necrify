@@ -165,20 +165,10 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
             Executor executor = Executors.newCachedThreadPool();
             if (!manager.getAllPaths(true).stream().allMatch(Files::exists)) {
                 manager.downloadAll(executor, Collections.singletonList(new StandardRepository("https://repo1.maven.org/maven2"))).join();
-            /*final var dependencies = manager.getDependencies();
-            var relocationNeeded = manager.getDependencies().stream().filter(dependency -> manager
-                            .getRelocations()
-                            .stream()
-                            .anyMatch(relocation -> dependency.getMavenArtifact().startsWith(relocation.getPattern())))
-                    .toList();
-            var depField = manager.getClass().getDeclaredField("dependencies");
-            depField.setAccessible(true);
-            depField.set(manager, relocationNeeded);*/
                 logger.info("Relocating all dependencies...");
                 long relocateStart = System.currentTimeMillis();
                 manager.relocateAll(executor).join();
                 logger.info("Successfully relocated all dependencies in {}ms", System.currentTimeMillis() - relocateStart);
-                //depField.set(manager, dependencies);
             } else {
                 var depField = manager.getClass().getDeclaredField("step");
                 depField.setAccessible(true);
@@ -203,7 +193,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
             return;
         }
         dataSource = createDataSource();
-        QueryConfiguration.setDefault(QueryConfiguration.builder(dataSource).setExceptionHandler(e -> logger.error("An error occurred during a database request", e)).build());
+        QueryConfiguration.setDefault(QueryConfiguration.builder(dataSource).setThrowExceptions(true).build());
         punishmentManager = new DefaultPunishmentManager(server, dataSource, this);
         registerRegistries();
         this.userManager = new VelocityUserManager(getExecutor(), server, Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build(), Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build(), this);
@@ -213,11 +203,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
             logger.error("Could not create table necrify_punishment in database {}", dataSource.getDataSourceProperties().get("dataSource.databaseName"), e);
         }
         setup(server.getEventManager());
-        var notSupportedServers = communicator.testRecipients();
-        if (!communicator.isSupportedEverywhere()) {
-            logger.warn("Persecution of mutes cannot be granted on the following servers as the required paper plugin is not installed: {}",
-                    Joiner.on(", ").join(notSupportedServers));
-        }
+        logger.warn("Persecution of mutes cannot be granted on all servers unless the required paper plugin is installed.");
         eventDispatcher.register(communicator);
         eventDispatcher.register(userManager);
         logger.info("Velocity Punishment Plugin v1.2.0-beta.1 has been loaded. This is only a dev build and thus may be unstable.");

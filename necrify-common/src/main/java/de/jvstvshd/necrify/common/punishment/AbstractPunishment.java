@@ -219,6 +219,11 @@ public abstract class AbstractPunishment implements Punishment {
     }
 
     @Override
+    public @Nullable Punishment getPredecessor() {
+        return user.getPunishments().stream().filter(punishment -> punishment.hasSuccessor() && punishment.getSuccessor().equals(this)).findFirst().orElse(null);
+    }
+
+    @Override
     public boolean hasBeenCreated() {
         return creationTime != null;
     }

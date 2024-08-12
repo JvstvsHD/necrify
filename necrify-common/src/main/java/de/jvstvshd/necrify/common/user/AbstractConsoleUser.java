@@ -23,6 +23,7 @@ import de.jvstvshd.necrify.api.punishment.*;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserDeletionReason;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -118,6 +119,11 @@ public abstract class AbstractConsoleUser implements NecrifyUser {
     @Override
     public @NotNull Locale getLocale() {
         return locale;
+    }
+
+    @Override
+    public void sendMessage(@NotNull String key, TextColor color, Component... args) {
+        sendMessage(provider().provide(key, getLocale(), args).color(color));
     }
 
     public MessageProvider provider() {

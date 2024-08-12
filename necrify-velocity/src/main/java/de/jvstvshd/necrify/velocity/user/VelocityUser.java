@@ -36,6 +36,7 @@ import de.jvstvshd.necrify.common.util.Util;
 import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -186,8 +187,8 @@ public class VelocityUser implements NecrifyUser {
     }
 
     @Override
-    public void sendMessage(@NotNull String key, Component... args) {
-        sendMessage(messageProvider.provide(key, args));
+    public void sendMessage(@NotNull String key, TextColor color, Component... args) {
+        sendMessage(messageProvider.provide(key, args).color(color));
     }
 
     @Override

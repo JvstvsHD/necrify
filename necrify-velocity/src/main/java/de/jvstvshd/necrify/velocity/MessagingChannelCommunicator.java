@@ -48,13 +48,10 @@ public class MessagingChannelCommunicator {
 
     private final ProxyServer server;
     private final Logger logger;
-    private final List<RegisteredServer> supportingServers;
-    private boolean supportedEverywhere = false;
 
     public MessagingChannelCommunicator(ProxyServer server, Logger logger) {
         this.server = server;
         this.logger = logger;
-        this.supportingServers = new ArrayList<>();
     }
 
     /**
@@ -117,29 +114,6 @@ public class MessagingChannelCommunicator {
         var serialized = MuteData.OBJECT_MAPPER.writeValueAsString(muteData);
         dataOutput.writeUTF(serialized);
         return dataOutput.toByteArray();
-    }
-
-    public synchronized List<RegisteredServer> testRecipients() {
-        byte[] message = new byte[]{0x00};
-        supportingServers.clear();
-        for (RegisteredServer allServer : server.getAllServers()) {
-            if (allServer.sendPluginMessage(NecrifyVelocityPlugin.MUTE_DATA_CHANNEL_IDENTIFIER, message)) {
-                supportingServers.add(allServer);
-            } else {
-                supportedEverywhere = false;
-            }
-        }
-        var servers = new ArrayList<>(server.getAllServers());
-        servers.removeIf(supportingServers::contains);
-        return servers;
-    }
-
-    public boolean isSupportedEverywhere() {
-        return supportedEverywhere;
-    }
-
-    public boolean isPlayerReachable(Player player) {
-        return player.getCurrentServer().map(serverConnection -> supportingServers.contains(serverConnection.getServer())).orElse(false);
     }
 
     @Subscribe
