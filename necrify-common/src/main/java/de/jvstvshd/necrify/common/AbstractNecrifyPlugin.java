@@ -18,18 +18,14 @@
 package de.jvstvshd.necrify.common;
 
 import de.jvstvshd.necrify.api.Necrify;
-import de.jvstvshd.necrify.api.PunishmentException;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.punishment.Punishment;
-import de.jvstvshd.necrify.api.punishment.PunishmentType;
 import de.jvstvshd.necrify.api.punishment.PunishmentTypeRegistry;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.commands.*;
-import de.jvstvshd.necrify.common.punishment.NecrifyBan;
 import de.jvstvshd.necrify.common.punishment.NecrifyKick;
 import de.jvstvshd.necrify.common.punishment.NecrifyPunishmentFactory;
-import de.jvstvshd.necrify.common.punishment.PunishmentBuilder;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -50,6 +46,10 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 
 public abstract class AbstractNecrifyPlugin implements Necrify {
+
+    public static final String VERSION = BuildParameters.VERSION;
+    public static final String GIT_COMMIT = BuildParameters.GIT_COMMIT;
+    public static final String BUILD_NUMBER = BuildParameters.BUILD_NUMBER;
 
     protected ExecutorService executorService;
 

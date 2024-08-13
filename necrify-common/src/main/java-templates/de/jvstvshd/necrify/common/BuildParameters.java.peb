@@ -1,0 +1,7 @@
+package de.jvstvshd.necrify.common;
+
+public class BuildParameters {
+    public static final String VERSION = "{{ version }}";
+    public static final String GIT_COMMIT = "{{ gitCommit }}";
+    public static final String BUILD_NUMBER = "{{ buildNumber }}";
+}

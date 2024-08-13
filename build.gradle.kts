@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "de.jvstvshd.necrify"
-version = "1.2.0-beta.1"
+version = "1.2.0-beta.2"
 
 subprojects {
     apply {
