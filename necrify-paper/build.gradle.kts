@@ -8,6 +8,7 @@ plugins {
 
 group = "de.jvstvshd.necrify"
 version = rootProject.version
+description = "Paper plugin implementing the Necrify API used for help enforcing mutes for velocity-based applications"
 
 dependencies {
     compileOnly(libs.paper.api)

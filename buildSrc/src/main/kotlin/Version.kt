@@ -21,6 +21,17 @@ class Version(val project: Project) {
         return executeGitCommand("rev-parse", "HEAD")
     }
 
+    fun latestCommitHashShort(): String {
+        return executeGitCommand("rev-parse", "--short", "HEAD")
+    }
+
+    fun buildNumber(): String? {
+        if (project.hasProperty("buildnumber")) {
+            return project.property("buildnumber").toString()
+        }
+        return System.getenv("GITHUB_RUN_NUMBER")
+    }
+
     val versionString: String = project.version as String
     val isRelease: Boolean = !versionString.contains("-")
     val suffixedVersion: String = if (project.isSnapshot) versionString +

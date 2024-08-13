@@ -1,5 +1,7 @@
 import com.diffplug.gradle.spotless.SpotlessPlugin
 import io.papermc.hangarpublishplugin.model.Platforms
+import net.kyori.indra.licenser.spotless.IndraSpotlessLicenserPlugin
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.licenseHeader
 import java.util.*
 
 plugins {
@@ -7,24 +9,25 @@ plugins {
     signing
     id("io.papermc.hangar-publish-plugin") version "0.1.2"
     id("io.github.goooler.shadow") version "8.1.8" apply false
-    id("com.diffplug.spotless") version "6.25.0"
+    id("net.kyori.indra.licenser.spotless") version "2.2.0"
     java
 }
 
 group = "de.jvstvshd.necrify"
-version = "1.2.0-beta.1"
+version = "1.2.0-beta.2"
 
 subprojects {
     apply {
         plugin<MavenPublishPlugin>()
         plugin<SigningPlugin>()
         plugin("java")
-        plugin<SpotlessPlugin>()
+        plugin<IndraSpotlessLicenserPlugin>()
     }
-    spotless {
-        java {
-            licenseHeaderFile(rootProject.file("HEADER.txt"))
-        }
+    indraSpotlessLicenser {
+        //licenseHeaderFile(rootProject.files("HEADER.txt"))
+        //headerFormat { doubleSlash() }
+        languageFormatOverride("pebble") { starSlash() }
+        newLine(true)
     }
     java {
         toolchain.languageVersion = JavaLanguageVersion.of(21)
@@ -36,7 +39,11 @@ subprojects {
     tasks {
         gradle.projectsEvaluated {
             javadoc {
-                (options as StandardJavadocDocletOptions).tags("apiNote:a:API Note", "implSpec:a:Implementation Requirements", "implNote:a:Implementation Note")
+                (options as StandardJavadocDocletOptions).tags(
+                    "apiNote:a:API Note",
+                    "implSpec:a:Implementation Requirements",
+                    "implNote:a:Implementation Note"
+                )
             }
             signing {
                 val signingKey = findProperty("signingKey")?.toString() ?: System.getenv("SIGNING_KEY")
@@ -136,7 +143,11 @@ hangarPublish {
 tasks {
     register<Javadoc>("alljavadoc") {
         title = "Necrify " + buildVersion()
-        (options as StandardJavadocDocletOptions).tags("apiNote:a:API Note", "implSpec:a:Implementation Requirements", "implNote:a:Implementation Note")
+        (options as StandardJavadocDocletOptions).tags(
+            "apiNote:a:API Note",
+            "implSpec:a:Implementation Requirements",
+            "implNote:a:Implementation Note"
+        )
         setDestinationDir(file("${layout.buildDirectory.get()}/docs/javadoc"))
         val projects = rootProject.allprojects
         setSource(projects.map { project -> project.sourceSets.main.get().allJava })

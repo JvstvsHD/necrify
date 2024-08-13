@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 package de.jvstvshd.necrify.velocity;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -109,7 +110,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-@Plugin(id = "necrify", name = "Necrify", version = "1.2.0-beta.1", description = "A simple punishment plugin for Velocity", authors = {"JvstvsHD"})
+@Plugin(id = "necrify", name = "Necrify", version = AbstractNecrifyPlugin.VERSION, description = "A simple punishment plugin for Velocity", authors = {"JvstvsHD"})
 public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
 
     private final ProxyServer server;
@@ -156,7 +157,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
 
     //TODO keep changed implementations and do not override them.
     @Subscribe
-    public void onProxyInitialization(ProxyInitializeEvent event) throws IOException {
+    public void onProxyInitialization(ProxyInitializeEvent event) {
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> logger.error("An error occurred in thread {}", t.getName(), e));
         long start = System.currentTimeMillis();
         try {
@@ -206,7 +207,12 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         logger.warn("Persecution of mutes cannot be granted on all servers unless the required paper plugin is installed.");
         eventDispatcher.register(communicator);
         eventDispatcher.register(userManager);
-        logger.info("Velocity Punishment Plugin v1.2.0-beta.1 has been loaded. This is only a dev build and thus may be unstable.");
+        var buildInfo = "v" + VERSION + " (running on commit " + GIT_COMMIT;
+        if (!BUILD_NUMBER.equalsIgnoreCase("-1")) {
+            buildInfo += " build " + BUILD_NUMBER;
+        }
+        buildInfo += ")";
+        logger.info("Velocity Punishment Plugin {} has been loaded. This is only a dev build and thus may be unstable.", buildInfo);
     }
 
     private void setup(EventManager eventManager) {

@@ -1,13 +1,25 @@
-import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
-
 plugins {
     java
     `java-library`
     id("dev.vankka.dependencydownload.plugin") version "1.3.1"
+    id("net.kyori.blossom") version "2.1.0"
 }
 
 group = "de.jvstvshd.necrify"
 version = rootProject.version
+description = "Common project for all plugin implementations of the necrify-api"
+
+sourceSets {
+    main {
+        blossom {
+            javaSources {
+                property("version", project.version.toString())
+                property("gitCommit", Version(project).latestCommitHashShort())
+                property("buildNumber", Version(project).buildNumber() ?: "-1")
+            }
+        }
+    }
+}
 
 dependencies {
     api(projects.necrifyApi)
@@ -28,6 +40,12 @@ dependencies {
 }
 
 tasks {
+    build {
+        dependsOn(getByName("generateJavaTemplates"))
+    }
+    javadoc {
+        dependsOn(generateRuntimeDownloadResourceForRuntimeDownload)
+    }
     jar {
         dependsOn(generateRuntimeDownloadResourceForRuntimeDownload)
     }
@@ -38,6 +56,11 @@ tasks {
         relocate("org.mariadb", prefix("mariadb"))
         relocate("org.postgresql", prefix("postgresql"))
     }
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
 }
 
 tasks.getByName<Test>("test") {
