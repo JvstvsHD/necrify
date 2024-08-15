@@ -14,7 +14,7 @@ plugins {
 }
 
 group = "de.jvstvshd.necrify"
-version = "1.2.0-rc.1"
+version = "1.2.0"
 
 subprojects {
     apply {
@@ -24,9 +24,6 @@ subprojects {
         plugin<IndraSpotlessLicenserPlugin>()
     }
     indraSpotlessLicenser {
-        //licenseHeaderFile(rootProject.files("HEADER.txt"))
-        //headerFormat { doubleSlash() }
-        languageFormatOverride("pebble") { starSlash() }
         newLine(true)
     }
     java {

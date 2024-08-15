@@ -150,7 +150,7 @@ public interface Punishment extends ReasonHolder {
      * After calling this method, do not access the data of successor anymore as it may be changed. Instead, use {@link #getSuccessor()}
      * or {@link #getSuccessorOrNull()} as soon as the future completes.
      *
-     * @param successor the successor of this punishment
+     * @param successor the successor of this punishment or null to remove the successor
      * @return a {@link CompletableFuture} containing this punishment with the successor set
      * @throws UnsupportedOperationException if the underlying punishment does not support succeeding punishments (e.g. Kicks)
      * @throws IllegalArgumentException      if {@code successor} is not related to this punishment or if the succeeding punishment is not applied the same user
@@ -158,7 +158,7 @@ public interface Punishment extends ReasonHolder {
      * @since 1.2.0
      */
     @NotNull
-    CompletableFuture<Punishment> setSuccessor(@NotNull Punishment successor);
+    CompletableFuture<Punishment> setSuccessor(Punishment successor);
 
     /**
      * Returns the creation time of this punishment.

@@ -62,16 +62,19 @@ public class MessagingChannelCommunicator {
     /**
      * Recalculates the mute information for the specified user and sends the updated mute information to all registered servers.
      * This will inform those servers only about expiration and reason. The reason is a translated complete reason.
+     *
      * @param user the user to recalculate the mute information for
      */
-    public void recalculateMuteInformation(NecrifyUser user)  {
-        List<Mute> mutes = user.getPunishments(StandardPunishmentType.PERMANENT_MUTE, StandardPunishmentType.TEMPORARY_MUTE);
-        final Mute mute = Util.getLongestPunishment(mutes);
-        if (mute == null)
-            return;
-        Component deny = ChainedPunishment.of(mute, plugin).createFullReason(user.getLocale());
-        var serialized = MiniMessage.miniMessage().serialize(GlobalTranslator.render(deny, user.getLocale()));
+    public void recalculateMuteInformation(NecrifyUser user) {
         try {
+            List<Mute> mutes = user.getPunishments(StandardPunishmentType.PERMANENT_MUTE, StandardPunishmentType.TEMPORARY_MUTE);
+            final Mute mute = Util.getLongestPunishment(mutes);
+            if (mute == null) {
+                queueMute(new MuteData(user.getUuid(), null, null, MuteData.RESET, null));
+                return;
+            }
+            Component deny = ChainedPunishment.of(mute, plugin).createFullReason(user.getLocale());
+            var serialized = MiniMessage.miniMessage().serialize(GlobalTranslator.render(deny, user.getLocale()));
             queueMute(new MuteData(user.getUuid(), serialized, mute.getDuration().expiration(), MuteData.RECALCULATION, mute.getPunishmentUuid()));
         } catch (Exception e) {
             logger.error("Could not queue mute for player {}", user.getUuid(), e);

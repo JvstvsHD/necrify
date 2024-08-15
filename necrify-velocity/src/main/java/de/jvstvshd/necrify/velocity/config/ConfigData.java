@@ -32,6 +32,9 @@ public class ConfigData {
     @JsonProperty("default-language")
     private final Locale defaultLanguage;
 
+    @JsonProperty("punishment")
+    private final PunishmentConfigData punishmentConfigData;
+
     @JsonProperty("whitelist-activated")
     @JsonAlias("whitelistActivated")
     private boolean whitelistActivated;
@@ -40,15 +43,16 @@ public class ConfigData {
     @JsonAlias("allowTopLevelCommands")
     private boolean allowTopLevelCommands;
 
-    public ConfigData(DataBaseData dataBaseData, Locale defaultLanguage, boolean whitelistActivated, boolean allowTopLevelCommands) {
+    public ConfigData(DataBaseData dataBaseData, Locale defaultLanguage, PunishmentConfigData punishmentConfigData, boolean whitelistActivated, boolean allowTopLevelCommands) {
         this.dataBaseData = dataBaseData;
         this.defaultLanguage = defaultLanguage;
+        this.punishmentConfigData = punishmentConfigData;
         this.whitelistActivated = whitelistActivated;
         this.allowTopLevelCommands = allowTopLevelCommands;
     }
 
     public ConfigData() {
-        this(new DataBaseData(), Locale.ENGLISH, false, true);
+        this(new DataBaseData(), Locale.ENGLISH, new PunishmentConfigData(), false, true);
     }
 
     public final DataBaseData getDataBaseData() {
@@ -73,5 +77,9 @@ public class ConfigData {
 
     public void setAllowTopLevelCommands(boolean allowTopLevelCommands) {
         this.allowTopLevelCommands = allowTopLevelCommands;
+    }
+
+    public PunishmentConfigData getPunishmentConfigData() {
+        return punishmentConfigData;
     }
 }

@@ -38,6 +38,7 @@ import de.jvstvshd.necrify.common.user.MojangAPI;
 import de.jvstvshd.necrify.common.user.UserLoader;
 import de.jvstvshd.necrify.common.util.Util;
 import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
+import org.greenrobot.eventbus.ThreadMode;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -252,7 +253,7 @@ public class VelocityUserManager implements UserManager {
         user.setPlayer(player);
     }
 
-    @org.greenrobot.eventbus.Subscribe
+    @org.greenrobot.eventbus.Subscribe(priority = Integer.MAX_VALUE)
     public void onUserLoaded(UserLoadedEvent event) {
         if (event.getOrigin().originatesFrom(getClass())) return;
         var user = event.getUser();
@@ -261,7 +262,7 @@ public class VelocityUserManager implements UserManager {
         }
     }
 
-    @org.greenrobot.eventbus.Subscribe
+    @org.greenrobot.eventbus.Subscribe(priority = Integer.MAX_VALUE)
     public void onPunishmentEnforced(PunishmentPersecutedEvent event) {
         var punishment = event.getPunishment();
         if (punishment.getUser() instanceof VelocityUser user) {
@@ -269,7 +270,7 @@ public class VelocityUserManager implements UserManager {
         }
     }
 
-    @org.greenrobot.eventbus.Subscribe
+    @org.greenrobot.eventbus.Subscribe(priority = Integer.MAX_VALUE)
     public void onPunishmentCancelled(PunishmentCancelledEvent event) {
         var punishment = event.getPunishment();
         if (punishment.getUser() instanceof VelocityUser user) {
@@ -277,7 +278,7 @@ public class VelocityUserManager implements UserManager {
         }
     }
 
-    @org.greenrobot.eventbus.Subscribe
+    @org.greenrobot.eventbus.Subscribe(priority = Integer.MAX_VALUE)
     public void onPunishmentChanged(PunishmentChangedEvent event) {
         var punishment = event.getPunishment();
         if (punishment.getUser() instanceof VelocityUser user) {

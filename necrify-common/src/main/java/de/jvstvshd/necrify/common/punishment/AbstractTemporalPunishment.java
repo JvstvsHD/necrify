@@ -33,6 +33,8 @@ import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.io.Adapters;
 import de.jvstvshd.necrify.common.util.Util;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextReplacementConfig;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,6 +84,15 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
     }
 
     @Override
+    public @NotNull Component getReason() {
+        return super.getReason().replaceText(TextReplacementConfig
+                .builder()
+                .matchLiteral("<UNTIL>")
+                .replacement(Component.text(getDuration().remainingDuration(), NamedTextColor.YELLOW))
+                .build());
+    }
+
+    @Override
     public final @NotNull CompletableFuture<Punishment> change(@NotNull PunishmentDuration newDuration, @Nullable LocalDateTime creationTime, Component newReason) throws PunishmentException {
         if (!getType().isBan() && !getType().isMute()) {
             throw new IllegalStateException("only bans and mutes can be changed");
@@ -103,9 +114,9 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
                     .withUser(getUser())
                     .withReason(newReason)
                     .withDuration(newDuration)
+                    .withCreationTime(newCreatedAt)
                     .withPunishmentUuid(getPunishmentUuid())
-                    .withSuccessor(getSuccessorOrNull())
-                    .withCreationTime(getCreationTime());
+                    .withSuccessor(getSuccessorOrNull());
             Punishment punishment;
             if (getType().isBan()) {
                 punishment = builder.buildBan();
@@ -125,24 +136,12 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
             if (hasSuccessor()) {
                 updateSuccessor().join();
             }
-            var predecessor = getUser().getPunishments().stream()
-                    .filter(punishment -> punishment.getSuccessorOrNull() != null && punishment.getSuccessorOrNull().equals(this)).findFirst().orElse(null);
+            var predecessor = getPredecessor();
             if (predecessor != null) {
-                Query.query(APPLY_SUCCESSOR)
-                        .single(Call.of().bind(null, new Adapter<UUID>() {
-                            @Override
-                            public AdapterMapping<UUID> mapping() {
-                                return null;
-                            }
-
-                            @Override
-                            public int type() {
-                                return Types.NULL;
-                            }
-                        }).bind(predecessor.getPunishmentUuid(), Adapters.UUID_ADAPTER))
-                        .update();
                 if (hasSuccessor()) {
                     predecessor.setSuccessor(getSuccessor()).join();
+                } else {
+                    predecessor.setSuccessor(null);
                 }
             }
             Query.query(APPLY_CANCELLATION)
@@ -175,7 +174,7 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
                             .bind(getUser().getUuid(), Adapters.UUID_ADAPTER)
                             .bind(getType().getId())
                             .bind(duration.expirationAsTimestamp())
-                            .bind(convertReason(getReason()))
+                            .bind(convertReason(getRawReason()))
                             .bind(getPunishmentUuid(), Adapters.UUID_ADAPTER)
                             .bind(Timestamp.valueOf(getCreationTime())))
                     .insert();
@@ -184,7 +183,15 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
     }
 
     @Override
-    public @NotNull CompletableFuture<Punishment> setSuccessor(@NotNull Punishment successor) {
+    public @NotNull CompletableFuture<Punishment> setSuccessor(Punishment successor) {
+        if (successor == null) {
+            return Util.executeAsync(() -> {
+                Query.query(APPLY_SUCCESSOR)
+                        .single(Call.of().bind(null, Adapters.UUID_NULL_ADAPTER).bind(getPunishmentUuid(), Adapters.UUID_ADAPTER))
+                        .update();
+                return this;
+            }, getExecutor());
+        }
         if (!getType().getRelatedTypes().contains(successor.getType())) {
             throw new IllegalArgumentException("successor punishment is not related to this punishment");
         }
@@ -198,7 +205,6 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
             Query.query(APPLY_SUCCESSOR)
                     .single(Call.of().bind(successor.getPunishmentUuid(), Adapters.UUID_ADAPTER).bind(getPunishmentUuid(), Adapters.UUID_ADAPTER))
                     .update();
-            setSuccessor0(successor);
             LocalDateTime successorNewExpiration;
             if (successor instanceof TemporalPunishment temporalSuccessor) {
                 var total = temporalSuccessor.totalDuration();
@@ -214,7 +220,10 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
                             .bind(successor.getPunishmentUuid(), Adapters.UUID_ADAPTER))
                     .update();
             if (successor instanceof TemporalPunishment temporalSuccessor) {
-                temporalSuccessor.change(PunishmentDuration.from(successorNewExpiration), issuanceSuccessor, successor.getReason()).join();
+                var newSuccessor = temporalSuccessor.change(PunishmentDuration.from(successorNewExpiration), issuanceSuccessor, successor.getReason()).join();
+                setSuccessor0(newSuccessor);
+            } else {
+                setSuccessor0(successor);
             }
             return this;
         }, getExecutor());

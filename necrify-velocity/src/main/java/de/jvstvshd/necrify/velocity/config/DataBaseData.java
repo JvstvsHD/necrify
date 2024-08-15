@@ -29,6 +29,7 @@ import de.chojo.sadu.sqlite.databases.SqLite;
 import java.util.Locale;
 
 public class DataBaseData {
+
     private final String host;
     private final String password;
     private final String username;

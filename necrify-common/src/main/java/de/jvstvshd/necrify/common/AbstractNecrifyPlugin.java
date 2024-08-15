@@ -21,6 +21,7 @@ package de.jvstvshd.necrify.common;
 import de.jvstvshd.necrify.api.Necrify;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.punishment.Punishment;
+import de.jvstvshd.necrify.api.punishment.PunishmentType;
 import de.jvstvshd.necrify.api.punishment.PunishmentTypeRegistry;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
@@ -136,13 +137,7 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
     }
 
     //TODO: Move config to necrify-common
-    public String getDefaultReason(StandardPunishmentType type) {
-        return "<red>You were " + switch (type) {
-            case KICK -> "kicked from the server.";
-            case TEMPORARY_BAN, PERMANENT_BAN -> "banned from the server.";
-            case TEMPORARY_MUTE, PERMANENT_MUTE -> "muted.";
-        } + "</red>";
-    }
+    public abstract String getDefaultReason(PunishmentType type);
 
     @SuppressWarnings("ConstantValue")
     public static String buildInfo() {

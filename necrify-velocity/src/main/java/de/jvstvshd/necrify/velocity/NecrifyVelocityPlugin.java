@@ -57,6 +57,7 @@ import de.jvstvshd.necrify.api.event.user.UserLoadedEvent;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.PunishmentManager;
+import de.jvstvshd.necrify.api.punishment.PunishmentType;
 import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserManager;
@@ -473,5 +474,10 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     @Override
     public Set<Pair<String, UUID>> getOnlinePlayers() {
         return server.getAllPlayers().stream().map(player -> Pair.of(player.getUsername(), player.getUniqueId())).collect(Collectors.toSet());
+    }
+
+    @Override
+    public String getDefaultReason(PunishmentType type) {
+        return configurationManager.getConfiguration().getPunishmentConfigData().getPunishmentMessages().get(type.getId());
     }
 }

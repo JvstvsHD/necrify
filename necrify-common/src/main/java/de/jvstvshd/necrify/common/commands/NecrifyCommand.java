@@ -285,6 +285,9 @@ public class NecrifyCommand {
                         Util.copyComponent(target.getUuid().toString(), provider).color(NamedTextColor.YELLOW),
                         Component.text(punishments.size())).color(NamedTextColor.GRAY));
                 for (Punishment punishment : punishments) {
+                    if (punishment.getPredecessor() != null) {
+                        continue;
+                    }
                     Component component = buildComponent(PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider()), punishment);
                     sender.sendMessage(component);
                 }
@@ -408,6 +411,9 @@ public class NecrifyCommand {
         if (punishments.size() > 1) {
             source.sendMessage(plugin.getMessageProvider().provide("command." + values[0] + ".multiple-" + values[1] + "s").color(NamedTextColor.YELLOW));
             for (Punishment punishment : punishments) {
+                if (punishment.getPredecessor() != null) {
+                    continue;
+                }
                 source.sendMessage(buildComponent(PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider()), punishment));
             }
         } else {

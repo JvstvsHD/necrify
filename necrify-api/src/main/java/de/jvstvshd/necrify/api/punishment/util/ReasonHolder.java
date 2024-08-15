@@ -31,12 +31,19 @@ import java.util.Locale;
 public interface ReasonHolder {
 
     /**
-     * Gets the reason of this punishment.
+     * Gets the reason of this punishment. All placeholders will be replaced with their actual values.
      * @return the reason of this punishment as as component
+     *
      */
     @NotNull
     Component getReason();
 
+    /**
+     * Gets the reason of this punishment. All placeholders will remain as they are.
+     * @return the reason of this punishment as as component
+     */
+    @NotNull
+    Component getRawReason();
     /**
      * Creates the full reason inclusive when the ban ends (or that the ban is permanent).
      *

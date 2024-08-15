@@ -27,6 +27,7 @@ import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -86,6 +87,11 @@ public abstract class AbstractPunishment implements Punishment {
     }
 
     public @NotNull Component getReason() {
+        return reason;
+    }
+
+    @Override
+    public @NotNull Component getRawReason() {
         return reason;
     }
 
