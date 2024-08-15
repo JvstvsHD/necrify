@@ -23,25 +23,27 @@ import com.google.common.io.ByteStreams;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.player.ServerPostConnectEvent;
-import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import de.jvstvshd.necrify.api.event.punishment.PunishmentCancelledEvent;
 import de.jvstvshd.necrify.api.event.punishment.PunishmentChangedEvent;
 import de.jvstvshd.necrify.api.event.punishment.PunishmentPersecutedEvent;
 import de.jvstvshd.necrify.api.punishment.Mute;
-import de.jvstvshd.necrify.api.punishment.util.ReasonHolder;
+import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
+import de.jvstvshd.necrify.api.user.NecrifyUser;
+import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.plugin.MuteData;
+import de.jvstvshd.necrify.common.punishment.ChainedPunishment;
+import de.jvstvshd.necrify.common.util.Util;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.translation.GlobalTranslator;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 public class MessagingChannelCommunicator {
 
@@ -49,23 +51,31 @@ public class MessagingChannelCommunicator {
 
     private final ProxyServer server;
     private final Logger logger;
+    private final AbstractNecrifyPlugin plugin;
 
-    public MessagingChannelCommunicator(ProxyServer server, Logger logger) {
+    public MessagingChannelCommunicator(ProxyServer server, AbstractNecrifyPlugin plugin) {
         this.server = server;
-        this.logger = logger;
+        this.logger = plugin.getLogger();
+        this.plugin = plugin;
     }
 
     /**
-     * Tries to send the specified {@code muteData } to all registered servers. As a plugin message can only be sent if a player is connected to the server,
-     * the message will be queued if no player is connected to the server and will be sent as soon as a player connects to the server.
-     *
-     * @param mute the mute data to send
-     * @param type the type of the mute ({@link MuteData#ADD}, {@link MuteData#REMOVE} or {@link MuteData#UPDATE})
-     * @throws JsonProcessingException if the mute data could not be serialized
+     * Recalculates the mute information for the specified user and sends the updated mute information to all registered servers.
+     * This will inform those servers only about expiration and reason. The reason is a translated complete reason.
+     * @param user the user to recalculate the mute information for
      */
-    public void queueMute(Mute mute, int type) throws Exception {
-        var muteData = from(mute, type, ReasonHolder::getReason);
-        queueMute(muteData);
+    public void recalculateMuteInformation(NecrifyUser user)  {
+        List<Mute> mutes = user.getPunishments(StandardPunishmentType.PERMANENT_MUTE, StandardPunishmentType.TEMPORARY_MUTE);
+        final Mute mute = Util.getLongestPunishment(mutes);
+        if (mute == null)
+            return;
+        Component deny = ChainedPunishment.of(mute, plugin).createFullReason(user.getLocale());
+        var serialized = MiniMessage.miniMessage().serialize(GlobalTranslator.render(deny, user.getLocale()));
+        try {
+            queueMute(new MuteData(user.getUuid(), serialized, mute.getDuration().expiration(), MuteData.RECALCULATION, mute.getPunishmentUuid()));
+        } catch (Exception e) {
+            logger.error("Could not queue mute for player {}", user.getUuid(), e);
+        }
     }
 
     private void queueMute(MuteData muteData) throws JsonProcessingException {
@@ -75,10 +85,6 @@ public class MessagingChannelCommunicator {
                 messageQueue.computeIfAbsent(allServer, server -> new ArrayList<>()).add(muteData);
             }
         }
-    }
-
-    private MuteData from(Mute mute, int type, Function<Mute, Component> reason) {
-        return new MuteData(mute.getUser().getUuid(), MiniMessage.miniMessage().serialize(reason.apply(mute)), mute.getDuration().expiration(), type, mute.getPunishmentUuid());
     }
 
     @SuppressWarnings("UnstableApiUsage")
@@ -129,33 +135,21 @@ public class MessagingChannelCommunicator {
     @org.greenrobot.eventbus.Subscribe
     public void onPunishmentPersecution(PunishmentPersecutedEvent event) {
         if (event.getPunishment() instanceof Mute mute) {
-            try {
-                queueMute(mute, MuteData.ADD);
-            } catch (Exception e) {
-                logger.error("Could not queue mute for player {}", mute.getUser().getUuid(), e);
-            }
+            recalculateMuteInformation(mute.getUser());
         }
     }
 
     @org.greenrobot.eventbus.Subscribe
     public void onPunishmentChange(PunishmentChangedEvent event) {
         if (event.getPunishment() instanceof Mute mute) {
-            try {
-                queueMute(mute, MuteData.UPDATE);
-            } catch (Exception e) {
-                logger.error("Could not queue mute for player {}", mute.getUser().getUuid(), e);
-            }
+            recalculateMuteInformation(mute.getUser());
         }
     }
 
     @org.greenrobot.eventbus.Subscribe
     public void onPunishmentRemoved(PunishmentCancelledEvent event) {
         if (event.getPunishment() instanceof Mute mute) {
-            try {
-                queueMute(mute, MuteData.REMOVE);
-            } catch (Exception e) {
-                logger.error("Could not queue mute for player {}", mute.getUser().getUuid(), e);
-            }
+            recalculateMuteInformation(mute.getUser());
         }
     }
 }

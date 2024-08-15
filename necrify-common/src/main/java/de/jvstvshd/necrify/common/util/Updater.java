@@ -16,24 +16,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package de.jvstvshd.necrify.paper;
+package de.jvstvshd.necrify.common.util;
 
-import io.papermc.paper.plugin.bootstrap.BootstrapContext;
-import io.papermc.paper.plugin.bootstrap.PluginBootstrap;
-import io.papermc.paper.plugin.bootstrap.PluginProviderContext;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
 
-@SuppressWarnings("ALL")
-public class NecrifyPaperPluginBootstrap implements PluginBootstrap {
+public class Updater {
 
-    @Override
-    public void bootstrap(@NotNull BootstrapContext bootstrapContext) {
-
-    }
-
-    @Override
-    public @NotNull JavaPlugin createPlugin(@NotNull PluginProviderContext context) {
-        return new NecrifyPaperJavaPlugin();
+    public static void updateInformation(Logger logger) {
+        logger.info("Check here for updates:");
+        logger.info("https://hangar.papermc.io/JvstvsHD/Necrify/");
+        logger.info("https://github.com/JvstvsHD/necrify/releases");
+        logger.info("Dev builds: https://ci.jvstvshd.de/job/Necrify/ (Proceed with caution, these builds may be unstable! Do not use these in production!)");
     }
 }

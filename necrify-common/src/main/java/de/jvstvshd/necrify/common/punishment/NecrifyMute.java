@@ -61,7 +61,8 @@ public class NecrifyMute extends AbstractTemporalPunishment implements Mute {
         } else {
             var until = Component.text(getDuration().expiration().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                     .color(NamedTextColor.YELLOW);
-            return getMessageProvider().provide("punishment.mute.temp.full-reason", Component.text(getDuration().remainingDuration()).color(NamedTextColor.YELLOW), getReason(), until);
+            return getMessageProvider().provide("punishment.mute.temp.full-reason",
+                    Component.text(getDuration().remainingDuration()).color(NamedTextColor.YELLOW), getReason(), until).color(NamedTextColor.GRAY);
         }
     }
 }

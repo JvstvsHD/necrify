@@ -1,7 +1,7 @@
 plugins {
     java
     `java-library`
-    id("io.github.goooler.shadow")
+    id("com.gradleup.shadow")
     id("net.minecrell.plugin-yml.paper") version "0.6.0"
     id("io.papermc.hangar-publish-plugin")
 }
@@ -16,6 +16,9 @@ dependencies {
 }
 
 tasks {
+    jar {
+        archiveFileName.set("Necrify-Paper-${project.buildVersion()}.jar")
+    }
     shadowJar {
         archiveFileName.set("Necrify-Paper-${project.buildVersion()}.jar")
         dependencies {
@@ -55,7 +58,7 @@ tasks.getByName<Test>("test") {
 }
 
 paper {
-    main = "de.jvstvshd.necrify.paper.NecrifyPaperPlugin"
+    main = "de.jvstvshd.necrify.paper.NecrifyPaperJavaPlugin"
     name = "necrify-paper"
     version = rootProject.version.toString()
     description = "A paper plugin complementing the Necrify plugin for velocity for imposing mutes."

@@ -19,7 +19,6 @@
 package de.jvstvshd.necrify.velocity;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.google.common.base.Joiner;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -73,7 +72,7 @@ import de.jvstvshd.necrify.velocity.impl.DefaultPlayerResolver;
 import de.jvstvshd.necrify.velocity.impl.DefaultPunishmentManager;
 import de.jvstvshd.necrify.velocity.impl.VelocityKick;
 import de.jvstvshd.necrify.velocity.listener.ConnectListener;
-import de.jvstvshd.necrify.velocity.message.ResourceBundleMessageProvider;
+import de.jvstvshd.necrify.common.message.ResourceBundleMessageProvider;
 import de.jvstvshd.necrify.velocity.user.VelocityConsoleUser;
 import de.jvstvshd.necrify.velocity.user.VelocityUser;
 import de.jvstvshd.necrify.velocity.user.VelocityUserManager;
@@ -150,7 +149,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         this.logger = logger;
         this.dataDirectory = dataDirectory;
         this.configurationManager = new ConfigurationManager(dataDirectory.resolve("config.yml"));
-        this.communicator = new MessagingChannelCommunicator(server, logger);
+        this.communicator = new MessagingChannelCommunicator(server, this);
         this.playerResolver = new DefaultPlayerResolver(server);
         this.eventDispatcher = new EventDispatcher(getExecutor(), new Slf4jLogger(logger));
     }
@@ -187,7 +186,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
             if (configurationManager.getConfiguration().isWhitelistActivated()) {
                 logger.info("Whitelist is activated. This means that nobody can join this server beside players you have explicitly allowed to join this server via /necrify user <player> whitelist (toggles current state).");
             }
-            this.messageProvider = new ResourceBundleMessageProvider(configurationManager.getConfiguration());
+            this.messageProvider = new ResourceBundleMessageProvider(configurationManager.getConfiguration().getDefaultLanguage());
         } catch (IOException e) {
             logger.error("Could not load configuration", e);
             logger.error("Aborting start-up");
@@ -207,12 +206,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         logger.warn("Persecution of mutes cannot be granted on all servers unless the required paper plugin is installed.");
         eventDispatcher.register(communicator);
         eventDispatcher.register(userManager);
-        var buildInfo = "v" + VERSION + " (running on commit " + GIT_COMMIT;
-        if (!BUILD_NUMBER.equalsIgnoreCase("-1")) {
-            buildInfo += " build " + BUILD_NUMBER;
-        }
-        buildInfo += ")";
-        logger.info("Velocity Punishment Plugin {} has been loaded. This is only a dev build and thus may be unstable.", buildInfo);
+        logger.info("Velocity Punishment Plugin {} has been loaded. This is only a dev build and thus may be unstable.", buildInfo());
     }
 
     private void setup(EventManager eventManager) {

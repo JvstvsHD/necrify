@@ -65,7 +65,7 @@ public class NecrifyBan extends AbstractTemporalPunishment implements Ban {
             var until = Component.text(getDuration().expiration().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                     .color(NamedTextColor.YELLOW);
             return getMessageProvider().provide("punishment.ban.temp.full-reason",
-                    Component.text(getDuration().remainingDuration()).color(NamedTextColor.YELLOW), getReason(), until);
+                    Component.text(getDuration().remainingDuration()).color(NamedTextColor.YELLOW), getReason(), until).color(NamedTextColor.GRAY);
         }
     }
 

@@ -22,23 +22,20 @@ import com.velocitypowered.api.event.ResultedEvent;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.proxy.ProxyServer;
-import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.punishment.Ban;
 import de.jvstvshd.necrify.api.punishment.Mute;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.plugin.MuteData;
+import de.jvstvshd.necrify.common.punishment.ChainedPunishment;
 import de.jvstvshd.necrify.common.punishment.NecrifyBan;
 import de.jvstvshd.necrify.common.util.Util;
 import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -80,19 +77,14 @@ public final class ConnectListener {
         punishments.stream().filter(punishment -> !punishment.isOngoing()).forEach(Punishment::cancel);
         punishments.removeIf(punishment -> !punishment.isOngoing());
         List<Ban> bans = new ArrayList<>();
-        List<Mute> mutes = new ArrayList<>();
         for (Punishment punishment : punishments) {
             if (punishment instanceof Ban velocityBan)
                 bans.add(velocityBan);
-            if (punishment instanceof Mute mute)
-                mutes.add(mute);
         }
-        for (Mute mute : mutes) {
-            try {
-                plugin.communicator().queueMute(mute, MuteData.ADD);
-            } catch (Exception e) {
-                plugin.getLogger().error("Cannot send mute to bungee", e);
-            }
+        try {
+            plugin.communicator().recalculateMuteInformation(user);
+        } catch (Exception e) {
+            plugin.getLogger().error("Cannot send mute to bungee", e);
         }
         if (bans.isEmpty()) {
             return;
@@ -100,16 +92,12 @@ public final class ConnectListener {
         final Ban ban = Util.getLongestPunishment(bans);
         if (ban == null)
             return;
-        Component deny = ChainedBan.of(ban, plugin).createFullReason(event.getPlayer().getEffectiveLocale());
+        Component deny = ChainedPunishment.of(ban, plugin).createFullReason(event.getPlayer().getEffectiveLocale());
         event.setResult(ResultedEvent.ComponentResult.denied(deny));
     }
 
     public NecrifyVelocityPlugin plugin() {
         return plugin;
-    }
-
-    public ExecutorService service() {
-        return service;
     }
 
     @Override
@@ -133,35 +121,5 @@ public final class ConnectListener {
                 "plugin=" + plugin + ", " +
                 "service=" + service + ", " +
                 "proxyServer=" + proxyServer + ']';
-    }
-
-    private static class ChainedBan extends NecrifyBan {
-
-        private final List<Ban> bans;
-
-        private ChainedBan(List<Ban> bans, AbstractNecrifyPlugin plugin) {
-            this(bans.getFirst(), bans, plugin);
-        }
-
-        private ChainedBan(Ban ban, List<Ban> bans, AbstractNecrifyPlugin plugin) {
-            super(ban.getUser(), ban.getReason(), ban.getPunishmentUuid(), ban.getDuration(), plugin, ban.getSuccessorOrNull(), ban.getCreationTime());
-            this.bans = bans;
-        }
-
-        @Override
-        public @NotNull Component getReason() {
-            return bans.stream().map(Ban::getReason).reduce(Component.empty(), (a, b) -> a.append(Component.newline()).append(b));
-        }
-
-        public static ChainedBan of(Ban last, AbstractNecrifyPlugin plugin) {
-            List<Ban> bans = new ArrayList<>();
-            Ban current = last;
-            while (current.getPredecessor() != null) {
-                bans.add(current);
-                current = (Ban) current.getPredecessor();
-            }
-            bans.add(current);
-            return new ChainedBan(bans, plugin);
-        }
     }
 }

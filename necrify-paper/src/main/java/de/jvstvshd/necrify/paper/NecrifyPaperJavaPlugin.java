@@ -18,29 +18,33 @@
 
 package de.jvstvshd.necrify.paper;
 
+import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.plugin.MuteData;
 import de.jvstvshd.necrify.paper.listeners.ChatListener;
 import de.jvstvshd.necrify.paper.listeners.MessagingChannelListener;
 import de.jvstvshd.necrify.paper.listeners.MuteInformation;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class NecrifyPaperPlugin extends JavaPlugin {
+public class NecrifyPaperJavaPlugin extends JavaPlugin {
 
     private final List<MuteInformation> cachedMutes = new ArrayList<>();
+    private Logger logger;
 
     @Override
     public void onEnable() {
-        getLogger().info("NecrifyPaperPlugin has been enabled!");
+        logger = getSLF4JLogger();
+        logger.info("NecrifyPaperPlugin {} has been enabled!", AbstractNecrifyPlugin.buildInfo());
         getServer().getMessenger().registerIncomingPluginChannel(this, MuteData.MUTE_DATA_CHANNEL_IDENTIFIER, new MessagingChannelListener(this));
         getServer().getPluginManager().registerEvents(new ChatListener(this), this);
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("NecrifyPaperPlugin has been disabled!");
+        logger.info("NecrifyPaperPlugin has been disabled!");
     }
 
     public List<MuteInformation> cachedMutes() {

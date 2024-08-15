@@ -37,8 +37,8 @@ import java.util.stream.Stream;
 @SuppressWarnings("UnstableApiUsage")
 /*
  * The original was taken from https://github.com/Minecrell/plugin-yml?tab=readme-ov-file#paper-1, licensed under the MIT
- * and modified in some minor ways.
- * For the whole license, see above (starting in line 6/Permission is hereby granted...).
+ license * and modified in some minor ways.
+ * For the whole license, see above https://github.com/Minecrell/plugin-yml/blob/master/LICENSE.
  * Copyright (c) 2017 Minecrell <https://github.com/Minecrell>
  * Full original license: https://github.com/Minecrell/plugin-yml/blob/master/LICENSE
  */

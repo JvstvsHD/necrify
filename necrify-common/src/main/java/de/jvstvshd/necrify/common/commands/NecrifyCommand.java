@@ -186,6 +186,7 @@ public class NecrifyCommand {
                 return;
             }
             sender.sendMessage("command.tempmute.success",
+                    NamedTextColor.GRAY,
                     miniMessage(target.getUsername()).color(NamedTextColor.YELLOW),
                     copyComponent(target.getUuid().toString()).color(NamedTextColor.YELLOW),
                     finalReason,

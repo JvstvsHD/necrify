@@ -8,13 +8,13 @@ plugins {
     `maven-publish`
     signing
     id("io.papermc.hangar-publish-plugin") version "0.1.2"
-    id("io.github.goooler.shadow") version "8.1.8" apply false
+    id("com.gradleup.shadow") version "8.3.0" apply false
     id("net.kyori.indra.licenser.spotless") version "2.2.0"
     java
 }
 
 group = "de.jvstvshd.necrify"
-version = "1.2.0-beta.2"
+version = "1.2.0-rc.1"
 
 subprojects {
     apply {

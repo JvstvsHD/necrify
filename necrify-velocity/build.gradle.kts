@@ -1,7 +1,7 @@
 plugins {
     java
     `java-library`
-    id("io.github.goooler.shadow")
+    id("com.gradleup.shadow")
     id("xyz.jpenilla.run-velocity") version "2.3.0"
     id("io.papermc.hangar-publish-plugin")
     id("dev.vankka.dependencydownload.plugin") version "1.3.1"
@@ -60,6 +60,7 @@ tasks {
     }
 
     jar {
+        archiveFileName.set("Necrify-Velocity-${project.buildVersion()}.jar")
         dependsOn(generateRuntimeDownloadResourceForRuntimeDownload)
         finalizedBy(shadowJar)
     }

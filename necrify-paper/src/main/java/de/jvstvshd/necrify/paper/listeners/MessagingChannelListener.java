@@ -21,16 +21,17 @@ package de.jvstvshd.necrify.paper.listeners;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.io.ByteStreams;
 import de.jvstvshd.necrify.common.plugin.MuteData;
-import de.jvstvshd.necrify.paper.NecrifyPaperPlugin;
+import de.jvstvshd.necrify.common.util.Updater;
+import de.jvstvshd.necrify.paper.NecrifyPaperJavaPlugin;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
 
 public class MessagingChannelListener implements PluginMessageListener {
 
-    private final NecrifyPaperPlugin plugin;
+    private final NecrifyPaperJavaPlugin plugin;
 
-    public MessagingChannelListener(NecrifyPaperPlugin plugin) {
+    public MessagingChannelListener(NecrifyPaperJavaPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -47,12 +48,25 @@ public class MessagingChannelListener implements PluginMessageListener {
             plugin.getSLF4JLogger().error("Could not parse MuteData", e);
             return;
         }
+        if (data.getVersion() > MuteData.PROTOCOL_VERSION) {
+            plugin.getSLF4JLogger().warn("Received MuteData with higher version than supported. This may lead to unexpected " +
+                    "results as newer features might be expected by the incoming data.");
+            Updater.updateInformation(plugin.getSLF4JLogger());
+        } else if (data.getVersion() < MuteData.PROTOCOL_VERSION) {
+            plugin.getSLF4JLogger().warn("Received MuteData with lower version than supported. TBackwards compatibility " +
+                    "should be ensured unless this version is really outdated.");
+            Updater.updateInformation(plugin.getSLF4JLogger());
+        }
         if (data.getType() == MuteData.RESET) {
             plugin.cachedMutes().stream().filter(muteInformation -> muteInformation.getPlayer().getUniqueId().equals(data.getUuid())).forEach(plugin.cachedMutes()::remove);
             return;
         }
         var mute = MuteInformation.from(data);
         switch (data.getType()) {
+            case MuteData.RECALCULATION -> {
+                plugin.cachedMutes().removeIf(muteInformation -> muteInformation.getPlayer().getUniqueId().equals(data.getUuid()));
+                plugin.cachedMutes().add(mute);
+            }
             case MuteData.ADD -> plugin.cachedMutes().add(mute);
             case MuteData.REMOVE ->
                     plugin.cachedMutes().removeIf(muteInformation -> muteInformation.getPunishmentUUID().equals(mute.getPunishmentUUID()));

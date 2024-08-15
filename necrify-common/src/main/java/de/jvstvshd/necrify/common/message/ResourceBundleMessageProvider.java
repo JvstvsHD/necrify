@@ -16,11 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package de.jvstvshd.necrify.velocity.message;
+package de.jvstvshd.necrify.common.message;
 
 import de.jvstvshd.necrify.api.message.MessageProvider;
-import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
-import de.jvstvshd.necrify.velocity.config.ConfigData;
+import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -35,7 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -66,14 +64,14 @@ public class ResourceBundleMessageProvider implements MessageProvider {
         }
         try (Stream<Path> paths = Files.list(baseDir)) {
             List<Path> registeredPaths = new ArrayList<>();
-            try (JarFile jar = new JarFile(new File(NecrifyVelocityPlugin.class.getProtectionDomain().getCodeSource().getLocation().toURI()))) {
+            try (JarFile jar = new JarFile(new File(AbstractNecrifyPlugin.class.getProtectionDomain().getCodeSource().getLocation().toURI()))) {
                 for (JarEntry translationEntry : jar.stream().filter(jarEntry -> jarEntry.getName().toLowerCase().contains("translations") && !jarEntry.isDirectory()).toList()) {
                     var path = Path.of(baseDir.toString(), translationEntry.getName().split("/")[1]);
                     if (Files.exists(path)) {
                         continue;
                     }
                     LOGGER.info("copying translation file {}", translationEntry.getName());
-                    Files.copy(Objects.requireNonNull(NecrifyVelocityPlugin.class.getResourceAsStream("/" + translationEntry.getName())), path);
+                    Files.copy(Objects.requireNonNull(AbstractNecrifyPlugin.class.getResourceAsStream("/" + translationEntry.getName())), path);
                     registeredPaths.add(path);
                 }
             }
@@ -106,16 +104,15 @@ public class ResourceBundleMessageProvider implements MessageProvider {
     }
 
 
-
-    private final ConfigData configData;
+    private final Locale defaultLocale;
     private final boolean autoPrefixed;
 
-    public ResourceBundleMessageProvider(@NotNull ConfigData configData) {
-        this(configData, true);
+    public ResourceBundleMessageProvider(@NotNull Locale defaultLocale) {
+        this(defaultLocale, true);
     }
 
-    private ResourceBundleMessageProvider(@NotNull ConfigData configData, boolean autoPrefixed) {
-        this.configData = configData;
+    private ResourceBundleMessageProvider(@NotNull Locale defaultLocale, boolean autoPrefixed) {
+        this.defaultLocale = defaultLocale;
         this.autoPrefixed = autoPrefixed;
     }
 
@@ -152,7 +149,7 @@ public class ResourceBundleMessageProvider implements MessageProvider {
 
     @NotNull
     private Locale orDefault(@Nullable Locale input) {
-        return input == null ? configData.getDefaultLanguage() : input;
+        return input == null ? defaultLocale : input;
     }
 
     @Override
@@ -160,6 +157,6 @@ public class ResourceBundleMessageProvider implements MessageProvider {
         if (!autoPrefixed) {
             return this;
         }
-        return new ResourceBundleMessageProvider(configData, false);
+        return new ResourceBundleMessageProvider(defaultLocale, false);
     }
 }

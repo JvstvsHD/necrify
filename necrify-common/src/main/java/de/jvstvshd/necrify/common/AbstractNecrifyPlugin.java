@@ -144,6 +144,16 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
         } + "</red>";
     }
 
+    @SuppressWarnings("ConstantValue")
+    public static String buildInfo() {
+        var buildInfo = "v" + VERSION + " (running on commit " + GIT_COMMIT;
+        //build number is only available when built by the CI (GitHub Actions or Jenkins)
+        if (!BUILD_NUMBER.equalsIgnoreCase("-1")) {
+            buildInfo += " build " + BUILD_NUMBER;
+        }
+        return buildInfo + ")";
+    }
+
     public abstract NecrifyKick createKick(Component reason, NecrifyUser user, UUID punishmentUuid);
 
     public abstract Logger getLogger();

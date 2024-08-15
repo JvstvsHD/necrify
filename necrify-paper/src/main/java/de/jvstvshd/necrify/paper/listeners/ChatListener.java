@@ -18,7 +18,7 @@
 
 package de.jvstvshd.necrify.paper.listeners;
 
-import de.jvstvshd.necrify.paper.NecrifyPaperPlugin;
+import de.jvstvshd.necrify.paper.NecrifyPaperJavaPlugin;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -30,9 +30,9 @@ import java.util.stream.Collectors;
 
 public class ChatListener implements Listener {
 
-    private final NecrifyPaperPlugin plugin;
+    private final NecrifyPaperJavaPlugin plugin;
 
-    public ChatListener(NecrifyPaperPlugin plugin) {
+    public ChatListener(NecrifyPaperJavaPlugin plugin) {
         this.plugin = plugin;
     }
 
