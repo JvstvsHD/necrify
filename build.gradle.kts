@@ -107,10 +107,10 @@ subprojects {
 hangarPublish {
     publications.register("necrify") {
         version.set(buildVersion())
-        channel.set(if (!isRelease()) "Snapshot" else "Release")
+        channel.set(if (!isRelease) "Snapshot" else "Release")
         id.set("necrify")
         apiKey.set(System.getenv("HANGAR_API_TOKEN"))
-        if (!isRelease()) {
+        if (!isRelease) {
             changelog.set(changelogMessage())
         } else {
             changelog.set("Changes will be provided shortly.\nComplete changelog can be found on GitHub: https://www.github.com/JvstvsHD/necrify/releases/tag/v$version")

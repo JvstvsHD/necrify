@@ -14,8 +14,8 @@ sourceSets {
         blossom {
             javaSources {
                 property("version", project.version.toString())
-                property("gitCommit", Version(project).latestCommitHashShort())
-                property("buildNumber", Version(project).buildNumber() ?: "-1")
+                property("gitCommit", git.latestCommitHashShort())
+                property("buildNumber", project.buildNumber() ?: "-1")
             }
         }
     }
