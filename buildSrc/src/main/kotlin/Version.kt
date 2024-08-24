@@ -1,55 +1,32 @@
 import org.gradle.api.Project
-import java.io.ByteArrayOutputStream
 
-class Version(val project: Project) {
-
-    //https://docs.papermc.io/misc/hangar-publishing
-    fun executeGitCommand(vararg command: String): String {
-        val byteOut = ByteArrayOutputStream()
-        project.exec {
-            commandLine = listOf("git", *command)
-            standardOutput = byteOut
-        }
-        return byteOut.toString(Charsets.UTF_8.name()).trim()
+fun Project.buildNumber(): String? {
+    if (hasProperty("buildnumber")) {
+        return property("buildnumber").toString()
     }
+    return System.getenv("GITHUB_RUN_NUMBER")
+}
 
-    fun latestCommitMessage(): String {
-        return executeGitCommand("log", "-1", "--pretty=%B")
-    }
+fun Project.publishingVersion(): String {
+    val branch = git.currentBranch()
+    return if (branch == "master" || branch.startsWith("dev/")) {
+        version.toString()
+    } else "${branch.replace('/', '-')}-SNAPSHOT"
+}
 
-    fun latestCommitHash(): String {
-        return executeGitCommand("rev-parse", "HEAD")
-    }
-
-    fun latestCommitHashShort(): String {
-        return executeGitCommand("rev-parse", "--short", "HEAD")
-    }
-
-    fun buildNumber(): String? {
-        if (project.hasProperty("buildnumber")) {
-            return project.property("buildnumber").toString()
-        }
-        return System.getenv("GITHUB_RUN_NUMBER")
-    }
-
+fun Project.buildVersion(): String {
+    val git = Git(project)
     val versionString: String = project.version as String
-    val isRelease: Boolean = !versionString.contains("-")
-    val suffixedVersion: String = if (project.isSnapshot) versionString +
-            if (project.hasProperty("buildnumber")) {
-                "-" + project.property("buildnumber") as String
-            } else {
-                val githubRunNumber = System.getenv("GITHUB_RUN_NUMBER")
-                if (githubRunNumber != null) "-$githubRunNumber" else ""
-            } else versionString
+    return if (project.isSnapshot) "$versionString-${git.latestCommitHashShort()}"
+    else versionString
 }
 
-fun Project.buildVersion() = Version(this).suffixedVersion
-
-fun Project.changelogMessage() = with(Version(this)) {
-    "https://github.com/JvstvsHD/necrify/commit/${latestCommitHash()}: ${latestCommitMessage()}"
+fun Project.changelogMessage() = with(git) {
+    "[https://github.com/JvstvsHD/necrify/commit/${latestCommitHash()}](${latestCommitHashShort()}: ${latestCommitMessage()}"
 }
 
-fun Project.isRelease() = Version(this).isRelease
+val Project.isRelease: Boolean
+    get() = version.toString().contains("-")
 
 val Project.isSnapshot: Boolean
     get() = version.toString().endsWith("-SNAPSHOT")

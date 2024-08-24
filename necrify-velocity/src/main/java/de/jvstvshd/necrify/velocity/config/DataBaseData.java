@@ -62,7 +62,7 @@ public class DataBaseData {
     }
 
     public DataBaseData() {
-        this("localhost", "password", "username", "database", "5432", "sqlite", 10, 5, "punishment");
+        this("localhost", "password", "username", "database", "5432", "postgresql", 10, 5, "punishment");
     }
 
     public String getHost() {

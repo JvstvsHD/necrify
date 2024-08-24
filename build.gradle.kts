@@ -1,7 +1,5 @@
-import com.diffplug.gradle.spotless.SpotlessPlugin
 import io.papermc.hangarpublishplugin.model.Platforms
 import net.kyori.indra.licenser.spotless.IndraSpotlessLicenserPlugin
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.licenseHeader
 import java.util.*
 
 plugins {
@@ -14,7 +12,7 @@ plugins {
 }
 
 group = "de.jvstvshd.necrify"
-version = "1.2.0"
+version = "1.2.1-SNAPSHOT"
 
 subprojects {
     apply {
@@ -54,7 +52,7 @@ subprojects {
             publishing {
                 repositories {
                     maven(
-                        if (project.version.toString().endsWith("-SNAPSHOT"))
+                        if (project.buildVersion().endsWith("-SNAPSHOT"))
                             "https://s01.oss.sonatype.org/content/repositories/snapshots/" else "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
                     ) {
                         name = "ossrh"
@@ -73,7 +71,7 @@ subprojects {
                         from(this@subprojects.components["java"])
                         groupId = rootProject.group.toString().lowercase(Locale.getDefault())
                         artifactId = project.name
-                        version = project.version.toString()
+                        version = project.publishingVersion()
 
                         pom {
                             name.set(project.name)
