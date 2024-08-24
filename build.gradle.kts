@@ -52,7 +52,7 @@ subprojects {
             publishing {
                 repositories {
                     maven(
-                        if (project.buildVersion().endsWith("-SNAPSHOT"))
+                        if (project.publishingVersion().endsWith("-SNAPSHOT"))
                             "https://s01.oss.sonatype.org/content/repositories/snapshots/" else "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
                     ) {
                         name = "ossrh"
@@ -109,7 +109,7 @@ hangarPublish {
         version.set(buildVersion())
         channel.set(if (!isRelease) "Snapshot" else "Release")
         id.set("necrify")
-        apiKey.set(System.getenv("HANGAR_API_TOKEN"))
+        apiKey.set(System.getenv("HANGAR_API_TOKEN") ?: "")
         if (!isRelease) {
             changelog.set(changelogMessage())
         } else {
