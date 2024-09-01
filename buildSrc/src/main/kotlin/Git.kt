@@ -26,6 +26,7 @@ fun Project.git(vararg command: String): String {
     project.exec {
         commandLine = listOf("git", *command)
         standardOutput = byteOut
+        errorOutput = System.err
     }
     return byteOut.toString(Charsets.UTF_8.name()).trim()
 }

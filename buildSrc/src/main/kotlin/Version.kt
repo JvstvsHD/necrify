@@ -15,10 +15,16 @@ fun Project.publishingVersion(): String {
 }
 
 fun Project.buildVersion(): String {
-    val git = Git(project)
     val versionString: String = project.version as String
-    return if (project.isSnapshot) "$versionString-${git.latestCommitHashShort()}"
-    else versionString
+    if (!project.isSnapshot) {
+        return versionString
+    }
+    val buildNum = project.buildNumber()
+    if (buildNum != null) {
+        return "$versionString-$buildNum"
+    } else {
+        return versionString
+    }
 }
 
 fun Project.changelogMessage() = with(git) {
@@ -26,7 +32,7 @@ fun Project.changelogMessage() = with(git) {
 }
 
 val Project.isRelease: Boolean
-    get() = version.toString().contains("-")
+    get() = !version.toString().contains("-")
 
 val Project.isSnapshot: Boolean
     get() = version.toString().endsWith("-SNAPSHOT")

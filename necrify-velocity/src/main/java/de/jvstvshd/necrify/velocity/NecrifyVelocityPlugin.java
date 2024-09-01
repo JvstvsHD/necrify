@@ -57,7 +57,6 @@ import de.jvstvshd.necrify.api.event.user.UserLoadedEvent;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.PunishmentManager;
-import de.jvstvshd.necrify.api.punishment.PunishmentType;
 import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserManager;
@@ -114,8 +113,6 @@ import java.util.stream.Collectors;
 public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
 
     private final ProxyServer server;
-    private final Logger logger;
-    private final ConfigurationManager configurationManager;
     private static final String MUTES_DISABLED_STRING = """
             Since 1.19.1, cancelling chat messages on proxy is not possible anymore. Therefore, we have to listen to the chat event on the actual game server. This means
             that there has to be a spigot/paper extension to this plugin which is not yet available unless there's a possibility. Therefore all mute related features won't work at the moment.
@@ -145,11 +142,9 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     public NecrifyVelocityPlugin(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
         super(Executors.newCachedThreadPool(new ThreadFactoryBuilder()
                 .setUncaughtExceptionHandler((t, e) -> logger.error("An error occurred in thread {}", t.getName(), e))
-                .build()));
+                .build()), new ConfigurationManager(dataDirectory.resolve("config.yml")), logger);
         this.server = server;
-        this.logger = logger;
         this.dataDirectory = dataDirectory;
-        this.configurationManager = new ConfigurationManager(dataDirectory.resolve("config.yml"));
         this.communicator = new MessagingChannelCommunicator(server, this);
         this.playerResolver = new DefaultPlayerResolver(server);
         this.eventDispatcher = new EventDispatcher(getExecutor(), new Slf4jLogger(logger));
@@ -158,7 +153,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     //TODO keep changed implementations and do not override them.
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
-        Thread.setDefaultUncaughtExceptionHandler((t, e) -> logger.error("An error occurred in thread {}", t.getName(), e));
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> getLogger().error("An error occurred in thread {}", t.getName(), e));
         long start = System.currentTimeMillis();
         try {
             DependencyManager manager = new DependencyManager(dataDirectory.resolve("cache"));
@@ -166,10 +161,10 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
             Executor executor = Executors.newCachedThreadPool();
             if (!manager.getAllPaths(true).stream().allMatch(Files::exists)) {
                 manager.downloadAll(executor, Collections.singletonList(new StandardRepository("https://repo1.maven.org/maven2"))).join();
-                logger.info("Relocating all dependencies...");
+                getLogger().info("Relocating all dependencies...");
                 long relocateStart = System.currentTimeMillis();
                 manager.relocateAll(executor).join();
-                logger.info("Successfully relocated all dependencies in {}ms", System.currentTimeMillis() - relocateStart);
+                getLogger().info("Successfully relocated all dependencies in {}ms", System.currentTimeMillis() - relocateStart);
             } else {
                 var depField = manager.getClass().getDeclaredField("step");
                 depField.setAccessible(true);
@@ -178,43 +173,36 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
             }
             manager.loadAll(executor, new VelocityClasspathAppender(this, server)).join();
         } catch (Exception e) {
-            logger.error("Could not load required dependencies. Aborting start-up", e);
+            getLogger().error("Could not load required dependencies. Aborting start-up", e);
             return;
         }
-        logger.info("Successfully loaded all dependencies in {}ms", System.currentTimeMillis() - start);
-        try {
-            configurationManager.load();
-            if (configurationManager.getConfiguration().isWhitelistActivated()) {
-                logger.info("Whitelist is activated. This means that nobody can join this server beside players you have explicitly allowed to join this server via /necrify user <player> whitelist (toggles current state).");
-            }
-            this.messageProvider = new ResourceBundleMessageProvider(configurationManager.getConfiguration().getDefaultLanguage());
-        } catch (IOException e) {
-            logger.error("Could not load configuration", e);
-            logger.error("Aborting start-up");
+        getLogger().info("Successfully loaded all dependencies in {}ms", System.currentTimeMillis() - start);
+        if (!loadConfig()) {
             return;
         }
+        this.messageProvider = new ResourceBundleMessageProvider(configurationManager.getConfiguration().getDefaultLanguage());
         dataSource = createDataSource();
         QueryConfiguration.setDefault(QueryConfiguration.builder(dataSource).setThrowExceptions(true).build());
         punishmentManager = new DefaultPunishmentManager(server, dataSource, this);
-        registerRegistries();
+        registerFactories();
         this.userManager = new VelocityUserManager(getExecutor(), server, Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build(), Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build(), this);
         try {
             updateDatabase();
         } catch (SQLException | IOException e) {
-            logger.error("Could not create table necrify_punishment in database {}", dataSource.getDataSourceProperties().get("dataSource.databaseName"), e);
+            getLogger().error("Could not create table necrify_punishment in database {}", dataSource.getDataSourceProperties().get("dataSource.databaseName"), e);
         }
         setup(server.getEventManager());
-        logger.warn("Persecution of mutes cannot be granted on all servers unless the required paper plugin is installed.");
+        getLogger().warn("Persecution of mutes cannot be granted on all servers unless the required paper plugin is installed.");
         eventDispatcher.register(communicator);
         eventDispatcher.register(userManager);
-        logger.info("Velocity Punishment Plugin {} has been loaded. This is only a dev build and thus may be unstable.", buildInfo());
+        getLogger().info("Velocity Punishment Plugin {} has been loaded. This is only a dev build and thus may be unstable.", buildInfo());
     }
 
     private void setup(EventManager eventManager) {
         eventManager.register(this, communicator);
         eventManager.register(this, new ConnectListener(this, Executors.newCachedThreadPool(), server));
         eventManager.register(this, userManager);
-        logger.info(MUTES_DISABLED_STRING);
+        getLogger().info(MUTES_DISABLED_STRING);
 
         final Injector childInjector = injector.createChildInjector(
                 new CloudInjectionModule<>(
@@ -293,7 +281,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
                                 .single(Call.of().bind(MiniMessage.miniMessage().serialize(reason)).bind(punishmentId.toString()))
                                 .update();
                     }).all();
-            logger.info("Updated {} reasons to minimessage format.", updatedReasons.size());
+            getLogger().info("Updated {} reasons to minimessage format.", updatedReasons.size());
         };
         switch (configurationManager.getConfiguration().getDataBaseData().sqlType().name().toLowerCase(Locale.ROOT)) {
             case "postgresql", "postgres" ->
@@ -307,7 +295,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
                     .preUpdateHook(new SqlVersion(1, 1), preUpdateHook)
                     .execute();
             default ->
-                    logger.warn("Database type is not (yet) supported for automatic updates. Please update the database manually.");
+                    getLogger().warn("Database type is not (yet) supported for automatic updates. Please update the database manually.");
         }
     }
 
@@ -355,23 +343,8 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     }
 
     @Override
-    public Logger getLogger() {
-        return logger;
-    }
-
-    @Override
     public boolean isWhitelistActive() {
         return configurationManager.getConfiguration().isWhitelistActivated();
-    }
-
-    @Override
-    public void setWhitelistActive(boolean active) throws IOException {
-        configurationManager.getConfiguration().setWhitelistActivated(active);
-        configurationManager.save();
-    }
-
-    public ConfigurationManager getConfig() {
-        return configurationManager;
     }
 
     @Override
@@ -474,10 +447,5 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     @Override
     public Set<Pair<String, UUID>> getOnlinePlayers() {
         return server.getAllPlayers().stream().map(player -> Pair.of(player.getUsername(), player.getUniqueId())).collect(Collectors.toSet());
-    }
-
-    @Override
-    public String getDefaultReason(PunishmentType type) {
-        return configurationManager.getConfiguration().getPunishmentConfigData().getPunishmentMessages().get(type.getId());
     }
 }

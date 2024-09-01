@@ -26,6 +26,7 @@ import de.jvstvshd.necrify.api.punishment.PunishmentTypeRegistry;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.commands.*;
+import de.jvstvshd.necrify.common.config.ConfigurationManager;
 import de.jvstvshd.necrify.common.punishment.NecrifyKick;
 import de.jvstvshd.necrify.common.punishment.NecrifyPunishmentFactory;
 import net.kyori.adventure.text.Component;
@@ -44,7 +45,10 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 public abstract class AbstractNecrifyPlugin implements Necrify {
@@ -54,9 +58,13 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
     public static final String BUILD_NUMBER = BuildParameters.BUILD_NUMBER;
 
     protected ExecutorService executorService;
+    protected final ConfigurationManager configurationManager;
+    private final Logger logger;
 
-    public AbstractNecrifyPlugin(ExecutorService executorService) {
+    public AbstractNecrifyPlugin(ExecutorService executorService, ConfigurationManager configurationManager, Logger logger) {
         this.executorService = executorService;
+        this.configurationManager = configurationManager;
+        this.logger = logger;
     }
 
     @Override
@@ -73,10 +81,10 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
      * Registers the punishment types of the plugin to the {@link PunishmentTypeRegistry}. This method should be called
      * before any user-input is processed, as the registry is used to determine the type of punishment that should be created.
      */
-    public final void registerRegistries() {
-        var registry = new NecrifyPunishmentFactory(this);
+    public final void registerFactories() {
+        var factory = new NecrifyPunishmentFactory(this);
         for (StandardPunishmentType type : StandardPunishmentType.values()) {
-            PunishmentTypeRegistry.registerType(type, registry);
+            PunishmentTypeRegistry.registerType(type, factory);
         }
     }
 
@@ -137,7 +145,23 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
     }
 
     //TODO: Move config to necrify-common
-    public abstract String getDefaultReason(PunishmentType type);
+    public String getDefaultReason(PunishmentType type) {
+        return configurationManager.getConfiguration().getPunishmentConfigData().getPunishmentMessages().get(type.getId());
+    }
+
+    public boolean loadConfig() {
+        try {
+            configurationManager.load();
+            if (configurationManager.getConfiguration().isWhitelistActivated()) {
+                logger.info("Whitelist is activated. This means that nobody can join this server beside players you have explicitly allowed to join this server via /necrify user <player> whitelist (toggles current state).");
+            }
+        } catch (IOException e) {
+            logger.error("Could not load configuration", e);
+            logger.error("Aborting start-up");
+            return false;
+        }
+        return true;
+    }
 
     @SuppressWarnings("ConstantValue")
     public static String buildInfo() {
@@ -149,14 +173,18 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
         return buildInfo + ")";
     }
 
+    public ConfigurationManager getConfig() {
+        return configurationManager;
+    }
+
     public abstract NecrifyKick createKick(Component reason, NecrifyUser user, UUID punishmentUuid);
 
-    public abstract Logger getLogger();
+    public Logger getLogger() {
+        return logger;
+    }
 
+    //TODO return just a set of objects. Create a new User object that does not get loaded from the database.
     public abstract Set<Pair<String, UUID>> getOnlinePlayers();
 
     public abstract boolean isWhitelistActive();
-
-    //TODO kick all non-whitelisted players
-    public abstract void setWhitelistActive(boolean active) throws IOException;
 }
