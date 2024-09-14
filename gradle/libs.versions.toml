@@ -16,6 +16,7 @@ mariadb = "3.4.1"
 mysql = "9.0.0"
 adventure = "4.17.0"
 cloud = "2.0.0"
+cloud-minecraft = "2.0.0-beta.10"
 eventbus = "3.3.1"
 jetbrains-annotations = "24.1.0"
 slf4j = "2.0.16"
@@ -51,9 +52,9 @@ adventure-text-serializer-plain = { group = "net.kyori", name = "adventure-text-
 # Cloud
 cloud-core = { group = "org.incendo", name = "cloud-core", version.ref = "cloud" }
 cloud-annotations = { group = "org.incendo", name = "cloud-annotations", version.ref = "cloud" }
-cloud-velocity = { group = "org.incendo", name = "cloud-velocity", version.ref = "cloud" }
-cloud-minecraft-extras = { group = "org.incendo", name = "cloud-minecraft-extras", version.ref = "cloud" }
-cloud-brigadier = { group = "org.incendo", name = "cloud-brigadier", version.ref = "cloud" }
+cloud-velocity = { group = "org.incendo", name = "cloud-velocity", version.ref = "cloud-minecraft" }
+cloud-minecraft-extras = { group = "org.incendo", name = "cloud-minecraft-extras", version.ref = "cloud-minecraft" }
+cloud-brigadier = { group = "org.incendo", name = "cloud-brigadier", version.ref = "cloud-minecraft" }
 
 # Testing
 junit-jupiter-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit" }
