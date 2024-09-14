@@ -11,6 +11,7 @@ de.jvstvshd.necrify.api.punishment.util
 de.jvstvshd.necrify.api.user
 de.jvstvshd.necrify.common
 de.jvstvshd.necrify.common.commands
+de.jvstvshd.necrify.common.config
 de.jvstvshd.necrify.common.io
 de.jvstvshd.necrify.common.message
 de.jvstvshd.necrify.common.plugin
@@ -20,7 +21,6 @@ de.jvstvshd.necrify.common.util
 de.jvstvshd.necrify.paper
 de.jvstvshd.necrify.paper.listeners
 de.jvstvshd.necrify.velocity
-de.jvstvshd.necrify.velocity.config
 de.jvstvshd.necrify.velocity.impl
 de.jvstvshd.necrify.velocity.listener
 de.jvstvshd.necrify.velocity.user
