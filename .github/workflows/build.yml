@@ -1,0 +1,18 @@
+name: Build project and generate JavaDocs
+on: [push, pull_request]
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@88425854a36845f9c881450d9660b5fd46bee142
+      - name: Build
+        run: ./gradlew build --stacktrace
+      - name: Generate javadocs
+        run: ./gradlew alljavadoc --stacktrace
