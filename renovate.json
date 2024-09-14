@@ -1,6 +1,6 @@
 {
   "baseBranches": [
-    "1.2-dev"
+    "dependency-updates"
   ],
   "dependencyDashboard": true,
   "labels": [
