@@ -113,7 +113,7 @@ hangarPublish {
         if (!rootProject.isRelease) {
             changelog.set(changelogMessage())
         } else {
-            changelog.set("Changes will be provided shortly.\nComplete changelog can be found on GitHub: https://www.github.com/JvstvsHD/necrify/releases/tag/v${rootProject.version.toString()}")
+            changelog.set("Changes will be provided shortly.\nComplete changelog can be found on GitHub: https://www.github.com/JvstvsHD/necrify/releases/tag/v${rootProject.version}")
         }
         platforms {
             register(Platforms.PAPER) {

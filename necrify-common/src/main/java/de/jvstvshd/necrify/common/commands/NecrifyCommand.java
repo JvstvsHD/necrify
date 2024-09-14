@@ -350,11 +350,11 @@ public class NecrifyCommand {
         }
     }
 
-    @Command("necrify whitelist")
+    @Command("necrify whitelist [option]")
     @Permission(value = {"necrify.command.whitelist", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void whitelistCommand(
             NecrifyUser sender,
-            @Argument(value = "option", description = "Option to retrieve the whitelist's status", suggestions = "suggestWhitelistCommandOptions") @Default("status") String option
+            @Argument(value = "option", description = "Option to retrieve the whitelist's status") @Default("status") String option
     ) {
         var whitelist = plugin.isWhitelistActive();
         var activeState = whitelist ? "active" : "inactive";

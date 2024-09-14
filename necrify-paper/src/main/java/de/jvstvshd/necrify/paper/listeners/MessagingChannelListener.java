@@ -58,7 +58,7 @@ public class MessagingChannelListener implements PluginMessageListener {
             Updater.updateInformation(plugin.getSLF4JLogger());
         }
         if (data.getType() == MuteData.RESET) {
-            plugin.cachedMutes().stream().filter(muteInformation -> muteInformation.getPlayer().getUniqueId().equals(data.getUuid())).forEach(plugin.cachedMutes()::remove);
+            plugin.cachedMutes().removeIf(muteInformation -> muteInformation.getPlayer().getUniqueId().equals(data.getUuid()));
             return;
         }
         var mute = MuteInformation.from(data);
