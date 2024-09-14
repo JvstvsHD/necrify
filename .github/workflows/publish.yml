@@ -12,7 +12,8 @@ on:
   release:
     types: [created]
   push:
-    branches: ["**"]
+    branches: ["**", "!dependency-updates"]
+
 
 jobs:
   publish:

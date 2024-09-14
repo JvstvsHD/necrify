@@ -1,6 +1,6 @@
 {
   "baseBranches": [
-    "master"
+    "dependency-updates"
   ],
   "dependencyDashboard": true,
   "labels": [
