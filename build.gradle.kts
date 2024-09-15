@@ -1,20 +1,18 @@
-import com.diffplug.gradle.spotless.SpotlessPlugin
 import io.papermc.hangarpublishplugin.model.Platforms
 import net.kyori.indra.licenser.spotless.IndraSpotlessLicenserPlugin
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.licenseHeader
 import java.util.*
 
 plugins {
     `maven-publish`
     signing
     id("io.papermc.hangar-publish-plugin") version "0.1.2"
-    id("com.gradleup.shadow") version "8.3.0" apply false
+    id("com.gradleup.shadow") version "8.3.1" apply false
     id("net.kyori.indra.licenser.spotless") version "2.2.0"
     java
 }
 
-group = "de.jvstvshd.necrify"
-version = "1.2.0"
+group = Version.PROJECT_GROUP
+version = Version.PROJECT_VERSION
 
 subprojects {
     apply {
@@ -54,7 +52,7 @@ subprojects {
             publishing {
                 repositories {
                     maven(
-                        if (project.version.toString().endsWith("-SNAPSHOT"))
+                        if (project.publishingVersion().endsWith("-SNAPSHOT"))
                             "https://s01.oss.sonatype.org/content/repositories/snapshots/" else "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
                     ) {
                         name = "ossrh"
@@ -73,7 +71,7 @@ subprojects {
                         from(this@subprojects.components["java"])
                         groupId = rootProject.group.toString().lowercase(Locale.getDefault())
                         artifactId = project.name
-                        version = project.version.toString()
+                        version = project.publishingVersion()
 
                         pom {
                             name.set(project.name)
@@ -109,13 +107,13 @@ subprojects {
 hangarPublish {
     publications.register("necrify") {
         version.set(buildVersion())
-        channel.set(if (!isRelease()) "Snapshot" else "Release")
+        channel.set(if (!rootProject.isRelease) "Snapshot" else "Release")
         id.set("necrify")
-        apiKey.set(System.getenv("HANGAR_API_TOKEN"))
-        if (!isRelease()) {
+        apiKey.set(System.getenv("HANGAR_API_TOKEN") ?: "")
+        if (!rootProject.isRelease) {
             changelog.set(changelogMessage())
         } else {
-            changelog.set("Changes will be provided shortly.\nComplete changelog can be found on GitHub: https://www.github.com/JvstvsHD/necrify/releases/tag/v$version")
+            changelog.set("Changes will be provided shortly.\nComplete changelog can be found on GitHub: https://www.github.com/JvstvsHD/necrify/releases/tag/v${rootProject.version}")
         }
         platforms {
             register(Platforms.PAPER) {

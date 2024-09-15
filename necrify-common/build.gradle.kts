@@ -5,7 +5,6 @@ plugins {
     id("net.kyori.blossom") version "2.1.0"
 }
 
-group = "de.jvstvshd.necrify"
 version = rootProject.version
 description = "Common project for all plugin implementations of the necrify-api"
 
@@ -14,8 +13,8 @@ sourceSets {
         blossom {
             javaSources {
                 property("version", project.version.toString())
-                property("gitCommit", Version(project).latestCommitHashShort())
-                property("buildNumber", Version(project).buildNumber() ?: "-1")
+                property("gitCommit", git.latestCommitHashShort())
+                property("buildNumber", project.buildNumber() ?: "-1")
             }
         }
     }
@@ -33,7 +32,7 @@ dependencies {
     compileOnly(libs.brigadier)
     annotationProcessor(libs.cloud.annotations)
     compileOnly(libs.slf4j.api)
-    compileOnly("com.google.code.gson:gson:2.10.1")
+    compileOnly("com.google.code.gson:gson:2.11.0")
     compileOnly(libs.bundles.adventure)
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)

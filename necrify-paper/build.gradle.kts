@@ -6,7 +6,6 @@ plugins {
     id("io.papermc.hangar-publish-plugin")
 }
 
-group = "de.jvstvshd.necrify"
 version = rootProject.version
 description = "Paper plugin implementing the Necrify API used for help enforcing mutes for velocity-based applications"
 

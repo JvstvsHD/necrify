@@ -16,7 +16,7 @@ dependencies {
     compileOnly(libs.slf4j.api)
     compileOnly(libs.bundles.adventure)
     testImplementation(libs.slf4j.api)
-    testImplementation("ch.qos.logback:logback-classic:1.5.6")
+    testImplementation("ch.qos.logback:logback-classic:1.5.8")
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)
 }

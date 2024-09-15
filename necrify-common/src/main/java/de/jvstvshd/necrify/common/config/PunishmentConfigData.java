@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package de.jvstvshd.necrify.velocity.config;
+package de.jvstvshd.necrify.common.config;
 
 import java.util.Map;
 

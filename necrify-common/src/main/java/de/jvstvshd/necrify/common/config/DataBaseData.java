@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package de.jvstvshd.necrify.velocity.config;
+package de.jvstvshd.necrify.common.config;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -62,7 +62,7 @@ public class DataBaseData {
     }
 
     public DataBaseData() {
-        this("localhost", "password", "username", "database", "5432", "sqlite", 10, 5, "punishment");
+        this("localhost", "password", "username", "database", "5432", "postgresql", 10, 5, "punishment");
     }
 
     public String getHost() {

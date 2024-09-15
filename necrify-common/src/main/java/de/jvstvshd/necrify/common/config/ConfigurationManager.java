@@ -16,15 +16,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package de.jvstvshd.necrify.velocity.config;
+package de.jvstvshd.necrify.common.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -53,25 +55,30 @@ public class ConfigurationManager {
         }
         try (FileChannel channel = FileChannel.open(path)) {
             if (channel.size() <= 0 || write) {
-                migrateConfig();
-                save();
+                if (migrateConfig()) {
+                    save();
+                    return;
+                }
+                try (InputStream is = AbstractNecrifyPlugin.class.getResourceAsStream("/config.yml")) {
+                    if (is == null) {
+                        throw new IOException("Could not find default config file.");
+                    }
+                    is.transferTo(Files.newOutputStream(path));
+                }
             }
         }
     }
 
-    private void migrateConfig() {
+    private boolean migrateConfig() throws IOException {
         var oldConfig = path.getParent().resolve("config.json");
         if (!Files.exists(oldConfig)) {
-            return;
+            return false;
         }
-        try {
-            var oldConfigData = new ObjectMapper().readValue(oldConfig.toFile(), ConfigData.class);
-            logger.info("Found old config file, migrating to new one....");
-            configData = oldConfigData;
-            logger.info("Successfully migrated old config file to {}", path.toAbsolutePath());
-        } catch (IOException e) {
-            logger.error("Could not migrate old config file.", e);
-        }
+        var oldConfigData = new ObjectMapper().readValue(oldConfig.toFile(), ConfigData.class);
+        logger.info("Found old config file, migrating to new one....");
+        configData = oldConfigData;
+        logger.info("Successfully migrated old config file to {}", path.toAbsolutePath());
+        return true;
     }
 
     public void load() throws IOException {
