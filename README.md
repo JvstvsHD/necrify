@@ -1,4 +1,5 @@
 # Necrify
+test
 
 Necrify is a punishment plugin designed for currently
 [Velocity](https://velocitypowered.com) (and
