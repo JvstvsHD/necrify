@@ -7,7 +7,7 @@ plugins {
     signing
     id("io.papermc.hangar-publish-plugin") version "0.1.2"
     id("com.gradleup.shadow") version "8.3.2" apply false
-    id("net.kyori.indra.licenser.spotless") version "2.2.0"
+    id("net.kyori.indra.licenser.spotless") version "3.1.3"
     java
 }
 
