@@ -2,7 +2,7 @@ name: Build project and generate JavaDocs
 on:
   push:
     branches: [ "**"]
-    pull_request:
+  pull_request:
 jobs:
   publish:
     runs-on: ubuntu-latest
