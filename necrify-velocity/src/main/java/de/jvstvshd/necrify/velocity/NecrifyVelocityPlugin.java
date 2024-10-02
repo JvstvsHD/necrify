@@ -39,6 +39,7 @@ import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import com.zaxxer.hikari.HikariDataSource;
 import de.chojo.sadu.core.databases.Database;
+import de.chojo.sadu.core.exceptions.ThrowingConsumer;
 import de.chojo.sadu.core.jdbc.RemoteJdbcConfig;
 import de.chojo.sadu.core.updater.SqlVersion;
 import de.chojo.sadu.datasource.DataSourceCreator;
@@ -271,7 +272,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
 
     @SuppressWarnings("UnstableApiUsage")
     private void updateDatabase() throws IOException, SQLException {
-        Consumer<Connection> preUpdateHook = connection -> {
+        ThrowingConsumer<Connection, SQLException> preUpdateHook = connection -> {
             var updatedReasons = Query.query("SELECT reason, punishment_id FROM necrify_punishment WHERE reason LIKE '%§%';")
                     .single()
                     .map(row -> {
