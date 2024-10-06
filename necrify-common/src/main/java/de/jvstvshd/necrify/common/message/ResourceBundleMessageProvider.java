@@ -36,11 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.PropertyResourceBundle;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
@@ -66,12 +62,29 @@ public class ResourceBundleMessageProvider implements MessageProvider {
             List<Path> registeredPaths = new ArrayList<>();
             try (JarFile jar = new JarFile(new File(AbstractNecrifyPlugin.class.getProtectionDomain().getCodeSource().getLocation().toURI()))) {
                 for (JarEntry translationEntry : jar.stream().filter(jarEntry -> jarEntry.getName().toLowerCase().contains("translations") && !jarEntry.isDirectory()).toList()) {
-                    var path = Path.of(baseDir.toString(), translationEntry.getName().split("/")[1]);
+                    var path = baseDir.resolve(translationEntry.getName().split("/")[1]);
+                    var inputStream = Objects.requireNonNull(AbstractNecrifyPlugin.class.getResourceAsStream("/" + translationEntry.getName()));
                     if (Files.exists(path)) {
+                        var existingBundle = new Properties();
+                        existingBundle.load(Files.newInputStream(path));
+                        var jarBundle = new PropertyResourceBundle(inputStream);
+                        var jarBundleKeys = jarBundle.getKeys();
+                        int changes = 0;
+                        while (jarBundleKeys.hasMoreElements()) {
+                            var key = jarBundleKeys.nextElement();
+                            if (!existingBundle.containsKey(key)) {
+                                existingBundle.put(key, jarBundle.getString(key));
+                                changes++;
+                            }
+                        }
+                        if (changes > 0) {
+                            LOGGER.info("updating {} entries in translation file {}", changes, translationEntry.getName());
+                            existingBundle.store(Files.newOutputStream(path), null);
+                        }
                         continue;
                     }
                     LOGGER.info("copying translation file {}", translationEntry.getName());
-                    Files.copy(Objects.requireNonNull(AbstractNecrifyPlugin.class.getResourceAsStream("/" + translationEntry.getName())), path);
+                    Files.copy(inputStream, path);
                     registeredPaths.add(path);
                 }
             }
