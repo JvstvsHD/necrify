@@ -13,8 +13,7 @@ on:
     types: [created]
   push:
     branches-ignore:
-      - 'renovate/**'
-      - 'dependency-updates'
+      - '**'
 
 
 jobs:
