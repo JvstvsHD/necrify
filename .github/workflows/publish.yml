@@ -12,7 +12,7 @@ on:
   release:
     types: [created]
   push:
-    branches-ignore:
+    branches:
       - '**'
 
 
