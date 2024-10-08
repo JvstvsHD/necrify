@@ -25,7 +25,7 @@ import java.util.Map;
 
 /**
  * A central registry for {@link PunishmentType}s. This class is used to register and retrieve punishment types by their integer IDs.
- * @since 1.2.0
+ * @since 1.2.2
  */
 public final class PunishmentTypeRegistry {
 

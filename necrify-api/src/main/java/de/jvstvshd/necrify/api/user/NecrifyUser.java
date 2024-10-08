@@ -20,6 +20,7 @@ package de.jvstvshd.necrify.api.user;
 
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.punishment.*;
+import de.jvstvshd.necrify.api.punishment.log.PunishmentLog;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -201,4 +202,13 @@ public interface NecrifyUser extends CommandSender {
      */
     @NotNull
     Locale getLocale();
+
+    /**
+     * Loads the punishment log of this user. The punishment log contains all actions that were performed on this user.
+     * This method may take some time to complete. The returned future will complete exceptionally with {@link java.util.NoSuchElementException}
+     * if the user does not exist in the system.
+     * @return a {@link CompletableFuture} containing the punishment log of this user.
+     */
+    @NotNull
+    CompletableFuture<PunishmentLog> loadPunishmentLog();
 }

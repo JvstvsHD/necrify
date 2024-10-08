@@ -21,6 +21,7 @@ package de.jvstvshd.necrify.common.user;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.*;
+import de.jvstvshd.necrify.api.punishment.log.PunishmentLog;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserDeletionReason;
 import net.kyori.adventure.text.Component;
@@ -129,5 +130,10 @@ public abstract class AbstractConsoleUser implements NecrifyUser {
 
     public MessageProvider provider() {
         return provider;
+    }
+
+    @Override
+    public @NotNull CompletableFuture<PunishmentLog> loadPunishmentLog() {
+        return throwUnsupported();
     }
 }
