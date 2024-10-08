@@ -90,13 +90,6 @@ public final class UserLoader {
 
     }
 
-    private String c(Punishment p) {
-        if (p == null) {
-            return "null";
-        }
-        return p.getPunishmentUuid().toString();
-    }
-
     public NecrifyUser getUser() {
         return user;
     }

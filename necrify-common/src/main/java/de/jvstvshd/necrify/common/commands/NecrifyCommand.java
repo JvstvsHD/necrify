@@ -234,14 +234,14 @@ public class NecrifyCommand {
     ) {
         switch (option) {
             case "info" ->
-                    sender.sendMessage(buildComponent(PunishmentHelper.buildPunishmentData(punishmentParsed, plugin.getMessageProvider()), punishmentParsed));
+                    sender.sendMessage(buildComponent(PunishmentHelper.buildPunishmentData(punishmentParsed, plugin.getMessageProvider())));
             case "cancel", "remove" -> punishmentParsed.cancel().whenCompleteAsync((unused, th) -> {
                 if (th != null) {
                     logException(sender, th);
                     return;
                 }
                 sender.sendMessage(provider.provide("command.punishment.cancel.success").color(NamedTextColor.GREEN));
-            }, plugin.getService());
+            }, plugin.getExecutor());
             case "change" -> sender.sendMessage(miniMessage("Soon (TM)").color(NamedTextColor.LIGHT_PURPLE));
             case "chain" -> {
                 if (!punishmentParsed.getType().getRelatedTypes().contains(otherPunishment.getType())) {
@@ -287,7 +287,7 @@ public class NecrifyCommand {
                     if (punishment.getPredecessor() != null) {
                         continue;
                     }
-                    Component component = buildComponent(PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider()), punishment);
+                    Component component = buildComponent(PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider()));
                     sender.sendMessage(component);
                 }
             }
@@ -426,7 +426,7 @@ public class NecrifyCommand {
                 if (punishment.getPredecessor() != null) {
                     continue;
                 }
-                source.sendMessage(buildComponent(PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider()), punishment));
+                source.sendMessage(buildComponent(PunishmentHelper.buildPunishmentData(punishment, plugin.getMessageProvider())));
             }
         } else {
             Punishment punishment = punishments.getFirst();
@@ -439,7 +439,7 @@ public class NecrifyCommand {
                         return;
                     }
                     source.sendMessage(plugin.getMessageProvider().provide("command." + values[0] + ".success").color(NamedTextColor.GREEN));
-                }, plugin.getService());
+                }, plugin.getExecutor());
             } catch (Exception e) {
                 logException(source, e);
             }
@@ -469,7 +469,7 @@ public class NecrifyCommand {
 
     //Communication, messaging, logging
 
-    private Component buildComponent(Component dataComponent, Punishment punishment) {
+    private Component buildComponent(Component dataComponent) {
         return dataComponent;
     }
 

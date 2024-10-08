@@ -38,7 +38,6 @@ import de.jvstvshd.necrify.common.user.MojangAPI;
 import de.jvstvshd.necrify.common.user.UserLoader;
 import de.jvstvshd.necrify.common.util.Util;
 import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
-import org.greenrobot.eventbus.ThreadMode;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

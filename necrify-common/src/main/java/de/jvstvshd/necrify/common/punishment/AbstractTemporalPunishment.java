@@ -19,8 +19,6 @@
 package de.jvstvshd.necrify.common.punishment;
 
 import de.chojo.sadu.queries.api.call.Call;
-import de.chojo.sadu.queries.api.call.adapter.Adapter;
-import de.chojo.sadu.queries.api.call.adapter.AdapterMapping;
 import de.chojo.sadu.queries.api.query.Query;
 import de.jvstvshd.necrify.api.PunishmentException;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
@@ -39,7 +37,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.Timestamp;
-import java.sql.Types;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Objects;

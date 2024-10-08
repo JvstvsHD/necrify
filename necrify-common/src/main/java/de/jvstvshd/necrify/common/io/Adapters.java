@@ -21,12 +21,8 @@ package de.jvstvshd.necrify.common.io;
 import de.chojo.sadu.core.conversion.UUIDConverter;
 import de.chojo.sadu.queries.api.call.adapter.Adapter;
 import de.chojo.sadu.queries.api.call.adapter.AdapterMapping;
-import de.chojo.sadu.queries.call.adapter.UUIDAdapter;
 
-import java.sql.JDBCType;
-import java.sql.PreparedStatement;
 import java.sql.Types;
-import java.util.Objects;
 import java.util.UUID;
 
 public class Adapters {
@@ -40,7 +36,7 @@ public class Adapters {
                 }
             }, Types.BINARY);
 
-    public static final Adapter<UUID> UUID_NULL_ADAPTER = new Adapter<UUID>() {
+    public static final Adapter<UUID> UUID_NULL_ADAPTER = new Adapter<>() {
         @Override
         public AdapterMapping<UUID> mapping() {
             return null;

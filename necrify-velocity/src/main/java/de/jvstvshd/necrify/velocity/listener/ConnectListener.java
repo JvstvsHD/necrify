@@ -23,18 +23,13 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.proxy.ProxyServer;
 import de.jvstvshd.necrify.api.punishment.Ban;
-import de.jvstvshd.necrify.api.punishment.Mute;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
-import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
-import de.jvstvshd.necrify.common.plugin.MuteData;
 import de.jvstvshd.necrify.common.punishment.ChainedPunishment;
-import de.jvstvshd.necrify.common.punishment.NecrifyBan;
 import de.jvstvshd.necrify.common.util.Util;
 import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -94,10 +89,6 @@ public final class ConnectListener {
             return;
         Component deny = ChainedPunishment.of(ban, plugin).createFullReason(event.getPlayer().getEffectiveLocale());
         event.setResult(ResultedEvent.ComponentResult.denied(deny));
-    }
-
-    public NecrifyVelocityPlugin plugin() {
-        return plugin;
     }
 
     @Override

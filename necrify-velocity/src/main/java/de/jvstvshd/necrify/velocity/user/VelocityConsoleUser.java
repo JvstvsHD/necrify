@@ -22,7 +22,6 @@ import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.common.user.AbstractConsoleUser;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;

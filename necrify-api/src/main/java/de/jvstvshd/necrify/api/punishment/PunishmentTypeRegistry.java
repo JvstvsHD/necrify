@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * A central registry for {@link PunishmentType}s. This class is used to register and retrieve punishment types by their integer IDs.

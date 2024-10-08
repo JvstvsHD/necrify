@@ -69,6 +69,7 @@ import de.jvstvshd.necrify.common.message.ResourceBundleMessageProvider;
 import de.jvstvshd.necrify.common.plugin.MuteData;
 import de.jvstvshd.necrify.common.punishment.NecrifyKick;
 import de.jvstvshd.necrify.common.user.UserLoader;
+import de.jvstvshd.necrify.common.util.Updater;
 import de.jvstvshd.necrify.common.util.Util;
 import de.jvstvshd.necrify.velocity.impl.DefaultPlayerResolver;
 import de.jvstvshd.necrify.velocity.impl.DefaultPunishmentManager;
@@ -107,7 +108,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Plugin(id = "necrify", name = "Necrify", version = AbstractNecrifyPlugin.VERSION, description = "A simple punishment plugin for Velocity", authors = {"JvstvsHD"})
@@ -158,7 +158,10 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         long start = System.currentTimeMillis();
         try {
             DependencyManager manager = new DependencyManager(dataDirectory.resolve("cache"));
-            manager.loadFromResource(getClass().getClassLoader().getResource("runtimeDownload.txt"));
+            manager.loadFromResource(Objects.requireNonNull(getClass().getClassLoader().getResource("runtimeDownload.txt"), () -> {
+                Updater.updateInformation(getLogger());
+                return "Could not find file containing runtime downloads, aborting... Please re-download plugin JAR via above links.";
+            }));
             Executor executor = Executors.newCachedThreadPool();
             if (!manager.getAllPaths(true).stream().allMatch(Files::exists)) {
                 manager.downloadAll(executor, Collections.singletonList(new StandardRepository("https://repo1.maven.org/maven2"))).join();
@@ -225,7 +228,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         }, builder -> builder.to(necrifyUserParser -> StringArgumentType.greedyString()).nativeSuggestions());
     }
 
-    @SuppressWarnings({"unchecked", "UnstableApiUsage"})
+    @SuppressWarnings({"unchecked", "UnstableApiUsage", "SwitchStatementWithTooFewBranches"})
     private HikariDataSource createDataSource() {
         var dbData = configurationManager.getConfiguration().getDataBaseData();
         NecrifyDatabase.SQL_TYPE = dbData.sqlType().name().toLowerCase();

@@ -21,7 +21,6 @@ package de.jvstvshd.necrify.velocity.user;
 import com.google.common.collect.ImmutableList;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
-import de.chojo.sadu.mapper.wrapper.Row;
 import de.chojo.sadu.queries.api.call.Call;
 import de.chojo.sadu.queries.api.query.Query;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
@@ -38,13 +37,10 @@ import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.sql.DataSource;
-import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -70,7 +66,7 @@ public class VelocityUser implements NecrifyUser {
         this.name = name;
         this.uuid = uuid;
         this.dataSource = plugin.getDataSource();
-        this.executor = plugin.getService();
+        this.executor = plugin.getExecutor();
         this.messageProvider = plugin.getMessageProvider();
         this.server = plugin.getServer();
     }
@@ -84,7 +80,7 @@ public class VelocityUser implements NecrifyUser {
         this.name = name;
         this.uuid = uuid;
         this.dataSource = plugin.getDataSource();
-        this.executor = plugin.getService();
+        this.executor = plugin.getExecutor();
         this.messageProvider = plugin.getMessageProvider();
 
     }

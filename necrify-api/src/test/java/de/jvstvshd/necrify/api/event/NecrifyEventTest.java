@@ -27,7 +27,6 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 
 public class NecrifyEventTest {
@@ -41,7 +40,7 @@ public class NecrifyEventTest {
     }
 
     @Test
-    public void testEventDispatch() {CompletableFuture.supplyAsync(() -> {throw new RuntimeException("so");}).thenApply((object) -> object).whenComplete((object, throwable) -> System.out.println(throwable));
+    public void testEventDispatch() {
         dispatcher.register(this);
         dispatcher.dispatch(new NecrifyPreInitializationEvent());
         dispatcher.dispatch(new NecrifyInitializedEvent());

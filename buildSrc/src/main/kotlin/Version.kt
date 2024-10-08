@@ -33,7 +33,7 @@ fun Project.buildVersion(): String {
 }
 
 fun Project.changelogMessage() = with(git) {
-    "[https://github.com/JvstvsHD/necrify/commit/${latestCommitHash()}](${latestCommitHashShort()}: ${latestCommitMessage()}"
+    "[${latestCommitHashShort()}](https://github.com/JvstvsHD/necrify/commit/${latestCommitHash()}): ${latestCommitMessage()}"
 }
 
 val Project.isRelease: Boolean

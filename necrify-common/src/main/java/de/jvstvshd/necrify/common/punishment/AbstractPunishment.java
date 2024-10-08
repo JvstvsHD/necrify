@@ -27,7 +27,6 @@ import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -75,7 +74,7 @@ public abstract class AbstractPunishment implements Punishment {
                               @Nullable Punishment successor,
                               @Nullable LocalDateTime issuedAt) {
         this.reason = Objects.requireNonNull(reason, "punishment must be reasoned");
-        this.executor = plugin.getService();
+        this.executor = plugin.getExecutor();
         this.user = Objects.requireNonNull(user, "punishment must be bound to a user");
         this.punishmentUuid = Objects.requireNonNull(punishmentUuid, "punishment must have a uuid");
         this.successor = successor;
@@ -133,7 +132,7 @@ public abstract class AbstractPunishment implements Punishment {
         creationTime = LocalDateTime.now();
         return applyPunishment().whenCompleteAsync((punishment, throwable) -> {
             if (punishment != null) {
-                plugin.getEventDispatcher().dispatch(new PunishmentPersecutedEvent(punishment));
+                getEventDispatcher().dispatch(new PunishmentPersecutedEvent(punishment));
             }
         });
     }
@@ -142,7 +141,7 @@ public abstract class AbstractPunishment implements Punishment {
     public final CompletableFuture<Punishment> cancel() {
         return applyCancellation().whenCompleteAsync((punishment, throwable) -> {
             if (punishment != null) {
-                plugin.getEventDispatcher().dispatch(new PunishmentCancelledEvent(punishment));
+                getEventDispatcher().dispatch(new PunishmentCancelledEvent(punishment));
             }
         });
     }

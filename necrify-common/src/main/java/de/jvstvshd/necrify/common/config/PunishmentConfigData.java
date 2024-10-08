@@ -22,6 +22,7 @@ import java.util.Map;
 
 public class PunishmentConfigData {
 
+    //TODO move to translation files
     private final Map<Integer, String> punishmentMessages;
 
     public PunishmentConfigData(Map<Integer, String> punishmentMessages) {

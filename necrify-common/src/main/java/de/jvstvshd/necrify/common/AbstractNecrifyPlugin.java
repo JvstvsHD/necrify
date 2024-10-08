@@ -57,7 +57,7 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
     public static final String GIT_COMMIT = BuildParameters.GIT_COMMIT;
     public static final String BUILD_NUMBER = BuildParameters.BUILD_NUMBER;
 
-    protected ExecutorService executorService;
+    protected final ExecutorService executorService;
     protected final ConfigurationManager configurationManager;
     private final Logger logger;
 
@@ -73,6 +73,7 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
     }
 
     @Override
+    @Deprecated(forRemoval = true)
     public @NotNull ExecutorService getService() {
         return getExecutor();
     }

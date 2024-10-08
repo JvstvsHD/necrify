@@ -18,11 +18,9 @@
 
 package de.jvstvshd.necrify.api.punishment;
 
-import de.jvstvshd.necrify.api.Necrify;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Represents a type of punishment.

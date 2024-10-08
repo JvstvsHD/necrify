@@ -22,7 +22,6 @@ import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.common.plugin.MuteData;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

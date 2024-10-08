@@ -18,12 +18,12 @@
 
 package de.jvstvshd.necrify.api.duration;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import java.sql.Timestamp;
-import java.text.ParseException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.Temporal;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -54,12 +54,20 @@ public interface PunishmentDuration extends Comparable<PunishmentDuration> {
     }
 
     /**
+     * A constant for a permanent punishment duration. The expiration date is 31.12.9999, 23:59:59.
+     */
+    PunishmentDuration PERMANENT = PermanentPunishmentDuration.PERMANENT;
+
+    /**
      * Creates a new permanent (expiration date: 31.12.9999, 23:59:59) absolute punishment duration.
      *
      * @return a permanent duration
+     * @deprecated since 1.2.2, use {@link #PERMANENT} instead
      */
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.3.0")
+    @Deprecated(forRemoval = true, since = "1.2.2")
     static PunishmentDuration permanent() {
-        return PermanentPunishmentDuration.PERMANENT;
+        return PERMANENT;
     }
 
     /**

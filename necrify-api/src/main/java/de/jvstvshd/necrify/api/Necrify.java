@@ -22,13 +22,11 @@ import de.jvstvshd.necrify.api.event.EventDispatcher;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.PunishmentManager;
-import de.jvstvshd.necrify.api.punishment.PunishmentType;
 import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
 import de.jvstvshd.necrify.api.user.UserManager;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -139,7 +137,7 @@ public interface Necrify {
      * keeping their data accurate and up-to-date.
      * <p>
      * This may does not affect anything after the system has been initialized fully.
-     * @param userManager
+     * @param userManager the user manager to set.
      */
     void setUserManager(@NotNull UserManager userManager);
 

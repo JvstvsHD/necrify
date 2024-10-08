@@ -201,27 +201,4 @@ public interface NecrifyUser extends CommandSender {
      */
     @NotNull
     Locale getLocale();
-
-    /*    *//**
-     * Method to add punishments to users. This method is only meant to be used until events are implemented and all
-     * other components can be used so this method will not be used.
-     *
-     * @param punishment the punishment to add.
-     *//*
-    @Deprecated(forRemoval = true)
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.2.0")
-    default void addPunishment(Punishment punishment) {
-    }
-
-    *//**
-     * Method to remove punishments from users. This method is only meant to be used until events are implemented and all
-     * other components can be used so this method will not be used.
-     * This does not cancel the punishment, it only removes it from the user's punishment list.
-     *
-     * @param punishment the punishment to remove.
-     *//*
-    @Deprecated(forRemoval = true)
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.2.0")
-    default void removePunishment(Punishment punishment) {
-    }*/
 }
