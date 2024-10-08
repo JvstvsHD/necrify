@@ -7,6 +7,7 @@ de.jvstvshd.necrify.api.event.state
 de.jvstvshd.necrify.api.event.user
 de.jvstvshd.necrify.api.message
 de.jvstvshd.necrify.api.punishment
+de.jvstvshd.necrify.api.punishment.log
 de.jvstvshd.necrify.api.punishment.util
 de.jvstvshd.necrify.api.user
 de.jvstvshd.necrify.common
