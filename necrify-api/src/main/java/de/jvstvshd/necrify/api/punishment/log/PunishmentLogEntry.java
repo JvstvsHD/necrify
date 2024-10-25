@@ -23,6 +23,7 @@ import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.Objects;
@@ -30,24 +31,30 @@ import java.util.Objects;
 /**
  * Represents an entry in a {@link PunishmentLog}. This contains all information about a punishment log entry.
  * There is no information about old values if they have been changed, this has to be done by using {@link #previous() the previous entry}.
- * @param actor the actor who performed the action
- * @param message the message of the action
- * @param duration the duration of the punishment
- * @param reason the reason of the punishment
+ *
+ * @param actor       the actor who performed the action or null if the user does not exist anymore
+ * @param message     the message of the action
+ * @param duration    the duration of the punishment
+ * @param reason      the reason of the punishment
  * @param predecessor the predecessor of the punishment or null if there is none
- * @param punishment the punishment this entry belongs to
- * @param successor the successor of the punishment or null if there is none
- * @param action the action that was performed
- * @param log the log this entry belongs to
- * @param instant the instant the action was performed
- * @param index the index of this entry in the log (0-based)
+ * @param punishment  the punishment this entry belongs to
+ * @param successor   the successor of the punishment or null if there is none
+ * @param action      the action that was performed
+ * @param log         the log this entry belongs to
+ * @param instant     the instant the action was performed
+ * @param index       the index of this entry in the log (0-based)
+ * @since 1.2.2
  */
-public record PunishmentLogEntry(NecrifyUser actor, String message, PunishmentDuration duration, Component reason,
-                                 Punishment predecessor, Punishment punishment, Punishment successor,
-                                 PunishmentLogAction action, PunishmentLog log, Instant instant, int index) {
+public record PunishmentLogEntry(@Nullable NecrifyUser actor, @Nullable String message,
+                                 @NotNull PunishmentDuration duration, @NotNull Component reason,
+                                 @Nullable Punishment predecessor, @NotNull Punishment punishment,
+                                 @Nullable Punishment successor,
+                                 @NotNull PunishmentLogAction action, @NotNull PunishmentLog log,
+                                 @NotNull Instant instant, int index) implements Comparable<PunishmentLogEntry> {
 
     /**
      * Returns the previous entry in the log. If this is the first entry, this entry is returned.
+     *
      * @return the previous entry in the log
      */
     @NotNull
@@ -57,6 +64,7 @@ public record PunishmentLogEntry(NecrifyUser actor, String message, PunishmentDu
 
     /**
      * Returns the next entry in the log. If this is the last entry, this entry is returned.
+     *
      * @return the next entry in the log
      */
     @NotNull
@@ -67,10 +75,16 @@ public record PunishmentLogEntry(NecrifyUser actor, String message, PunishmentDu
     /**
      * Returns the affected user of the punishment. This is the user who is affected by the punishment and equivalent
      * to {@link #punishment()}.{@link Punishment#getUser() getUser()}.
+     *
      * @return the affected user of the punishment
      */
     @NotNull
     public NecrifyUser getAffectedUser() {
         return punishment.getUser();
+    }
+
+    @Override
+    public int compareTo(@NotNull PunishmentLogEntry o) {
+        return Integer.compare(index, o.index);
     }
 }

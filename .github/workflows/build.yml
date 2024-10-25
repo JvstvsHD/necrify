@@ -1,8 +1,7 @@
 name: Build project and generate JavaDocs
 on:
   pull_request:
-    branches:
-      - "**"
+    types: [opened, reopened, edited]
 jobs:
   publish:
     runs-on: ubuntu-latest

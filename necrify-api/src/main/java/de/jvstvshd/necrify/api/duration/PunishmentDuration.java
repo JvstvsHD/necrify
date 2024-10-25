@@ -18,6 +18,8 @@
 
 package de.jvstvshd.necrify.api.duration;
 
+import de.jvstvshd.necrify.api.punishment.Punishment;
+import de.jvstvshd.necrify.api.punishment.TemporalPunishment;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.sql.Timestamp;
@@ -115,6 +117,20 @@ public interface PunishmentDuration extends Comparable<PunishmentDuration> {
         if (rpd.isPermanent())
             return PermanentPunishmentDuration.PERMANENT;
         return rpd;
+    }
+
+    /**
+     * Converts the given {@link Punishment} into a {@link PunishmentDuration}. If the punishment is a {@link TemporalPunishment},
+     * the duration of the punishment will be returned. Otherwise, the duration will be permanent.
+     * @param punishment the punishment to convert
+     * @return the duration of the punishment or a permanent duration if this is a non-temporal punishment
+     */
+    static PunishmentDuration ofPunishment(Punishment punishment) {
+        if (punishment instanceof TemporalPunishment temporalPunishment) {
+            return temporalPunishment.getDuration();
+        } else {
+            return PermanentPunishmentDuration.PERMANENT;
+        }
     }
 
     /**

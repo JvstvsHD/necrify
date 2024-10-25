@@ -79,6 +79,12 @@ public interface PunishmentLogAction {
     PunishmentLogAction REMOVED = new SimplePunishmentLogAction("removed", true);
 
     /**
+     * An unknown action was performed. This action is returned as default if the stored action type cannot be resolved to
+     * a proper type. This action can be logged multiple times.
+     */
+    PunishmentLogAction UNKNOWN = new SimplePunishmentLogAction("unknown", false);
+
+    /**
      * A simple implementation of {@link PunishmentLogAction}. This class only contains the name and whether the action can only be logged once or more.
      * @param name the name of the action
      * @param onlyOnce whether the action can only be logged once

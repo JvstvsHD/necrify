@@ -207,7 +207,7 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
                 var total = temporalSuccessor.totalDuration();
                 successorNewExpiration = duration.expiration().plus(total.javaDuration());
             } else {
-                successorNewExpiration = PunishmentDuration.permanent().expiration();
+                successorNewExpiration = PunishmentDuration.PERMANENT.expiration();
             }
             var issuanceSuccessor = duration.expiration();
             Query.query(APPLY_TIMESTAMP_UPDATE)

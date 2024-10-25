@@ -202,13 +202,4 @@ public interface NecrifyUser extends CommandSender {
      */
     @NotNull
     Locale getLocale();
-
-    /**
-     * Loads the punishment log of this user. The punishment log contains all actions that were performed on this user.
-     * This method may take some time to complete. The returned future will complete exceptionally with {@link java.util.NoSuchElementException}
-     * if the user does not exist in the system.
-     * @return a {@link CompletableFuture} containing the punishment log of this user.
-     */
-    @NotNull
-    CompletableFuture<PunishmentLog> loadPunishmentLog();
 }

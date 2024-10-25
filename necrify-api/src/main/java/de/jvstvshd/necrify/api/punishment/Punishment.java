@@ -19,6 +19,7 @@
 package de.jvstvshd.necrify.api.punishment;
 
 import de.jvstvshd.necrify.api.PunishmentException;
+import de.jvstvshd.necrify.api.punishment.log.PunishmentLog;
 import de.jvstvshd.necrify.api.punishment.util.ReasonHolder;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import net.kyori.adventure.text.Component;
@@ -186,4 +187,12 @@ public interface Punishment extends ReasonHolder {
      */
     @Nullable
     Punishment getPredecessor();
+
+    /**
+     * Loads the punishment log of this punishment. This will load all log entries that have been made on this punishment.
+     * @return a {@link CompletableFuture} containing the punishment log of this punishment
+     * @since 1.2.2
+     */
+    @NotNull
+    CompletableFuture<PunishmentLog> loadPunishmentLog();
 }

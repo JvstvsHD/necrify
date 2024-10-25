@@ -19,6 +19,7 @@
 package de.jvstvshd.necrify.api.punishment.log;
 
 import de.jvstvshd.necrify.api.punishment.Punishment;
+import de.jvstvshd.necrify.api.user.NecrifyUser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,5 +85,5 @@ public interface PunishmentLog {
      * @param action the action to log
      * @param message the message to log
      */
-    void log(@NotNull PunishmentLogAction action, @NotNull String message);
+    void log(@NotNull PunishmentLogAction action, @NotNull String message, @NotNull NecrifyUser actor);
 }

@@ -24,8 +24,11 @@ import de.jvstvshd.necrify.api.event.punishment.PunishmentCancelledEvent;
 import de.jvstvshd.necrify.api.event.punishment.PunishmentPersecutedEvent;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
+import de.jvstvshd.necrify.api.punishment.log.PunishmentLog;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
+import de.jvstvshd.necrify.common.punishment.log.NecrifyPunishmentLog;
+import de.jvstvshd.necrify.common.util.Util;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.intellij.lang.annotations.Language;
@@ -51,6 +54,7 @@ public abstract class AbstractPunishment implements Punishment {
     private final AbstractNecrifyPlugin plugin;
     private LocalDateTime creationTime;
     private Punishment successor;
+    private PunishmentLog cachedLog;
 
     @Language("sql")
     protected final static String APPLY_PUNISHMENT = "INSERT INTO necrify_punishment" +
@@ -236,5 +240,17 @@ public abstract class AbstractPunishment implements Punishment {
 
     void setSuccessor0(Punishment successor) {
         this.successor = successor;
+    }
+
+    @Override
+    public @NotNull CompletableFuture<PunishmentLog> loadPunishmentLog() {
+        if (cachedLog != null) {
+            return CompletableFuture.completedFuture(cachedLog);
+        }
+        return Util.executeAsync(() -> {
+            var log = new NecrifyPunishmentLog(this, plugin);
+            log.load(false);
+            return (cachedLog = log);
+        }, executor);
     }
 }

@@ -32,6 +32,7 @@ import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserDeletionReason;
 import de.jvstvshd.necrify.common.io.Adapters;
 import de.jvstvshd.necrify.common.punishment.PunishmentBuilder;
+import de.jvstvshd.necrify.common.punishment.log.NecrifyPunishmentLog;
 import de.jvstvshd.necrify.common.user.MojangAPI;
 import de.jvstvshd.necrify.common.util.Util;
 import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
@@ -283,10 +284,5 @@ public class VelocityUser implements NecrifyUser {
             return Objects.requireNonNullElse(player.getEffectiveLocale(), defaultLocale);
         }
         return defaultLocale;
-    }
-
-    @Override
-    public @NotNull CompletableFuture<PunishmentLog> loadPunishmentLog() {
-        throw new UnsupportedOperationException("Not implemented yet.");
     }
 }
