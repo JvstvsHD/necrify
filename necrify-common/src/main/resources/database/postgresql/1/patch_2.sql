@@ -10,4 +10,6 @@ CREATE TABLE IF NOT EXISTS necrify_schema.punishment_log (
     action VARCHAR(128) NOT NULL,
     begins_at TIMESTAMP DEFAULT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-)
+);
+
+UPDATE necrify_schema.necrify_user SET name = lower(name) WHERE name IS NOT NULL;

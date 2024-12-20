@@ -51,6 +51,11 @@ public class DataBaseData {
     @JsonAlias("postgresSchema")
     private final String postgresSchema;
 
+    @JsonProperty("enable-development-version-reset")
+    private final boolean enableDevelopmentVersionReset;
+
+    //TODO use Configurate
+
     public DataBaseData(String host, String password, String username, String database, String port, String sqlType, int maxPoolSize, int minIdle, String postgresSchema) {
         this.host = host;
         this.password = password;
@@ -61,10 +66,24 @@ public class DataBaseData {
         this.maxPoolSize = maxPoolSize;
         this.minIdle = minIdle;
         this.postgresSchema = postgresSchema;
+        this.enableDevelopmentVersionReset = false;
+    }
+
+    public DataBaseData(String host, String password, String username, String database, String port, String sqlType, int maxPoolSize, int minIdle, String postgresSchema, boolean enableDevelopmentVersionReset) {
+        this.host = host;
+        this.password = password;
+        this.username = username;
+        this.database = database;
+        this.port = port;
+        this.sqlType = sqlType;
+        this.maxPoolSize = maxPoolSize;
+        this.minIdle = minIdle;
+        this.postgresSchema = postgresSchema;
+        this.enableDevelopmentVersionReset = enableDevelopmentVersionReset;
     }
 
     public DataBaseData() {
-        this("localhost", "password", "username", "database", "5432", "postgresql", 10, 5, "necrify");
+        this("localhost", "password", "username", "database", "5432", "postgresql", 10, 5, "necrify", false);
     }
 
     public String getHost() {
@@ -101,6 +120,10 @@ public class DataBaseData {
 
     public String getPostgresSchema() {
         return postgresSchema;
+    }
+
+    public boolean isEnableDevelopmentVersionReset() {
+        return enableDevelopmentVersionReset;
     }
 
     @SuppressWarnings("UnstableApiUsage")

@@ -63,6 +63,7 @@ import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserManager;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
+import de.jvstvshd.necrify.common.BuildParameters;
 import de.jvstvshd.necrify.common.config.ConfigurationManager;
 import de.jvstvshd.necrify.common.io.Adapters;
 import de.jvstvshd.necrify.common.io.NecrifyDatabase;
@@ -291,7 +292,6 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         };
         switch (configurationManager.getConfiguration().getDataBaseData().sqlType().name().toLowerCase(Locale.ROOT)) {
             case "postgresql", "postgres" -> SqlUpdater.builder(dataSource, PostgreSql.get())
-                    .setReplacements()
                     .setSchemas(configurationManager.getConfiguration().getDataBaseData().getPostgresSchema())
                     .setReplacements(new QueryReplacement("necrify_schema", configurationManager.getConfiguration().getDataBaseData().getPostgresSchema()))
                     .preUpdateHook(new SqlVersion(1, 1), preUpdateHook)
@@ -304,6 +304,20 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
                     .execute();
             default ->
                     getLogger().warn("Database type is not (yet) supported for automatic updates. Please update the database manually.");
+        }
+        //noinspection ConstantValue
+        if (BuildParameters.VERSION.contains("-") && configurationManager.getConfiguration().getDataBaseData().isEnableDevelopmentVersionReset()) {
+            var sqlVersion = SqlVersion.load();
+            getLogger().info("This is a development build. To ensure functionality, the last database patch is ran again. " +
+                    "This might cause an error, but is necessary for development. This will also reset the version of the db to the last patch.");
+            if (sqlVersion.patch() <= 0) {
+                getLogger().warn("Could not load last patch version. Skipping re-run of last patch. Please update the " +
+                        "database manually by executing SQL statements from the files in the resources after commit " + BuildParameters.GIT_COMMIT);
+                return;
+            }
+            Query.query("UPDATE necrify_schema.version SET patch = ?;")
+                    .single(Call.of().bind(sqlVersion.patch() - 1))
+                    .update();
         }
     }
 

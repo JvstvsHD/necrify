@@ -43,3 +43,7 @@ database:
   # Determines how many idle connections should be kept open at minimum. As soon as the number of connections is below this
   # number, HikariCP tries to open new connections as quickly and efficiently as possible.
   min-idle: 2
+  # Determines whether the version of the database schema should be reset to the previous version. This avoids problems when
+  # a dev build is used and new additions to the database schema patch files are made afterwards and before the release. This
+  # will go only into effect when a dev build is used.
+  enable-development-version-reset: false
