@@ -48,8 +48,9 @@ import de.chojo.sadu.mariadb.databases.MariaDb;
 import de.chojo.sadu.mysql.databases.MySql;
 import de.chojo.sadu.postgresql.databases.PostgreSql;
 import de.chojo.sadu.queries.api.call.Call;
+import de.chojo.sadu.queries.api.configuration.QueryConfiguration;
 import de.chojo.sadu.queries.api.query.Query;
-import de.chojo.sadu.queries.configuration.QueryConfiguration;
+import de.chojo.sadu.updater.QueryReplacement;
 import de.chojo.sadu.updater.SqlUpdater;
 import de.jvstvshd.necrify.api.event.EventDispatcher;
 import de.jvstvshd.necrify.api.event.Slf4jLogger;
@@ -242,7 +243,8 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
                             .port(dbData.getPort())
                             .database(dbData.getDatabase())
                             .user(dbData.getUsername())
-                            .password(dbData.getPassword()))
+                            .password(dbData.getPassword())
+                            .currentSchema(dbData.getPostgresSchema()))
                     .create();
 
             default -> DataSourceCreator
@@ -288,10 +290,12 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
             getLogger().info("Updated {} reasons to minimessage format.", updatedReasons.size());
         };
         switch (configurationManager.getConfiguration().getDataBaseData().sqlType().name().toLowerCase(Locale.ROOT)) {
-            case "postgresql", "postgres" ->
-                    SqlUpdater.builder(dataSource, PostgreSql.get()).setSchemas(configurationManager.getConfiguration().getDataBaseData().getPostgresSchema())
-                            .preUpdateHook(new SqlVersion(1, 1), preUpdateHook)
-                            .execute();
+            case "postgresql", "postgres" -> SqlUpdater.builder(dataSource, PostgreSql.get())
+                    .setReplacements()
+                    .setSchemas(configurationManager.getConfiguration().getDataBaseData().getPostgresSchema())
+                    .setReplacements(new QueryReplacement("necrify_schema", configurationManager.getConfiguration().getDataBaseData().getPostgresSchema()))
+                    .preUpdateHook(new SqlVersion(1, 1), preUpdateHook)
+                    .execute();
             case "mariadb" -> SqlUpdater.builder(dataSource, MariaDb.get())
                     .preUpdateHook(new SqlVersion(1, 1), preUpdateHook)
                     .execute();

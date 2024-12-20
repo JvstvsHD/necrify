@@ -47,6 +47,8 @@ public class DataBaseData {
     @JsonAlias("minIdle")
     private final int minIdle;
 
+    @JsonProperty("postgres-schema")
+    @JsonAlias("postgresSchema")
     private final String postgresSchema;
 
     public DataBaseData(String host, String password, String username, String database, String port, String sqlType, int maxPoolSize, int minIdle, String postgresSchema) {
@@ -62,7 +64,7 @@ public class DataBaseData {
     }
 
     public DataBaseData() {
-        this("localhost", "password", "username", "database", "5432", "postgresql", 10, 5, "punishment");
+        this("localhost", "password", "username", "database", "5432", "postgresql", 10, 5, "necrify");
     }
 
     public String getHost() {
