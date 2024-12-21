@@ -41,6 +41,12 @@ import java.util.stream.Collectors;
 
 public class Util {
 
+    /**
+     * A null UUID. This UUID consists of two longs, both being 0. This UUID is used to represent the system
+     * in user-bound actions.
+     */
+    public static final UUID NULL_UUID = new UUID(0, 0);
+
     private Util() {
     }
 

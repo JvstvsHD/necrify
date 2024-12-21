@@ -19,12 +19,15 @@
 package de.jvstvshd.necrify.common.punishment;
 
 
+import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.event.EventDispatcher;
 import de.jvstvshd.necrify.api.event.punishment.PunishmentCancelledEvent;
 import de.jvstvshd.necrify.api.event.punishment.PunishmentPersecutedEvent;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.log.PunishmentLog;
+import de.jvstvshd.necrify.api.punishment.log.PunishmentLogAction;
+import de.jvstvshd.necrify.api.punishment.log.PunishmentLogEntry;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.punishment.log.NecrifyPunishmentLog;
@@ -35,7 +38,9 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.UUID;
@@ -252,5 +257,16 @@ public abstract class AbstractPunishment implements Punishment {
             log.load(false);
             return (cachedLog = log);
         }, executor);
+    }
+
+    @Override
+    public @NotNull PunishmentLogEntry createCurrentLogEntry() {
+        return new PunishmentLogEntry(plugin.getSystemUser(), "Current state", PunishmentDuration.ofPunishment(this),
+                getReason(), getPredecessor(), this, getSuccessorOrNull(), getCreationTime(), PunishmentLogAction.CREATED,
+                cachedLog, LocalDateTime.now(), -1);
+    }
+
+    public void log(PunishmentLogAction action, String message, NecrifyUser actor) {
+        loadPunishmentLog().thenAccept(log -> log.log(action, message, actor));
     }
 }

@@ -27,12 +27,14 @@ import java.util.List;
 
 /**
  * Represents a log of a punishment, containing all actions that have been performed on the punishment.
+ *
  * @since 1.2.2
  */
 public interface PunishmentLog {
 
     /**
      * Returns the punishment this log belongs to.
+     *
      * @return the punishment this log belongs to.
      */
     @NotNull
@@ -40,6 +42,7 @@ public interface PunishmentLog {
 
     /**
      * Returns a list containing all entries of this log.
+     *
      * @return a list containing all entries of this log.
      */
     @NotNull
@@ -47,6 +50,7 @@ public interface PunishmentLog {
 
     /**
      * Returns a list containing all entries of this log with the given action. If no entries with the given action are found, an empty list is returned.
+     *
      * @param action the action to filter the entries by
      * @return a list containing all entries of this log with the given action.
      */
@@ -55,6 +59,7 @@ public interface PunishmentLog {
 
     /**
      * Returns the first entry of this log with the given action. If no entry with the given action is found, null is returned.
+     *
      * @param action the action to filter the entries by
      * @return the first entry of this log with the given action.
      */
@@ -63,6 +68,7 @@ public interface PunishmentLog {
 
     /**
      * Returns the entry at the given index. If the index is out of bounds, an exception is thrown.
+     *
      * @param index the index of the entry
      * @return the entry at the given index.
      * @throws IndexOutOfBoundsException if the index is out of bounds
@@ -72,6 +78,7 @@ public interface PunishmentLog {
 
     /**
      * Returns the latest entry of this log. If the log is empty, an exception is thrown.
+     *
      * @return the latest entry of this log.
      * @throws IndexOutOfBoundsException if the log is empty
      */
@@ -82,8 +89,11 @@ public interface PunishmentLog {
 
     /**
      * Logs a new action with the given message. The action is automatically associated with the punishment of this log.
-     * @param action the action to log
+     *
+     * @param action  the action to log
      * @param message the message to log
+     * @param actor   the actor that performed the action
+     * @throws IllegalArgumentException if the action can only be logged once and has already been logged
      */
     void log(@NotNull PunishmentLogAction action, @NotNull String message, @NotNull NecrifyUser actor);
 }

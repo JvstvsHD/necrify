@@ -26,11 +26,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
-import java.util.Objects;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
  * Represents an entry in a {@link PunishmentLog}. This contains all information about a punishment log entry.
- * There is no information about old values if they have been changed, this has to be done by using {@link #previous() the previous entry}.
+ * There is no information about old values if they have been changed, this has to be done by using {@link #previousOrThis() the previous entry}.
  *
  * @param actor       the actor who performed the action or null if the user does not exist anymore
  * @param message     the message of the action
@@ -43,14 +44,26 @@ import java.util.Objects;
  * @param log         the log this entry belongs to
  * @param instant     the instant the action was performed
  * @param index       the index of this entry in the log (0-based)
+ * @param beginsAt   the instant the punishment begins at
  * @since 1.2.2
  */
 public record PunishmentLogEntry(@Nullable NecrifyUser actor, @Nullable String message,
                                  @NotNull PunishmentDuration duration, @NotNull Component reason,
                                  @Nullable Punishment predecessor, @NotNull Punishment punishment,
-                                 @Nullable Punishment successor,
+                                 @Nullable Punishment successor, @NotNull LocalDateTime beginsAt,
                                  @NotNull PunishmentLogAction action, @NotNull PunishmentLog log,
-                                 @NotNull Instant instant, int index) implements Comparable<PunishmentLogEntry> {
+                                 @NotNull LocalDateTime instant,
+                                 int index) implements Comparable<PunishmentLogEntry> {
+
+    /**
+     * Returns the previous entry in the log. If this is the first entry, an empty optional is returned.
+     *
+     * @return the previous entry in the log or an empty optional if this is the first entry
+     */
+    @NotNull
+    public Optional<PunishmentLogEntry> previous() {
+        return Optional.ofNullable(log.getEntries().get(index - 1));
+    }
 
     /**
      * Returns the previous entry in the log. If this is the first entry, this entry is returned.
@@ -58,8 +71,18 @@ public record PunishmentLogEntry(@Nullable NecrifyUser actor, @Nullable String m
      * @return the previous entry in the log
      */
     @NotNull
-    public PunishmentLogEntry previous() {
-        return Objects.requireNonNullElse(log.getEntries().get(index - 1), this);
+    public PunishmentLogEntry previousOrThis() {
+        return previous().orElse(this);
+    }
+
+    /**
+     * Returns the next entry in the log. If this is the last entry, an empty optional is returned.
+     *
+     * @return the next entry in the log or an empty optional if this is the last entry
+     */
+    @NotNull
+    public Optional<PunishmentLogEntry> next() {
+        return Optional.ofNullable(log.getEntries().get(index + 1));
     }
 
     /**
@@ -68,8 +91,8 @@ public record PunishmentLogEntry(@Nullable NecrifyUser actor, @Nullable String m
      * @return the next entry in the log
      */
     @NotNull
-    public PunishmentLogEntry next() {
-        return Objects.requireNonNullElse(log.getEntries().get(index + 1), this);
+    public PunishmentLogEntry nextOrThis() {
+        return next().orElse(this);
     }
 
     /**

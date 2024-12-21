@@ -77,7 +77,7 @@ import de.jvstvshd.necrify.velocity.impl.DefaultPlayerResolver;
 import de.jvstvshd.necrify.velocity.impl.DefaultPunishmentManager;
 import de.jvstvshd.necrify.velocity.impl.VelocityKick;
 import de.jvstvshd.necrify.velocity.listener.ConnectListener;
-import de.jvstvshd.necrify.velocity.user.VelocityConsoleUser;
+import de.jvstvshd.necrify.velocity.user.VelocitySystemUser;
 import de.jvstvshd.necrify.velocity.user.VelocityUser;
 import de.jvstvshd.necrify.velocity.user.VelocityUserManager;
 import dev.vankka.dependencydownload.DependencyManager;
@@ -128,6 +128,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     private MessageProvider messageProvider;
     private UserManager userManager;
     private final MessagingChannelCommunicator communicator;
+    private VelocitySystemUser systemUser;
     private EventDispatcher eventDispatcher;
 
     @Inject
@@ -187,6 +188,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
             return;
         }
         this.messageProvider = new ResourceBundleMessageProvider(configurationManager.getConfiguration().getDefaultLanguage());
+        this.systemUser = new VelocitySystemUser(messageProvider, server.getConsoleCommandSource());
         dataSource = createDataSource();
         QueryConfiguration.setDefault(QueryConfiguration.builder(dataSource).setThrowExceptions(true).build());
         punishmentManager = new DefaultPunishmentManager(server, dataSource, this);
@@ -396,7 +398,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         if (source instanceof Player) {
             return createUser(((Player) source).getUniqueId(), false);
         } else if (source instanceof ConsoleCommandSource) {
-            return new VelocityConsoleUser(messageProvider, server.getConsoleCommandSource());
+            return systemUser;
         } else {
             return new VelocityUser(UUID.randomUUID(), "unknown_source", false, this);
         }
@@ -469,5 +471,10 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     @Override
     public Set<Pair<String, UUID>> getOnlinePlayers() {
         return server.getAllPlayers().stream().map(player -> Pair.of(player.getUsername(), player.getUniqueId())).collect(Collectors.toSet());
+    }
+
+    @Override
+    public @NotNull NecrifyUser getSystemUser() {
+        return systemUser;
     }
 }

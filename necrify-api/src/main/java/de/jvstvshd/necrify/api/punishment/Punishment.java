@@ -20,6 +20,7 @@ package de.jvstvshd.necrify.api.punishment;
 
 import de.jvstvshd.necrify.api.PunishmentException;
 import de.jvstvshd.necrify.api.punishment.log.PunishmentLog;
+import de.jvstvshd.necrify.api.punishment.log.PunishmentLogEntry;
 import de.jvstvshd.necrify.api.punishment.util.ReasonHolder;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import net.kyori.adventure.text.Component;
@@ -190,9 +191,19 @@ public interface Punishment extends ReasonHolder {
 
     /**
      * Loads the punishment log of this punishment. This will load all log entries that have been made on this punishment.
+     *
      * @return a {@link CompletableFuture} containing the punishment log of this punishment
      * @since 1.2.2
      */
     @NotNull
     CompletableFuture<PunishmentLog> loadPunishmentLog();
+
+    /**
+     * Creates a log entry object that contains all the data the punishment currently holds. Its value may be equivalent
+     * to the last log entry in {@link #loadPunishmentLog() punishment log}.<br>
+     * Please note that this entry is not able to iterate over previous and next entries. If you want to do so, use
+     * {@link #loadPunishmentLog()} instead.
+     */
+    @NotNull
+    PunishmentLogEntry createCurrentLogEntry();
 }

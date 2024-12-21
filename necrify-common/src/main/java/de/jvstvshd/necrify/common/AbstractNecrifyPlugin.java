@@ -187,5 +187,8 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
     //TODO return just a set of objects. Create a new User object that does not get loaded from the database.
     public abstract Set<Pair<String, UUID>> getOnlinePlayers();
 
+    @NotNull
+    public abstract NecrifyUser getSystemUser();
+
     public abstract boolean isWhitelistActive();
 }

@@ -20,22 +20,22 @@ package de.jvstvshd.necrify.velocity.user;
 
 import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import de.jvstvshd.necrify.api.message.MessageProvider;
-import de.jvstvshd.necrify.common.user.AbstractConsoleUser;
+import de.jvstvshd.necrify.common.user.AbstractSystemUser;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
 
-public class VelocityConsoleUser extends AbstractConsoleUser {
+public class VelocitySystemUser extends AbstractSystemUser {
 
     private final ConsoleCommandSource console;
 
-    public VelocityConsoleUser(Locale locale, MessageProvider provider, ConsoleCommandSource console) {
+    public VelocitySystemUser(Locale locale, MessageProvider provider, ConsoleCommandSource console) {
         super(locale, provider);
         this.console = console;
     }
 
-    public VelocityConsoleUser(MessageProvider provider, ConsoleCommandSource console) {
+    public VelocitySystemUser(MessageProvider provider, ConsoleCommandSource console) {
         super(provider);
         this.console = console;
     }

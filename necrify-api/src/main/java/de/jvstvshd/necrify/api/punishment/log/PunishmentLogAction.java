@@ -45,7 +45,7 @@ public interface PunishmentLogAction {
     boolean onlyOnce();
 
     /**
-     * A punishment was created. This action can only be logged once.
+     * A punishment was created (it was created on the storage and enforced - no instantiation). This action can only be logged once.
      */
     PunishmentLogAction CREATED = new SimplePunishmentLogAction("created", true);
 

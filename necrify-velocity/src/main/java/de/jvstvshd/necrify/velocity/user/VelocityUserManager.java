@@ -56,14 +56,14 @@ public class VelocityUserManager implements UserManager {
     private static final String SELECT_USER_QUERY = "SELECT name, whitelisted FROM necrify_user WHERE uuid = ?;";
 
     @Language("sql")
-    private static final String SELECT_USER_BY_NAME_QUERY = "SELECT uuid, whitelisted FROM necrify_user WHERE name = ?";
+    private static final String SELECT_USER_BY_NAME_QUERY = "SELECT uuid, whitelisted FROM necrify_user WHERE LOWER(name) = ?";
 
     @Language("sql")
     private static final String SELECT_USER_PUNISHMENTS_QUERY =
             "SELECT type, expiration, reason, punishment_id, successor, issued_at FROM necrify_punishment WHERE uuid = ?;";
 
     @Language("sql")
-    private static final String INSERT_NEW_USER = "INSERT INTO necrify_user (uuid, name, whitelisted) VALUES (?, ?, ?);";
+    private static final String INSERT_NEW_USER = "INSERT INTO necrify_user (uuid, name, whitelisted) VALUES (?, LOWER(?), ?);";
 
     private final ExecutorService executor;
     private final ProxyServer server;

@@ -26,6 +26,7 @@ import de.jvstvshd.necrify.api.event.punishment.PunishmentChangedEvent;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.punishment.TemporalPunishment;
+import de.jvstvshd.necrify.api.punishment.log.PunishmentLogAction;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.io.Adapters;
@@ -94,6 +95,8 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
         if (!getType().isBan() && !getType().isMute()) {
             throw new IllegalStateException("only bans and mutes can be changed");
         }
+        var oldDuration = getDuration();
+        var oldReason = getReason();
         return executeAsync(() -> {
             var newCreatedAt = creationTime == null ? getCreationTime() : creationTime;
             var newRsn = newReason == null ? getReason() : newReason;
