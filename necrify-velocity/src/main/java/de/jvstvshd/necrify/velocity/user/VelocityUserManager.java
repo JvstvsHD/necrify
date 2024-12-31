@@ -234,6 +234,11 @@ public class VelocityUserManager implements UserManager {
         }
     }
 
+    @Override
+    public @NotNull Collection<? extends NecrifyUser> getLoadedUsers() {
+        return userCache.asMap().values();
+    }
+
     @Subscribe
     public void onPlayerDisconnect(DisconnectEvent event) {
         var player = event.getPlayer();

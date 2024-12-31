@@ -2,7 +2,7 @@
 
 -- noinspection SqlResolveForFile @ table/"necrify_whitelist"
 
-CREATE TABLE IF NOT EXISTS punishment.necrify_user
+CREATE TABLE IF NOT EXISTS necrify_schema.necrify_user
 (
     uuid UUID PRIMARY KEY,
     name VARCHAR(16)
@@ -24,12 +24,12 @@ ALTER TABLE necrify_schema.necrify_punishment
     ELSE 0
     END;
 
-INSERT INTO punishment.necrify_user (uuid, name)
+INSERT INTO necrify_schema.necrify_user (uuid, name)
 SELECT DISTINCT uuid, name
 FROM necrify_schema.necrify_punishment
 ON CONFLICT
 DO NOTHING;
-INSERT INTO punishment.necrify_user (uuid, name)
+INSERT INTO necrify_schema.necrify_user (uuid, name)
 SELECT DISTINCT uuid, NULL
 FROM necrify_schema.necrify_whitelist
 ON CONFLICT
@@ -37,11 +37,11 @@ DO NOTHING;
 ALTER TABLE necrify_schema.necrify_punishment
     DROP CONSTRAINT IF EXISTS fk_punishment_user;
 ALTER TABLE necrify_schema.necrify_punishment
-    ADD CONSTRAINT fk_punishment_user FOREIGN KEY (uuid) REFERENCES punishment.necrify_user (uuid) ON DELETE CASCADE;
+    ADD CONSTRAINT fk_punishment_user FOREIGN KEY (uuid) REFERENCES necrify_schema.necrify_user (uuid) ON DELETE CASCADE;
 ALTER TABLE necrify_schema.necrify_whitelist
     DROP CONSTRAINT IF EXISTS fk_whitelist_user;
 ALTER TABLE necrify_schema.necrify_whitelist
-    ADD CONSTRAINT fk_whitelist_user FOREIGN KEY (uuid) REFERENCES punishment.necrify_user (uuid) ON DELETE CASCADE;
+    ADD CONSTRAINT fk_whitelist_user FOREIGN KEY (uuid) REFERENCES necrify_schema.necrify_user (uuid) ON DELETE CASCADE;
 ALTER TABLE necrify_schema.necrify_user
     ADD COLUMN IF NOT EXISTS whitelisted BOOLEAN DEFAULT FALSE;
 ALTER TABLE necrify_schema.necrify_punishment

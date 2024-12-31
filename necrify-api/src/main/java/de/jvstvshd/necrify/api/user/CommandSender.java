@@ -19,6 +19,7 @@
 package de.jvstvshd.necrify.api.user;
 
 import de.jvstvshd.necrify.api.message.MessageProvider;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -30,14 +31,7 @@ import java.util.Locale;
  * Represents an entity that is able to interact with the server via messages and may send commands to it. It is also
  * able to hold permissions.
  */
-public interface CommandSender {
-
-    /**
-     * Sends a message to the command sender. The message may be given in form of a {@link net.kyori.adventure.text.TranslatableComponent},
-     * which will be translated to the correct language when being displayed.
-     * @param message a non-null component that represents the message to be sent.
-     */
-    void sendMessage(@NotNull Component message);
+public interface CommandSender extends Audience {
 
     /**
      * Sends a message to the command sender. The message must contain a valid translation key that is present in the

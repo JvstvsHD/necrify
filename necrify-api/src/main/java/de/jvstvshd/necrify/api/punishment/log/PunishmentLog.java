@@ -33,7 +33,10 @@ import java.util.List;
 public interface PunishmentLog {
 
     /**
-     * Returns the punishment this log belongs to.
+     * Returns the punishment this log belongs to or even if the punishment this log refers to does no longer exist.
+     * If the punishment no longer exists, this method returns a {@link Punishment} instance with the UUID of the punishment
+     * but no other information. If the user this punishment belongs to does not exist anymore, this method's return value
+     * will contain no target user.
      *
      * @return the punishment this log belongs to.
      */
@@ -94,6 +97,9 @@ public interface PunishmentLog {
      * @param message the message to log
      * @param actor   the actor that performed the action
      * @throws IllegalArgumentException if the action can only be logged once and has already been logged
+     * @apiNote Standard actions (all of the action types in {@link PunishmentLogAction}) are directly logged through
+     * means like SQL triggers so that this method does not have to be called explicitly. This method is only meant to
+     * be used for custom actions.
      */
     void log(@NotNull PunishmentLogAction action, @NotNull String message, @NotNull NecrifyUser actor);
 }

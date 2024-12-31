@@ -44,7 +44,7 @@ tasks {
         // Configure the Velocity version for our task.
         // This is the only required configuration besides applying the plugin.
         // Your plugin's jar (or shadowJar if present) will be used automatically.
-        velocityVersion("3.3.0-SNAPSHOT")
+        velocityVersion("3.4.0-SNAPSHOT")
     }
 
     sourceSets {
@@ -80,6 +80,7 @@ tasks {
             relocate("google", prefix("google"))
             relocate("io.leangen.geantyref", prefix("geantyref"))
             relocate("me.lucko.jarrelocator", prefix("lucko.jarrelocator"))
+            relocate("net.kyori.adventure.text.feature.pagination", prefix("adventure.pagination"))
             relocate("org.objectweb.asm", prefix("objectweb.asm"))
             relocate("org.apache.commons", prefix("commons"))
             relocate("org.checkerframework", prefix("checkerframework"))

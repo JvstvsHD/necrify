@@ -137,7 +137,8 @@ public class ResourceBundleMessageProvider implements MessageProvider {
     @Override
     public @NotNull Component provide(@NotNull String key, Component... args) {
         Objects.requireNonNull(key, "key may not be null");
-        return prefixed(Component.translatable(key, args));
+        var component = Component.translatable(key, args);
+        return autoPrefixed ? prefixed(component) : component;
     }
 
     @Override

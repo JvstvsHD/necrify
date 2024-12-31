@@ -28,6 +28,7 @@ import net.kyori.adventure.text.event.HoverEventSource;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 public class PunishmentHelper {
@@ -35,6 +36,8 @@ public class PunishmentHelper {
     private PunishmentHelper() {
         throw new IllegalStateException("Utility class");
     }
+
+    private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
     public static Component buildPunishmentData(Punishment punishment, MessageProvider provider) {
         return buildPunishmentData(punishment, provider, 0);
@@ -59,15 +62,17 @@ public class PunishmentHelper {
                         copyable(punishment.getPunishmentUuid().toString(), NamedTextColor.YELLOW, provider),
                         Component.newline(),
                         punishment instanceof TemporalPunishment temporalPunishment ?
-                                buildPunishmentDataTemporal(temporalPunishment, provider, ic) : Component.text(""),
-                        Component.newline(),
-                        ic,
-                        clickToRemove
-                                .color(NamedTextColor.RED)
-                                .clickEvent(ClickEvent.runCommand("/necrify punishment " + punishment.getPunishmentUuid().toString().toLowerCase(Locale.ROOT) + " remove"))
-                                .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(clickToRemove.color(NamedTextColor.GREEN))),
-                        Component.newline()
+                                buildPunishmentDataTemporal(temporalPunishment, provider, ic) : Component.text("")
                 );
+        if (punishment.isOngoing()) {
+            builder.append(Component.newline(),
+                    ic,
+                    clickToRemove
+                            .color(NamedTextColor.RED)
+                            .clickEvent(ClickEvent.runCommand("/necrify punishment " + punishment.getPunishmentUuid().toString().toLowerCase(Locale.ROOT) + " remove"))
+                            .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(clickToRemove.color(NamedTextColor.GREEN))),
+                    Component.newline());
+        }
         if (punishment.hasSuccessor()) {
             int newIndenting;
             if (indents == 0) {
@@ -80,13 +85,6 @@ public class PunishmentHelper {
                     .append(child);
         }
         return builder.build();
-    }
-
-    public static Component indentComponent(int n) {
-        if (n == 0) {
-            return Component.empty();
-        }
-        return Component.text(" ".repeat(n) + "> ").color(NamedTextColor.GRAY);
     }
 
     public static Component buildPunishmentDataTemporal(TemporalPunishment punishment, MessageProvider provider, Component linePrefix) {
@@ -106,6 +104,13 @@ public class PunishmentHelper {
                         provider.provide("helper.temporal.end").color(NamedTextColor.AQUA),
                         Component.text(punishment.getDuration().expirationAsString()).color(NamedTextColor.YELLOW))
                 .build();
+    }
+
+    public static Component indentComponent(int n) {
+        if (n == 0) {
+            return Component.empty();
+        }
+        return Component.text(" ".repeat(n) + "> ").color(NamedTextColor.GRAY);
     }
 
     private static Component copyable(String s, NamedTextColor color, MessageProvider provider) {

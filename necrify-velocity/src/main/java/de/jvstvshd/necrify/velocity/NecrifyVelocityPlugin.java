@@ -145,6 +145,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     @Inject
     public NecrifyVelocityPlugin(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
         super(Executors.newCachedThreadPool(new ThreadFactoryBuilder()
+                .setNameFormat("necrify-async-%d")
                 .setUncaughtExceptionHandler((t, e) -> logger.error("An error occurred in thread {}", t.getName(), e))
                 .build()), new ConfigurationManager(dataDirectory.resolve("config.yml")), logger);
         this.server = server;
@@ -384,6 +385,13 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     @SuppressWarnings("unchecked")
     @Override
     public <T extends Punishment> CompletableFuture<Optional<T>> getPunishment(@NotNull UUID punishmentId) {
+        Objects.requireNonNull(punishmentId, "punishmentId may not be null.");
+        for (NecrifyUser loadedUser : getUserManager().getLoadedUsers()) {
+            var punishment = loadedUser.getPunishment(punishmentId);
+            if (punishment.isPresent()) {
+                return CompletableFuture.completedFuture((Optional<T>) punishment);
+            }
+        }
         return Util.executeAsync(() -> (Optional<T>) Query
                 .query("SELECT u.* FROM necrify_user u INNER JOIN necrify_punishment p ON u.uuid = p.uuid WHERE p.punishment_id = ?;")
                 .single(Call.of().bind(punishmentId, Adapters.UUID_ADAPTER))
@@ -391,7 +399,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
                     var userId = Util.getUuid(row, 1);
                     var user = createUser(userId, true);
                     return user.getPunishment(punishmentId).orElse(null);
-                }).first(), getExecutor());
+                }).first().or(() -> Optional.ofNullable(getHistoricalPunishment(punishmentId))), getExecutor());
     }
 
     public NecrifyUser createUser(CommandSource source) {

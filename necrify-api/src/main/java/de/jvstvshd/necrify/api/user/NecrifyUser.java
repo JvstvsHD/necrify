@@ -42,7 +42,6 @@ import java.util.concurrent.CompletableFuture;
  *
  * @since 1.2.0
  */
-@ApiStatus.Experimental
 public interface NecrifyUser extends CommandSender {
 
     /**

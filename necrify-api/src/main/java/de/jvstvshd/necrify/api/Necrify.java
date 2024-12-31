@@ -54,6 +54,7 @@ import java.util.concurrent.ExecutorService;
  *
  *
  * }</pre>
+ *
  * @author JvstvsHD
  * @version 1.0.0
  */
@@ -110,6 +111,7 @@ public interface Necrify {
     /**
      * Returns the message provider used by this system. A message provider provides localized messages for users based
      * on a key and optional arguments.
+     *
      * @return the message provider.
      */
     @NotNull
@@ -120,6 +122,7 @@ public interface Necrify {
      * on a key and optional arguments.
      * <p>
      * This may does not affect anything after the system has been initialized fully.
+     *
      * @param messageProvider the message provider to set.
      */
     void setMessageProvider(@NotNull MessageProvider messageProvider);
@@ -127,6 +130,7 @@ public interface Necrify {
     /**
      * Returns the user manager used by this system. The user manager is responsible for loading and saving users and
      * keeping their data accurate and up-to-date.
+     *
      * @return the user manager.
      */
     @NotNull
@@ -137,16 +141,25 @@ public interface Necrify {
      * keeping their data accurate and up-to-date.
      * <p>
      * This may does not affect anything after the system has been initialized fully.
+     *
      * @param userManager the user manager to set.
      */
     void setUserManager(@NotNull UserManager userManager);
 
     /**
      * Retrieves a punishment by its id. This will also completely load the user this punishment is affecting.
+     * <p>
+     * As of <b>1.2.2</b>, this method may return a punishment object that only contains historical data about it. Thus, this
+     * punishment cannot be manipulated any further. To check whether the punishment is historical, you may use
+     * {@link Punishment#isOngoing()}. If it returns true, the punishment is still active and can be manipulated in any
+     * way. If it returns false, the punishment probably is historical and cannot be manipulated. You can still retrieve
+     * log entries of historical punishments. Historical punishments are not added to the user's list of active punishments.
+     * </p>
      *
      * @param punishmentId the id of the punishment.
      * @param <T>          the type of the punishment.
      * @return a future containing the punishment or {@link Optional#empty()} if not found.
+     * @throws IllegalArgumentException if the punishment id is null
      * @since 1.2.0
      */
     <T extends Punishment> CompletableFuture<Optional<T>> getPunishment(@NotNull UUID punishmentId);

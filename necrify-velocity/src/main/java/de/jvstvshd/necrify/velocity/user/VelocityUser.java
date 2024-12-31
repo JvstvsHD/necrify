@@ -27,18 +27,16 @@ import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.event.user.UserDeletedEvent;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.*;
-import de.jvstvshd.necrify.api.punishment.log.PunishmentLog;
-import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserDeletionReason;
 import de.jvstvshd.necrify.common.io.Adapters;
 import de.jvstvshd.necrify.common.punishment.PunishmentBuilder;
-import de.jvstvshd.necrify.common.punishment.log.NecrifyPunishmentLog;
+import de.jvstvshd.necrify.common.user.AbstractNecrifyUser;
 import de.jvstvshd.necrify.common.user.MojangAPI;
 import de.jvstvshd.necrify.common.util.Util;
 import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,8 +44,9 @@ import javax.sql.DataSource;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 
-public class VelocityUser implements NecrifyUser {
+public class VelocityUser extends AbstractNecrifyUser {
 
     private final UUID uuid;
     private final List<Punishment> punishments;
@@ -61,6 +60,7 @@ public class VelocityUser implements NecrifyUser {
     private Player player;
 
     public VelocityUser(@NotNull UUID uuid, @Nullable String name, boolean whitelisted, @Nullable Player player, NecrifyVelocityPlugin plugin) {
+        super(plugin.getMessageProvider());
         this.whitelisted = whitelisted;
         this.plugin = plugin;
         this.punishments = new ArrayList<>();
@@ -74,6 +74,7 @@ public class VelocityUser implements NecrifyUser {
     }
 
     public VelocityUser(@NotNull UUID uuid, @Nullable String name, boolean whitelisted, NecrifyVelocityPlugin plugin) {
+        super(plugin.getMessageProvider());
         this.whitelisted = whitelisted;
         this.plugin = plugin;
         this.punishments = new ArrayList<>();
@@ -108,7 +109,7 @@ public class VelocityUser implements NecrifyUser {
 
     @Override
     public @NotNull CompletableFuture<Ban> banPermanent(@Nullable Component reason) {
-        return ban(reason, PunishmentDuration.permanent());
+        return ban(reason, PunishmentDuration.PERMANENT);
     }
 
     @Override
@@ -122,7 +123,7 @@ public class VelocityUser implements NecrifyUser {
 
     @Override
     public @NotNull CompletableFuture<Mute> mutePermanent(@Nullable Component reason) {
-        return mute(reason, PunishmentDuration.permanent());
+        return mute(reason, PunishmentDuration.PERMANENT);
     }
 
     @Override
@@ -139,12 +140,7 @@ public class VelocityUser implements NecrifyUser {
     @SuppressWarnings("unchecked")
     private <T extends Punishment> CompletableFuture<T> punish(T punishment) {
         punishments.add(punishment);
-        return (CompletableFuture<T>) punishment.punish().whenComplete((ignored, throwable) -> {
-            if (throwable != null) {
-                plugin.getLogger().error("An error occurred while punishing user {}", punishment.getUser().getUuid(), throwable);
-                punishment.getUser().sendErrorMessage();
-            }
-        });
+        return (CompletableFuture<T>) punishment.punish();
     }
 
     @SuppressWarnings("unchecked")
@@ -178,21 +174,6 @@ public class VelocityUser implements NecrifyUser {
     public Optional<Player> queryPlayer() {
         var opt = server.getPlayer(uuid);
         return opt.map(value -> player = value);
-    }
-
-    @Override
-    public void sendMessage(@NotNull Component message) {
-        queryPlayer().ifPresent(player -> player.sendMessage(message));
-    }
-
-    @Override
-    public void sendMessage(@NotNull String key, TextColor color, Component... args) {
-        sendMessage(messageProvider.provide(key, args).color(color));
-    }
-
-    @Override
-    public void sendErrorMessage() {
-        sendMessage(messageProvider.internalError());
     }
 
     @Override
@@ -284,5 +265,10 @@ public class VelocityUser implements NecrifyUser {
             return Objects.requireNonNullElse(player.getEffectiveLocale(), defaultLocale);
         }
         return defaultLocale;
+    }
+
+    @Override
+    public void executeOnAudience(@NotNull Consumer<Audience> consumer) {
+        queryPlayer().ifPresent(consumer);
     }
 }

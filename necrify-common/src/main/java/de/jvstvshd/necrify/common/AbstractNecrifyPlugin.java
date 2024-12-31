@@ -18,6 +18,8 @@
 
 package de.jvstvshd.necrify.common;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import de.jvstvshd.necrify.api.Necrify;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.punishment.Punishment;
@@ -29,6 +31,7 @@ import de.jvstvshd.necrify.common.commands.*;
 import de.jvstvshd.necrify.common.config.ConfigurationManager;
 import de.jvstvshd.necrify.common.punishment.NecrifyKick;
 import de.jvstvshd.necrify.common.punishment.NecrifyPunishmentFactory;
+import de.jvstvshd.necrify.common.punishment.log.NecrifyPunishmentLog;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -36,6 +39,7 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.annotations.AnnotationParser;
 import org.incendo.cloud.exception.ArgumentParseException;
+import org.incendo.cloud.exception.CommandExecutionException;
 import org.incendo.cloud.exception.handling.ExceptionHandler;
 import org.incendo.cloud.minecraft.extras.parser.ComponentParser;
 import org.incendo.cloud.parser.ParserDescriptor;
@@ -45,6 +49,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
@@ -59,6 +64,8 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
 
     protected final ExecutorService executorService;
     protected final ConfigurationManager configurationManager;
+    private final Cache<UUID, Punishment> historicalPunishmentCache =
+            Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build();
     private final Logger logger;
 
     public AbstractNecrifyPlugin(ExecutorService executorService, ConfigurationManager configurationManager, Logger logger) {
@@ -132,6 +139,13 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
                     var component = getMessageProvider().provide("command.punishment.duration.invalid", Component.text(context.exception().getMessage(), NamedTextColor.YELLOW)).color(NamedTextColor.RED);
                     context.context().sender().sendMessage(component);
                 });
+        manager.exceptionController()
+                .registerHandler(CommandExecutionException.class, ExceptionHandler.unwrappingHandler(Throwable.class))
+                .registerHandler(Throwable.class, context -> {
+                    logger.error("An internal error occurred while executing a command", context.exception());
+                    var component = getMessageProvider().provide("error.internal");
+                    context.context().sender().sendMessage(component);
+                });
         manager.captionRegistry().registerProvider((caption, user) -> {
             var component = getMessageProvider().provide(caption.key(), user.getLocale());
             return PlainTextComponentSerializer.plainText().serialize(component);
@@ -178,11 +192,38 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
         return configurationManager;
     }
 
-    public abstract NecrifyKick createKick(Component reason, NecrifyUser user, UUID punishmentUuid);
-
     public Logger getLogger() {
         return logger;
     }
+
+    /**
+     * Returns a historical punishment by its uuid. This method should be used to retrieve a punishment that is not active anymore
+     * and only if there is no other way to retrieve the punishment if it is still active.<br>
+     * This method executes synchronously and should not be called on the main thread.
+     *
+     * @param punishmentUuid the uuid of the punishment to retrieve
+     * @param <T>            the type of the punishment
+     * @return the punishment or null if it could not be found
+     */
+    public <T extends Punishment> T getHistoricalPunishment(UUID punishmentUuid) {
+        var cached = historicalPunishmentCache.getIfPresent(punishmentUuid);
+        if (cached != null) {
+            return (T) cached;
+        }
+        var log = new NecrifyPunishmentLog(this, punishmentUuid);
+        if (log.load(false)) {
+            var result = log.getPunishment();
+            //noinspection ConstantValue in this case, #getPunishment may return null if there is no such punishment for this id
+            if (result != null) {
+                historicalPunishmentCache.put(punishmentUuid, result);
+                return (T) result;
+            }
+            return (T) log.getPunishment();
+        }
+        return null;
+    }
+
+    public abstract NecrifyKick createKick(Component reason, NecrifyUser user, UUID punishmentUuid);
 
     //TODO return just a set of objects. Create a new User object that does not get loaded from the database.
     public abstract Set<Pair<String, UUID>> getOnlinePlayers();

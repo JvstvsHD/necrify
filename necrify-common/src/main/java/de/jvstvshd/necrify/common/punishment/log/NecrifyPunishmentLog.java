@@ -31,6 +31,7 @@ import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserManager;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.io.Adapters;
+import de.jvstvshd.necrify.common.punishment.HistoricalPunishment;
 import de.jvstvshd.necrify.common.util.Util;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.jetbrains.annotations.NotNull;
@@ -40,26 +41,43 @@ import org.slf4j.Logger;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Function;
+import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Default implementation of {@link PunishmentLog} for minecraft servers.
+ *
+ * @implNote This class does not
+ */
 public class NecrifyPunishmentLog implements PunishmentLog {
 
-    private final Punishment punishment;
+    private Punishment punishment;
     private final List<PunishmentLogEntry> entries = Collections.synchronizedList(new ArrayList<>());
     private final AbstractNecrifyPlugin plugin;
     private final UserManager userManager;
     private final Logger logger;
+    private final UUID uuid;
 
-    public NecrifyPunishmentLog(Punishment punishment, AbstractNecrifyPlugin plugin) {
-        this.punishment = punishment;
+    /**
+     * @param plugin
+     * @param uuid
+     */
+    public NecrifyPunishmentLog(AbstractNecrifyPlugin plugin, UUID uuid) {
         this.plugin = plugin;
         this.userManager = plugin.getUserManager();
         this.logger = plugin.getLogger();
+        this.uuid = uuid;
+    }
+
+    public NecrifyPunishmentLog(AbstractNecrifyPlugin plugin, Punishment punishment) {
+        this.logger = plugin.getLogger();
+        this.userManager = plugin.getUserManager();
+        this.plugin = plugin;
+        this.punishment = punishment;
+        this.uuid = punishment.getUuid();
     }
 
     /**
@@ -68,14 +86,19 @@ public class NecrifyPunishmentLog implements PunishmentLog {
      * <p>This method is ran synchronously and should not be called on the main thread. Use an asynchronous context yourself.
      *
      * @param loadIfAlreadyLoaded whether to load the log if it is already loaded
+     * @return true if there was log data found and loaded, otherwise false
      */
-    public synchronized void load(boolean loadIfAlreadyLoaded) {
+    public synchronized boolean load(boolean loadIfAlreadyLoaded) {
         if (!loadIfAlreadyLoaded && !entries.isEmpty()) {
-            return;
+            return false;
         }
-        var entries = Query.query("SELECT id, player_id, message, expiration, reason, predecessor, successor, action, " +
-                        "beginsAt, created_at FROM punishment_log WHERE punishment_id = ? ORDER BY id ASC")
-                .single(Call.of().bind(punishment.getUuid(), Adapters.UUID_ADAPTER))
+        if (punishment == null) {
+            punishment = new HistoricalPunishment(uuid, null, null, null, this);
+        }
+        AtomicInteger index = new AtomicInteger();
+        var entries = Query.query("SELECT id, actor_id, message, expiration, reason, predecessor, successor, action, " +
+                        "begins_at, created_at FROM punishment_log WHERE punishment_id = ? ORDER BY id ASC")
+                .single(Call.of().bind(uuid, Adapters.UUID_ADAPTER))
                 .map(row -> {
                     var id = row.getInt(1);
                     var actorUuid = row.getObject(2, UUID.class);
@@ -88,44 +111,31 @@ public class NecrifyPunishmentLog implements PunishmentLog {
                     var message = row.getString(3);
                     var duration = PunishmentDuration.fromTimestamp(row.getTimestamp(4));
                     var reason = MiniMessage.miniMessage().deserialize(row.getString(5));
-                    var predecessor = plugin.getPunishment(row.getObject(6, UUID.class)).join().orElse(null);
-                    var successor = plugin.getPunishment(row.getObject(7, UUID.class)).join().orElse(null);
+                    var predecessor = getPunishment(row.getObject(6, UUID.class));
+                    var successor = getPunishment(row.getObject(7, UUID.class));
                     var action = PunishmentLogActionRegistry.getAction(row.getString(8)).orElse(PunishmentLogAction.UNKNOWN);
                     var beginsAt = row.getTimestamp(9).toLocalDateTime();
                     var instant = row.getTimestamp(10).toLocalDateTime();
                     return new PunishmentLogEntry(actor, message, duration, reason, predecessor, punishment, successor,
-                            beginsAt, action, this, instant, id);
+                            beginsAt, action, this, instant, index.getAndIncrement());
                 }).all();
+        if (entries.isEmpty()) {
+            return false;
+        }
         Collections.sort(entries);
-        var completedEntries = entries.stream().map(this::completeEntry).toList();
         this.entries.clear();
-        this.entries.addAll(completedEntries);
+        this.entries.addAll(entries);
+        if (punishment instanceof HistoricalPunishment historicalPunishment) {
+            historicalPunishment.setCreationTime(getLatestEntry().beginsAt())
+                    .setExpirationTime(getLatestEntry().duration().expiration())
+                    .setUser(getEntry(PunishmentLogAction.INFORMATION).actor());
+        }
+        return true;
     }
 
-    /**
-     * Retrieves a value from freshly created log entries. This method is only meant to be applied to such entries that
-     * have been filled with values provided by the database as they only contain the changed value, whereas all other values
-     * are null. This method will retrieve the value from the previous entry or punishment object if the value is null.
-     *
-     * @param startAt  the entry to start at (last entry; the method will look upon all previous entries, only if needed)
-     * @param function the function to retrieve the value from the entry
-     * @param <T>      the type of the value
-     * @return the value
-     */
-    private <T> T retrieveValue(@NotNull PunishmentLogEntry startAt, @NotNull Function<PunishmentLogEntry, T> function) {
-        T value;
-        do {
-            value = function.apply(startAt);
-            startAt = startAt.previous().orElse(null);
-        } while (value == null && startAt != null);
-        return value != null ? value : function.apply(punishment.createCurrentLogEntry());
-    }
-
-    private PunishmentLogEntry completeEntry(PunishmentLogEntry entry) {
-        return new PunishmentLogEntry(entry.actor(), entry.message(), retrieveValue(entry, PunishmentLogEntry::duration),
-                retrieveValue(entry, PunishmentLogEntry::reason), retrieveValue(entry, PunishmentLogEntry::predecessor),
-                entry.punishment(), retrieveValue(entry, PunishmentLogEntry::successor),
-                retrieveValue(entry, PunishmentLogEntry::beginsAt), entry.action(), entry.log(), entry.instant(), entry.index());
+    @Nullable
+    private Punishment getPunishment(@Nullable UUID uuid) {
+        return uuid == null ? null : plugin.getPunishment(uuid).join().orElse(null);
     }
 
     @Override
@@ -155,6 +165,9 @@ public class NecrifyPunishmentLog implements PunishmentLog {
 
     @Override
     public void log(@NotNull PunishmentLogAction action, @NotNull String message, @NotNull NecrifyUser actor) {
+        if (punishment == null || punishment instanceof HistoricalPunishment) {
+            throw new IllegalStateException("Punishment no longer exists. This method is only applicable to still-existing punishments.");
+        }
         if (action.onlyOnce() && getEntry(action) != null) {
             throw new IllegalArgumentException("This action can only be logged once.");
         }
@@ -163,7 +176,7 @@ public class NecrifyPunishmentLog implements PunishmentLog {
                 punishment.getCreationTime(), action, this, LocalDateTime.now(),
                 entries.size());
         entries.add(entry);
-        Util.executeAsync(() -> Query.query("INSERT INTO necrify_schema.punishment_log (punishment_id, player_id, message, expiration, reason, predecessor, successor, action, begins_at created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+        Util.executeAsync(() -> Query.query("INSERT INTO necrify_schema.punishment_log (punishment_id, actor_id, message, expiration, reason, predecessor, successor, action, begins_at created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
                 .single(Call.of().bind(punishment.getUuid(), Adapters.UUID_ADAPTER)
                         .bind(actor.getUuid(), Adapters.UUID_ADAPTER)
                         .bind(message)

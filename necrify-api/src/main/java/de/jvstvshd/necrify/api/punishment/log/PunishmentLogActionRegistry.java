@@ -27,23 +27,28 @@ import java.util.Optional;
 
 /**
  * A central registry for {@link PunishmentLogAction}s. This class is used to register and retrieve punishment log actions by their names.
+ *
  * @since 1.2.2
  */
 public class PunishmentLogActionRegistry {
 
     static {
+        actions = new HashMap<>();
         registerAction(PunishmentLogAction.CREATED);
         registerAction(PunishmentLogAction.CHANGE_REASON);
         registerAction(PunishmentLogAction.CHANGE_DURATION);
         registerAction(PunishmentLogAction.CHANGE_PREDECESSOR);
         registerAction(PunishmentLogAction.CHANGE_SUCCESSOR);
         registerAction(PunishmentLogAction.REMOVED);
+        registerAction(PunishmentLogAction.INFORMATION);
+        registerAction(PunishmentLogAction.CHANGE_TIME);
     }
 
-    private final static Map<String, PunishmentLogAction> actions = new HashMap<>();
+    private final static Map<String, PunishmentLogAction> actions;
 
     /**
      * Registers a new {@link PunishmentLogAction}. If an action with the same name is already registered, it will be replaced.
+     *
      * @param action the action to register
      */
     public static void registerAction(@NotNull PunishmentLogAction action) {
@@ -52,6 +57,7 @@ public class PunishmentLogActionRegistry {
 
     /**
      * Retrieves a {@link PunishmentLogAction} by its name. If no action with the given name is registered, an empty optional is returned.
+     *
      * @param name the name of the action
      * @return the action or an empty optional if not found
      */
@@ -61,6 +67,7 @@ public class PunishmentLogActionRegistry {
 
     /**
      * Unregisters a {@link PunishmentLogAction} by its name. If no action with the given name is registered, null is returned.
+     *
      * @param name the name of the action
      * @return the unregistered action or null if not found
      */
@@ -71,6 +78,7 @@ public class PunishmentLogActionRegistry {
 
     /**
      * Returns a copy of all registered {@link PunishmentLogAction}s.
+     *
      * @return a copy of all registered actions
      */
     public static Map<String, PunishmentLogAction> getActions() {

@@ -21,10 +21,10 @@ package de.jvstvshd.necrify.common.user;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.*;
-import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserDeletionReason;
+import de.jvstvshd.necrify.common.util.Util;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,19 +32,22 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
-public abstract class AbstractSystemUser implements NecrifyUser {
+public abstract class AbstractSystemUser extends AbstractNecrifyUser {
 
     private final Locale locale;
-    private final MessageProvider provider;
+    private final Audience delegateAudience;
 
-    public AbstractSystemUser(Locale locale, MessageProvider provider) {
+    public AbstractSystemUser(Locale locale, MessageProvider provider, Audience delegateAudience) {
+        super(provider);
         this.locale = locale;
-        this.provider = provider;
+        this.delegateAudience = delegateAudience;
     }
 
-    public AbstractSystemUser(MessageProvider provider) {
-        this.provider = provider;
+    public AbstractSystemUser(MessageProvider provider, Audience delegateAudience) {
+        super(provider);
+        this.delegateAudience = delegateAudience;
         this.locale = Locale.getDefault();
     }
 
@@ -54,7 +57,7 @@ public abstract class AbstractSystemUser implements NecrifyUser {
 
     @Override
     public @NotNull UUID getUuid() {
-        return new UUID(0, 0);
+        return Util.NULL_UUID;
     }
 
     @Override
@@ -123,11 +126,11 @@ public abstract class AbstractSystemUser implements NecrifyUser {
     }
 
     @Override
-    public void sendMessage(@NotNull String key, TextColor color, Component... args) {
-        sendMessage(provider().provide(key, getLocale(), args).color(color));
+    public void executeOnAudience(@NotNull Consumer<Audience> consumer) {
+        consumer.accept(delegateAudience);
     }
 
-    public MessageProvider provider() {
-        return provider;
+    public Audience getDelegateAudience() {
+        return delegateAudience;
     }
 }

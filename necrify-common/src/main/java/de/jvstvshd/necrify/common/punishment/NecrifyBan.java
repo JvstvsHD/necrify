@@ -45,6 +45,7 @@ public class NecrifyBan extends AbstractTemporalPunishment implements Ban {
 
     @Override
     public CompletableFuture<Punishment> applyPunishment() throws PunishmentException {
+        System.out.println("thread = " + Thread.currentThread().getName());
         return super.applyPunishment().whenComplete((p, throwable) -> tryKick());
     }
 

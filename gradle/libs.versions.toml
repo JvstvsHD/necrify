@@ -1,7 +1,7 @@
 # Generate from settings.gradle.kts
 
 [versions]
-velocity-api = "3.3.0-SNAPSHOT"
+velocity-api = "3.4.0-SNAPSHOT"
 luckperms-api = "5.4"
 jackson-databind = "2.18.0"
 jackson-datatype-jsr310 = "2.18.0"
@@ -48,6 +48,7 @@ slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
 adventure-api = { group = "net.kyori", name = "adventure-api", version.ref = "adventure" }
 adventure-text-minimessage = { group = "net.kyori", name = "adventure-text-minimessage", version.ref = "adventure" }
 adventure-text-serializer-plain = { group = "net.kyori", name = "adventure-text-serializer-plain", version.ref = "adventure" }
+adventure-text-feature-pagination = { group = "net.kyori", name = "adventure-text-feature-pagination", version = "4.0.0-SNAPSHOT" }
 
 # Cloud
 cloud-core = { group = "org.incendo", name = "cloud-core", version.ref = "cloud" }

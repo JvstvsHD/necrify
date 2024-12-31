@@ -20,6 +20,7 @@ package de.jvstvshd.necrify.api.user;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -94,6 +95,7 @@ public interface UserManager {
     /**
      * Loads the user with the given uuid or creates a new user if not found. At first, the cache is checked for the user.
      * If there is no result, the user is loaded from the underlying storage. If the user is not found, a new user is created.
+     *
      * @param uuid the uuid of the user
      * @return a future containing the user or an empty Optional if there is no Minecraft account associated with the uuid
      */
@@ -109,4 +111,11 @@ public interface UserManager {
      */
     @NotNull
     CompletableFuture<Optional<NecrifyUser>> loadOrCreateUser(@NotNull String player);
+
+    /**
+     * Returns all loaded users.
+     *
+     * @return a collection of all loaded users
+     */
+    @NotNull Collection<? extends NecrifyUser> getLoadedUsers();
 }

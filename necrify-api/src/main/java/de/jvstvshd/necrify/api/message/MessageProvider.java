@@ -98,19 +98,15 @@ public interface MessageProvider {
     }
 
     /**
-     * Prefixes the provided components into one component.
+     * Prefixes the provided components with this system's prefix into one component containing firstly the prefix and then
+     * all provided components in order of the array.
      *
      * @param args the components to prefix.
      * @return one prefixed component.
      */
     @NotNull
     default Component prefixed(Component... args) {
-        Component comp;
-        if (autoPrefixed()) {
-            comp = prefix();
-        } else {
-            comp = Component.empty();
-        }
+        Component comp = prefix();
         for (Component arg : args) {
             comp = comp.append(arg);
         }

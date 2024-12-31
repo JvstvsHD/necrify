@@ -34,6 +34,7 @@ dependencies {
     compileOnly(libs.slf4j.api)
     compileOnly("com.google.code.gson:gson:2.11.0")
     compileOnly(libs.bundles.adventure)
+    api(libs.adventure.text.feature.pagination)
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)
 }

@@ -33,6 +33,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -46,6 +47,8 @@ public class Util {
      * in user-bound actions.
      */
     public static final UUID NULL_UUID = new UUID(0, 0);
+
+    public static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
     private Util() {
     }
@@ -77,6 +80,7 @@ public class Util {
             try {
                 cf.complete(task.call());
             } catch (Throwable e) {
+                e.printStackTrace();
                 cf.completeExceptionally(e);
             }
         });

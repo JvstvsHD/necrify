@@ -38,9 +38,7 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.UUID;
@@ -142,6 +140,7 @@ public abstract class AbstractPunishment implements Punishment {
         return applyPunishment().whenCompleteAsync((punishment, throwable) -> {
             if (punishment != null) {
                 getEventDispatcher().dispatch(new PunishmentPersecutedEvent(punishment));
+                log(PunishmentLogAction.CREATED, "Punishment has been created.");
             }
         });
     }
@@ -151,6 +150,7 @@ public abstract class AbstractPunishment implements Punishment {
         return applyCancellation().whenCompleteAsync((punishment, throwable) -> {
             if (punishment != null) {
                 getEventDispatcher().dispatch(new PunishmentCancelledEvent(punishment));
+                log(PunishmentLogAction.REMOVED, null);
             }
         });
     }
@@ -253,7 +253,7 @@ public abstract class AbstractPunishment implements Punishment {
             return CompletableFuture.completedFuture(cachedLog);
         }
         return Util.executeAsync(() -> {
-            var log = new NecrifyPunishmentLog(this, plugin);
+            var log = new NecrifyPunishmentLog(plugin, this);
             log.load(false);
             return (cachedLog = log);
         }, executor);
@@ -266,7 +266,7 @@ public abstract class AbstractPunishment implements Punishment {
                 cachedLog, LocalDateTime.now(), -1);
     }
 
-    public void log(PunishmentLogAction action, String message, NecrifyUser actor) {
-        loadPunishmentLog().thenAccept(log -> log.log(action, message, actor));
+    public void log(PunishmentLogAction action, String message) {
+        loadPunishmentLog().thenAccept(log -> log.log(action, message, plugin.getSystemUser()));
     }
 }

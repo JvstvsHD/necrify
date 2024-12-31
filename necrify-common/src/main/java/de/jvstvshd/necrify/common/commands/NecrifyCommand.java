@@ -34,15 +34,13 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.event.HoverEventSource;
+import net.kyori.adventure.text.feature.pagination.Pagination;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.incendo.cloud.annotation.specifier.Greedy;
-import org.incendo.cloud.annotations.Argument;
-import org.incendo.cloud.annotations.Command;
-import org.incendo.cloud.annotations.Default;
-import org.incendo.cloud.annotations.Permission;
+import org.incendo.cloud.annotations.*;
 import org.incendo.cloud.annotations.suggestion.Suggestions;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.context.CommandInput;
@@ -63,7 +61,7 @@ public class NecrifyCommand {
     private final Logger logger;
     private final MessageProvider provider;
 
-    private static final List<String> PUNISHMENT_COMMAND_OPTIONS = List.of("cancel", "remove", "info", "change");
+    private static final List<String> PUNISHMENT_COMMAND_OPTIONS = List.of("cancel", "remove", "info", "change", "log");
     private static final List<String> USER_COMMAND_OPTIONS = List.of("info", "delete", "whitelist");
 
     public NecrifyCommand(AbstractNecrifyPlugin plugin) {
@@ -84,6 +82,7 @@ public class NecrifyCommand {
             @Argument(value = "target", description = "Player to ban", suggestions = "suggestOnlinePlayers") NecrifyUser target,
             @Argument(value = "reason", description = "Reason the user should be banned for", suggestions = "suggestMiniMessage") @Greedy String reason
     ) {
+        System.out.println("Thread.currentThread().getName() = " + Thread.currentThread().getName());
         var finalReason = reasonOrDefaultTo(reason, StandardPunishmentType.PERMANENT_BAN);
         target.banPermanent(finalReason).whenComplete((ban, throwable) -> {
             if (throwable != null) {
@@ -224,13 +223,14 @@ public class NecrifyCommand {
 
     //Informational/other
 
-    @Command("necrify punishment <punishmentId> [option] [otherPunishment]")
+    @Command("necrify punishment <punishmentId> [option]")
     @Permission(value = {"necrify.command.punishment", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void punishmentCommand(
             NecrifyUser sender,
             @Argument(value = "punishmentId", description = "Punishment to manage") Punishment punishmentParsed,
             @Argument(value = "option", description = "Option to manage the punishment", suggestions = "suggestPunishmentCommandOptions") @Default(value = "info") String option,
-            @Argument(value = "otherPunishment", description = "Another punishment to chain") Punishment otherPunishment
+            @Flag(value = "chain", description = "Another punishment to chain") Punishment otherPunishment,
+            @Flag(value = "page", description = "Page to display") Integer pageArgument
     ) {
         switch (option) {
             case "info" ->
@@ -263,6 +263,23 @@ public class NecrifyCommand {
                     }
                     sender.sendMessage(provider.provide("command.punishment.chain.success").color(NamedTextColor.GREEN));
                 });
+            }
+            case "log" -> {
+                int page = pageArgument == null ? 1 : pageArgument;
+                punishmentParsed.loadPunishmentLog().whenComplete((punishmentLog, throwable) -> {
+                    if (throwable != null) {
+                        logException(sender, throwable);
+                        return;
+                    }
+                    var paginator = Pagination.builder().build(Component.text("Necrify Punishment Log"),
+                                    new PunishmentLogPaginationRowRenderer(miniMessage, plugin),
+                                    functionPage -> "/necrify punishment " + punishmentParsed.getPunishmentUuid() + " log --page " + functionPage)
+                            .render(punishmentLog.getEntries(), page);
+                    for (Component component : paginator) {
+                        sender.sendMessage(component);
+                    }
+                });
+
             }
             default -> sender.sendMessage(unknownOption(option, PUNISHMENT_COMMAND_OPTIONS));
         }
@@ -330,6 +347,7 @@ public class NecrifyCommand {
                     var onlinePlayers = plugin.getOnlinePlayers();
                     onlinePlayers.forEach(pair -> {
                         try {
+                            //noinspection OptionalGetWithoutIsPresent (we know that the user must exist/can be created)
                             var user = plugin.getUserManager().loadOrCreateUser(pair.second()).join().get();
                             if (!user.isWhitelisted()) {
                                 user.kick(provider.provide("whitelist.removed").color(NamedTextColor.RED)).join();
@@ -462,7 +480,7 @@ public class NecrifyCommand {
             sender.sendMessage(provider.provide("command.punishment.chain",
                             Component.text(unchainedPunishment.getPunishmentUuid().toString()).color(NamedTextColor.YELLOW)).color(NamedTextColor.GRAY)
                     .clickEvent(ClickEvent.runCommand("/necrify punishment " + unchainedPunishment.getPunishmentUuid().toString().toLowerCase(Locale.ROOT)
-                            + " chain " + newPunishment.getPunishmentUuid().toString().toLowerCase(Locale.ROOT)))
+                            + " chain --chain " + newPunishment.getPunishmentUuid().toString().toLowerCase(Locale.ROOT)))
                     .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(provider.provide("command.punishment.chain").color(NamedTextColor.GREEN))));
         }
     }

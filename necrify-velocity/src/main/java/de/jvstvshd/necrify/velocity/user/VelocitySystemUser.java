@@ -21,8 +21,6 @@ package de.jvstvshd.necrify.velocity.user;
 import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.common.user.AbstractSystemUser;
-import net.kyori.adventure.text.Component;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
 
@@ -31,22 +29,12 @@ public class VelocitySystemUser extends AbstractSystemUser {
     private final ConsoleCommandSource console;
 
     public VelocitySystemUser(Locale locale, MessageProvider provider, ConsoleCommandSource console) {
-        super(locale, provider);
+        super(locale, provider, console);
         this.console = console;
     }
 
     public VelocitySystemUser(MessageProvider provider, ConsoleCommandSource console) {
-        super(provider);
+        super(provider, console);
         this.console = console;
-    }
-
-    @Override
-    public void sendMessage(@NotNull Component message) {
-        console.sendMessage(message);
-    }
-
-    @Override
-    public void sendErrorMessage() {
-        sendMessage(provider().internalError());
     }
 }

@@ -45,7 +45,8 @@ public interface PunishmentLogAction {
     boolean onlyOnce();
 
     /**
-     * A punishment was created (it was created on the storage and enforced - no instantiation). This action can only be logged once.
+     * A punishment was created (it was created on the storage and enforced - no instantiation). This action can only be logged once
+     * but is guaranteed to be logged for each punishment.
      */
     PunishmentLogAction CREATED = new SimplePunishmentLogAction("created", true);
 
@@ -60,6 +61,13 @@ public interface PunishmentLogAction {
      * {@link PunishmentLogEntry} is the new duration. The old duration can be retrieved from the previous entry.
      */
     PunishmentLogAction CHANGE_DURATION = new SimplePunishmentLogAction("change_duration", false);
+
+    /**
+     * Indicates that the temporal fix points of a punishment were changed, such as delay by x to allow another punishment
+     * to fully pass before. This usually happens around the same time as a change in succession.
+     * This action can be logged multiple times. The time stored in the associated
+     */
+    PunishmentLogAction CHANGE_TIME = new SimplePunishmentLogAction("change_time", false);
 
     /**
      * The predecessor of a punishment was changed. This action can be logged multiple times. The predecessor stored in the associated
@@ -79,6 +87,12 @@ public interface PunishmentLogAction {
     PunishmentLogAction REMOVED = new SimplePunishmentLogAction("removed", true);
 
     /**
+     * This action indicates that information about a punishment was logged. This action can be logged multiple times but
+     * is guaranteed to be logged at least once for each punishment.
+     */
+    PunishmentLogAction INFORMATION = new SimplePunishmentLogAction("information", false);
+
+    /**
      * An unknown action was performed. This action is returned as default if the stored action type cannot be resolved to
      * a proper type. This action can be logged multiple times.
      */
@@ -86,10 +100,19 @@ public interface PunishmentLogAction {
 
     /**
      * A simple implementation of {@link PunishmentLogAction}. This class only contains the name and whether the action can only be logged once or more.
-     * @param name the name of the action
+     *
+     * @param name     the name of the action
      * @param onlyOnce whether the action can only be logged once
      */
     record SimplePunishmentLogAction(String name, boolean onlyOnce) implements PunishmentLogAction {
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null || getClass() != obj.getClass()) return false;
+            SimplePunishmentLogAction that = (SimplePunishmentLogAction) obj;
+            return name.equals(that.name);
+        }
 
         @Override
         public @NotNull String name() {
