@@ -24,17 +24,23 @@ dependencies {
     api(projects.necrifyApi)
     api(libs.bundles.jackson)
     runtimeDownload(libs.bundles.database.drivers) {
-        exclude(group = "org.slf4j", module = "slf4j-api")
+        exclude(group = "org.slf4j")
     }
-    api(libs.bundles.database.helper)
-    api(libs.bundles.cloud)
-    compileOnly(libs.cloud.brigadier)
+    compileOnly(libs.bundles.database.drivers)
+    api(libs.bundles.database.helper) {
+        exclude(group = "org.slf4j")
+    }
+    api(libs.bundles.cloud) {
+        exclude(group = "net.kyori")
+    }
     compileOnly(libs.brigadier)
     annotationProcessor(libs.cloud.annotations)
     compileOnly(libs.slf4j.api)
     compileOnly("com.google.code.gson:gson:2.11.0")
     compileOnly(libs.bundles.adventure)
-    api(libs.adventure.text.feature.pagination)
+    api(libs.adventure.text.feature.pagination) {
+        exclude(group = "net.kyori")
+    }
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)
 }

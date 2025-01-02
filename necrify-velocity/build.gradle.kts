@@ -17,10 +17,11 @@ repositories {
 
 dependencies {
     api(projects.necrifyApi)
-    compileOnly(libs.bundles.database.drivers)
     api(projects.necrifyCommon)
     api(libs.cloud.velocity)
     api(libs.minecraftdependencydownload.velocity)
+    compileOnly(libs.bundles.database.drivers)
+    compileOnly(libs.cloud.brigadier)
     annotationProcessor(libs.velocity.api)
     compileOnly(libs.velocity.api)
     compileOnly(libs.luckperms.api)
@@ -84,6 +85,7 @@ tasks {
             relocate("org.objectweb.asm", prefix("objectweb.asm"))
             relocate("org.apache.commons", prefix("commons"))
             relocate("org.checkerframework", prefix("checkerframework"))
+            relocate("org.greenrobot.eventbus", prefix("greenrobot.eventbus"))
             relocate("org.incendo.cloud", prefix("cloud"))
             relocate("org.intellij.lang.annotations", prefix("intellij.lang.annotations"))
             relocate("org.jetbrains.annotations", prefix("jetbrains.annotations"))

@@ -20,7 +20,13 @@ package de.jvstvshd.necrify.api.event.punishment;
 
 import de.jvstvshd.necrify.api.event.NecrifyEvent;
 import de.jvstvshd.necrify.api.punishment.log.PunishmentLogEntry;
+import org.jetbrains.annotations.ApiStatus;
 
+/**
+ * An event that is called when a punishment log entry is created.
+ * This part of the Event API is experimental and may be subject to change or may not work yet fully and under all circrumstances.
+ */
+@ApiStatus.Experimental
 public class PunishmentLogEvent extends NecrifyEvent {
 
     private final PunishmentLogEntry action;
