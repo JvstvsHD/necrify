@@ -255,7 +255,10 @@ public abstract class AbstractPunishment implements Punishment {
         return Util.executeAsync(() -> {
             var log = new NecrifyPunishmentLog(plugin, this);
             log.load(false);
-            return (cachedLog = log);
+            if (plugin.getConfig().getConfiguration().getDataBaseData().getSqlType().startsWith("postgres")) {
+                cachedLog = log;
+            }
+            return log;
         }, executor);
     }
 
@@ -264,6 +267,10 @@ public abstract class AbstractPunishment implements Punishment {
         return new PunishmentLogEntry(plugin.getSystemUser(), "Current state", PunishmentDuration.ofPunishment(this),
                 getReason(), getPredecessor(), this, getSuccessorOrNull(), getCreationTime(), PunishmentLogAction.CREATED,
                 cachedLog, LocalDateTime.now(), -1);
+    }
+
+    public PunishmentLog getCachedLog() {
+        return cachedLog;
     }
 
     public void log(PunishmentLogAction action, String message) {

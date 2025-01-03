@@ -65,6 +65,7 @@ BEGIN
     VALUES (perform_on.punishment_id, actor, _message, perform_on.expiration,
             perform_on.reason, predecessor, perform_on.successor, action_param, perform_on.issued_at)
     RETURNING id INTO return_id;
+    PERFORM pg_notify('necrify_punishment_log_update', perform_on.punishment_id::TEXT || ' ' || return_id::TEXT);
     RETURN return_id;
 END;
 $$;

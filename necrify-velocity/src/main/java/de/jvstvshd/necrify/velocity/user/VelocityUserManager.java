@@ -33,6 +33,7 @@ import de.jvstvshd.necrify.api.event.user.UserLoadedEvent;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserManager;
+import de.jvstvshd.necrify.common.event.PostgresPunishmentLogUpdateEvent;
 import de.jvstvshd.necrify.common.io.Adapters;
 import de.jvstvshd.necrify.common.user.MojangAPI;
 import de.jvstvshd.necrify.common.user.UserLoader;
@@ -42,7 +43,10 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
@@ -289,5 +293,12 @@ public class VelocityUserManager implements UserManager {
             user.removePunishment(punishment);
             user.addPunishment(punishment);
         }
+    }
+
+    @org.greenrobot.eventbus.Subscribe
+    public void onPostgresPunishmentLogUpdate(PostgresPunishmentLogUpdateEvent event) {
+        var log = Util.getCachedLog(event.getPunishment());
+        if (log == null) return;
+        log.addEntry(event.getNewEntry());
     }
 }

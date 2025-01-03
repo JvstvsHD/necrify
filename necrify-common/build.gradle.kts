@@ -26,7 +26,7 @@ dependencies {
     runtimeDownload(libs.bundles.database.drivers) {
         exclude(group = "org.slf4j")
     }
-    compileOnly(libs.bundles.database.drivers)
+    //compileOnly(libs.bundles.database.drivers)
     api(libs.bundles.database.helper) {
         exclude(group = "org.slf4j")
     }

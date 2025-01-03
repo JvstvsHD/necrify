@@ -70,6 +70,7 @@ import de.jvstvshd.necrify.common.io.NecrifyDatabase;
 import de.jvstvshd.necrify.common.message.ResourceBundleMessageProvider;
 import de.jvstvshd.necrify.common.plugin.MuteData;
 import de.jvstvshd.necrify.common.punishment.NecrifyKick;
+import de.jvstvshd.necrify.common.user.PostgresPunishmentLogUpdater;
 import de.jvstvshd.necrify.common.user.UserLoader;
 import de.jvstvshd.necrify.common.util.Updater;
 import de.jvstvshd.necrify.common.util.Util;
@@ -195,6 +196,9 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         punishmentManager = new DefaultPunishmentManager(server, dataSource, this);
         registerFactories();
         this.userManager = new VelocityUserManager(getExecutor(), server, Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build(), Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build(), this);
+        if (configurationManager.getConfiguration().getDataBaseData().getSqlType().startsWith("postgres")) {
+            getExecutor().submit(new PostgresPunishmentLogUpdater(userManager, dataSource, this));
+        }
         try {
             updateDatabase();
         } catch (SQLException | IOException e) {

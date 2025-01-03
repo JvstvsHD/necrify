@@ -24,6 +24,8 @@ import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.TemporalPunishment;
 import de.jvstvshd.necrify.common.io.NecrifyDatabase;
+import de.jvstvshd.necrify.common.punishment.AbstractPunishment;
+import de.jvstvshd.necrify.common.punishment.log.NecrifyPunishmentLog;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -80,7 +82,6 @@ public class Util {
             try {
                 cf.complete(task.call());
             } catch (Throwable e) {
-                e.printStackTrace();
                 cf.completeExceptionally(e);
             }
         });
@@ -140,5 +141,14 @@ public class Util {
 
     public static <T extends TemporalPunishment> List<T> sortPunishments(List<T> list) {
         return list.stream().sorted(Comparator.comparing(TemporalPunishment::getDuration)).collect(Collectors.toList());
+    }
+
+    @Nullable
+    public static NecrifyPunishmentLog getCachedLog(Punishment punishment) {
+        if (!(punishment instanceof AbstractPunishment abstractPunishment)) return null;
+        var cachedLog = abstractPunishment.getCachedLog();
+        if (cachedLog == null) return null;
+        if (!(cachedLog instanceof NecrifyPunishmentLog necrifyPunishmentLog)) return null;
+        return necrifyPunishmentLog;
     }
 }

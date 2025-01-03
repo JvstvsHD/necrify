@@ -18,6 +18,7 @@
 
 package de.jvstvshd.necrify.common.punishment.log;
 
+import de.chojo.sadu.mapper.wrapper.Row;
 import de.chojo.sadu.queries.api.call.Call;
 import de.chojo.sadu.queries.api.query.Query;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
@@ -38,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -99,26 +101,7 @@ public class NecrifyPunishmentLog implements PunishmentLog {
         var entries = Query.query("SELECT id, actor_id, message, expiration, reason, predecessor, successor, action, " +
                         "begins_at, created_at FROM punishment_log WHERE punishment_id = ? ORDER BY id ASC")
                 .single(Call.of().bind(uuid, Adapters.UUID_ADAPTER))
-                .map(row -> {
-                    var id = row.getInt(1);
-                    var actorUuid = row.getObject(2, UUID.class);
-                    NecrifyUser actor;
-                    if (actorUuid == null) {
-                        actor = null;
-                    } else {
-                        actor = userManager.loadUser(actorUuid).join().orElseThrow(() -> new IllegalStateException("Actor not found."));
-                    }
-                    var message = row.getString(3);
-                    var duration = PunishmentDuration.fromTimestamp(row.getTimestamp(4));
-                    var reason = MiniMessage.miniMessage().deserialize(row.getString(5));
-                    var predecessor = getPunishment(row.getObject(6, UUID.class));
-                    var successor = getPunishment(row.getObject(7, UUID.class));
-                    var action = PunishmentLogActionRegistry.getAction(row.getString(8)).orElse(PunishmentLogAction.UNKNOWN);
-                    var beginsAt = row.getTimestamp(9).toLocalDateTime();
-                    var instant = row.getTimestamp(10).toLocalDateTime();
-                    return new PunishmentLogEntry(actor, message, duration, reason, predecessor, punishment, successor,
-                            beginsAt, action, this, instant, index.getAndIncrement());
-                }).all();
+                .map(row -> fromRow(row, plugin, this, punishment, index.getAndIncrement())).all();
         if (entries.isEmpty()) {
             return false;
         }
@@ -133,8 +116,29 @@ public class NecrifyPunishmentLog implements PunishmentLog {
         return true;
     }
 
+    public static PunishmentLogEntry fromRow(Row row, AbstractNecrifyPlugin plugin, PunishmentLog log, Punishment punishment, int index) throws SQLException {
+        var id = row.getInt(1);
+        var actorUuid = row.getObject(2, UUID.class);
+        NecrifyUser actor;
+        if (actorUuid == null) {
+            actor = null;
+        } else {
+            actor = plugin.getUserManager().loadUser(actorUuid).join().orElseThrow(() -> new IllegalStateException("Actor not found."));
+        }
+        var message = row.getString(3);
+        var duration = PunishmentDuration.fromTimestamp(row.getTimestamp(4));
+        var reason = MiniMessage.miniMessage().deserialize(row.getString(5));
+        var predecessor = getPunishment(row.getObject(6, UUID.class), plugin);
+        var successor = getPunishment(row.getObject(7, UUID.class), plugin);
+        var action = PunishmentLogActionRegistry.getAction(row.getString(8)).orElse(PunishmentLogAction.UNKNOWN);
+        var beginsAt = row.getTimestamp(9).toLocalDateTime();
+        var instant = row.getTimestamp(10).toLocalDateTime();
+        return new PunishmentLogEntry(actor, message, duration, reason, predecessor, punishment, successor,
+                beginsAt, action, log, instant, index);
+    }
+
     @Nullable
-    private Punishment getPunishment(@Nullable UUID uuid) {
+    private static Punishment getPunishment(@Nullable UUID uuid, AbstractNecrifyPlugin plugin) {
         return uuid == null ? null : plugin.getPunishment(uuid).join().orElse(null);
     }
 
@@ -194,5 +198,9 @@ public class NecrifyPunishmentLog implements PunishmentLog {
             }
             plugin.getEventDispatcher().dispatch(new PunishmentLogEvent(entry));
         });
+    }
+
+    public void addEntry(PunishmentLogEntry entry) {
+        entries.add(entry);
     }
 }
