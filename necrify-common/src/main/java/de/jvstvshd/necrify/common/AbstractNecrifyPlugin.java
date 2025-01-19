@@ -50,10 +50,7 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 
 public abstract class AbstractNecrifyPlugin implements Necrify {
@@ -221,6 +218,49 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
             return (T) log.getPunishment();
         }
         return null;
+    }
+
+    /**
+     * Returns a cached punishment by its uuid. This method should be used to retrieve a punishment before loading
+     * it from the database. This method is useful if the punishment is already loaded and should be retrieved from the cache.
+     * <p>
+     * This method invokes the following steps to retrieve the punishment:
+     * <ul>
+     *     <li>Iterate over all loaded users and check if the punishment is present in the user's punishment list</li>
+     *     <li>Check if the punishment is present in the historical punishment cache</li>
+     * </ul>
+     * </p>
+     * If the punishment is not found in any of the above steps, an empty optional is returned.
+     *
+     * @param punishmentUuid the uuid of the punishment to retrieve
+     * @param <T>            the type of the punishment to which the return value is casted
+     * @return the punishment or an empty optional if it could not be found
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Punishment> Optional<T> getCachedPunishment(UUID punishmentUuid) {
+        for (NecrifyUser loadedUser : getUserManager().getLoadedUsers()) {
+            var punishment = loadedUser.getPunishment(punishmentUuid);
+            if (punishment.isPresent()) {
+                return (Optional<T>) punishment;
+            }
+        }
+        var cachedHPunishment = historicalPunishmentCache.getIfPresent(punishmentUuid);
+        return Optional.ofNullable((T) cachedHPunishment);
+    }
+
+    /**
+     * Returns the cache used for historical punishments. It should be used to cache punishments that are not active anymore only.<br>
+     * <b>Important Note:</b>
+     * If loading a historical punishment (punishment A) via {@link NecrifyPunishmentLog#load(boolean)}, it might encounter
+     * another historical punishment (punishment B) when loading successors/predecessors. When it gets loaded likewise,
+     * it will try to retrieve A from a cache or load it again if not cached. But since A still gets constructed, it is
+     * not yet in the cache. So, A is loaded again, such as B and so on... Therefore, this process creates a deadlock that
+     * consumes many resources, particularly database connections. This also results in a high load on the database and
+     * timeout for further connections and other operations, which is nothing to be desired. To prevent this,
+     * this method should be used to cache the punishment (A) before it loads any other punishments (B) that are related to it.
+     */
+    public Cache<UUID, Punishment> getHistoricalPunishmentCache() {
+        return historicalPunishmentCache;
     }
 
     public abstract NecrifyKick createKick(Component reason, NecrifyUser user, UUID punishmentUuid);

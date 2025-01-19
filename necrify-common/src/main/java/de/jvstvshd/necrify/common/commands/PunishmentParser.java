@@ -18,23 +18,26 @@
 
 package de.jvstvshd.necrify.common.commands;
 
-import de.jvstvshd.necrify.api.Necrify;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
+import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.util.Util;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.context.CommandInput;
 import org.incendo.cloud.parser.ArgumentParseResult;
 import org.incendo.cloud.parser.ArgumentParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
 public class PunishmentParser implements ArgumentParser.FutureArgumentParser<NecrifyUser, Punishment> {
 
-    private final Necrify necrify;
+    private static final Logger log = LoggerFactory.getLogger(PunishmentParser.class);
+    private final AbstractNecrifyPlugin necrify;
 
-    public PunishmentParser(Necrify necrify) {
+    public PunishmentParser(AbstractNecrifyPlugin necrify) {
         this.necrify = necrify;
     }
 
@@ -47,6 +50,7 @@ public class PunishmentParser implements ArgumentParser.FutureArgumentParser<Nec
         }
         return necrify.getPunishment(uuid.get()).handle((punishment, throwable) -> {
             if (throwable != null) {
+                log.error("An error occurred while parsing a punishment.", throwable);
                 return ArgumentParseResult.failure(new PunishmentParseException("error.internal"));
             }
             if (punishment.isPresent()) {

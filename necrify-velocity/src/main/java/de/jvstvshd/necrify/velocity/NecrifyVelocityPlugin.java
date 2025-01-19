@@ -297,6 +297,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
                     }).all();
             getLogger().info("Updated {} reasons to minimessage format.", updatedReasons.size());
         };
+
         switch (configurationManager.getConfiguration().getDataBaseData().sqlType().name().toLowerCase(Locale.ROOT)) {
             case "postgresql", "postgres" -> SqlUpdater.builder(dataSource, PostgreSql.get())
                     .setSchemas(configurationManager.getConfiguration().getDataBaseData().getPostgresSchema())
@@ -322,7 +323,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
                         "database manually by executing SQL statements from the files in the resources after commit " + BuildParameters.GIT_COMMIT);
                 return;
             }
-            Query.query("UPDATE necrify_schema.version SET patch = ?;")
+            Query.query("UPDATE version SET patch = ?;")
                     .single(Call.of().bind(sqlVersion.patch() - 1))
                     .update();
         }
@@ -390,11 +391,9 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
     @Override
     public <T extends Punishment> CompletableFuture<Optional<T>> getPunishment(@NotNull UUID punishmentId) {
         Objects.requireNonNull(punishmentId, "punishmentId may not be null.");
-        for (NecrifyUser loadedUser : getUserManager().getLoadedUsers()) {
-            var punishment = loadedUser.getPunishment(punishmentId);
-            if (punishment.isPresent()) {
-                return CompletableFuture.completedFuture((Optional<T>) punishment);
-            }
+        var cachedPunishment = getCachedPunishment(punishmentId);
+        if (cachedPunishment.isPresent()) {
+            return CompletableFuture.completedFuture((Optional<T>) cachedPunishment);
         }
         return Util.executeAsync(() -> (Optional<T>) Query
                 .query("SELECT u.* FROM necrify_user u INNER JOIN necrify_punishment p ON u.uuid = p.uuid WHERE p.punishment_id = ?;")

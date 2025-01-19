@@ -43,10 +43,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -72,6 +69,7 @@ public class NecrifyPunishmentLog implements PunishmentLog {
         this.userManager = plugin.getUserManager();
         this.logger = plugin.getLogger();
         this.uuid = uuid;
+        Objects.requireNonNull(uuid, "uuid must not be null.");
     }
 
     public NecrifyPunishmentLog(AbstractNecrifyPlugin plugin, Punishment punishment) {
@@ -80,6 +78,7 @@ public class NecrifyPunishmentLog implements PunishmentLog {
         this.plugin = plugin;
         this.punishment = punishment;
         this.uuid = punishment.getUuid();
+        Objects.requireNonNull(uuid, "uuid must not be null.");
     }
 
     /**
@@ -97,12 +96,19 @@ public class NecrifyPunishmentLog implements PunishmentLog {
         if (punishment == null) {
             punishment = new HistoricalPunishment(uuid, null, null, null, this);
         }
+        //Prevents deadlock. See method documentation for more information.
+        //This procedure should be save since the values inside the historical punishment are updated afterwards, so there
+        //should be no missing data.
+        plugin.getHistoricalPunishmentCache().put(uuid, punishment);
         AtomicInteger index = new AtomicInteger();
         var entries = Query.query("SELECT id, actor_id, message, expiration, reason, predecessor, successor, action, " +
                         "begins_at, created_at FROM punishment_log WHERE punishment_id = ? ORDER BY id ASC")
                 .single(Call.of().bind(uuid, Adapters.UUID_ADAPTER))
                 .map(row -> fromRow(row, plugin, this, punishment, index.getAndIncrement())).all();
         if (entries.isEmpty()) {
+            //If there are no entries, the punishment is invalid and should be removed from the cache for historical punishments
+            //it got cached into above.
+            plugin.getHistoricalPunishmentCache().invalidate(uuid);
             return false;
         }
         Collections.sort(entries);
@@ -118,18 +124,18 @@ public class NecrifyPunishmentLog implements PunishmentLog {
 
     public static PunishmentLogEntry fromRow(Row row, AbstractNecrifyPlugin plugin, PunishmentLog log, Punishment punishment, int index) throws SQLException {
         var id = row.getInt(1);
-        var actorUuid = row.getObject(2, UUID.class);
+        var actorUuid = Util.getUuid(row, 2);
         NecrifyUser actor;
         if (actorUuid == null) {
             actor = null;
         } else {
-            actor = plugin.getUserManager().loadUser(actorUuid).join().orElseThrow(() -> new IllegalStateException("Actor not found."));
+            actor = plugin.getUserManager().loadUser(actorUuid).join().orElseThrow(() -> new IllegalStateException("Actor not found " + actorUuid));
         }
         var message = row.getString(3);
         var duration = PunishmentDuration.fromTimestamp(row.getTimestamp(4));
         var reason = MiniMessage.miniMessage().deserialize(row.getString(5));
-        var predecessor = getPunishment(row.getObject(6, UUID.class), plugin);
-        var successor = getPunishment(row.getObject(7, UUID.class), plugin);
+        var predecessor = getPunishment(Util.getUuid(row, 6), plugin);
+        var successor = getPunishment(Util.getUuid(row, 7), plugin);
         var action = PunishmentLogActionRegistry.getAction(row.getString(8)).orElse(PunishmentLogAction.UNKNOWN);
         var beginsAt = row.getTimestamp(9).toLocalDateTime();
         var instant = row.getTimestamp(10).toLocalDateTime();

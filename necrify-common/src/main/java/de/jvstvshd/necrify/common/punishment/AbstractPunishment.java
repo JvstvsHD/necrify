@@ -142,6 +142,7 @@ public abstract class AbstractPunishment implements Punishment {
                 getEventDispatcher().dispatch(new PunishmentPersecutedEvent(punishment));
                 log(PunishmentLogAction.CREATED, "Punishment has been created.");
             }
+            disposeCachedLog();
         });
     }
 
@@ -255,11 +256,16 @@ public abstract class AbstractPunishment implements Punishment {
         return Util.executeAsync(() -> {
             var log = new NecrifyPunishmentLog(plugin, this);
             log.load(false);
-            if (plugin.getConfig().getConfiguration().getDataBaseData().getSqlType().startsWith("postgres")) {
-                cachedLog = log;
-            }
+            //if (plugin.getConfig().getConfiguration().getDataBaseData().getSqlType().startsWith("postgres")) {
+            cachedLog = log;
+            //}
             return log;
         }, executor);
+    }
+
+    public void disposeCachedLog() {
+        if (plugin.getConfig().getConfiguration().getDataBaseData().getSqlType().startsWith("postgres")) return;
+        cachedLog = null;
     }
 
     @Override

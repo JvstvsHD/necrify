@@ -67,7 +67,7 @@ public class VelocityUserManager implements UserManager {
             "SELECT type, expiration, reason, punishment_id, successor, issued_at FROM necrify_punishment WHERE uuid = ?;";
 
     @Language("sql")
-    private static final String INSERT_NEW_USER = "INSERT INTO necrify_user (uuid, name, whitelisted) VALUES (?, LOWER(?), ?);";
+    private static final String INSERT_NEW_USER = "INSERT INTO necrify_user (uuid, name, whitelisted) VALUES (?, ?, ?);";
 
     private final ExecutorService executor;
     private final ProxyServer server;
@@ -181,12 +181,12 @@ public class VelocityUserManager implements UserManager {
      * Expects to be executed in an async context (otherwise blocks the current thread) and the user to exist.
      *
      * @param uuid non-null uuid of the user
-     * @param name non-null name of the user
+     * @param playerName non-null name of the user
      * @return the created user
      * @throws IllegalStateException if the user already exists
      */
-    private NecrifyUser createUser(UUID uuid, String name) {
-        var playerName = name.toLowerCase(Locale.ROOT);
+    private NecrifyUser createUser(UUID uuid, String playerName) {
+        //var playerName = name.toLowerCase(Locale.ROOT);
         var result = Query.query(INSERT_NEW_USER)
                 .single(Call.of().bind(uuid, Adapters.UUID_ADAPTER).bind(playerName).bind(false))
                 .insert();
