@@ -229,7 +229,6 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
      *     <li>Iterate over all loaded users and check if the punishment is present in the user's punishment list</li>
      *     <li>Check if the punishment is present in the historical punishment cache</li>
      * </ul>
-     * </p>
      * If the punishment is not found in any of the above steps, an empty optional is returned.
      *
      * @param punishmentUuid the uuid of the punishment to retrieve

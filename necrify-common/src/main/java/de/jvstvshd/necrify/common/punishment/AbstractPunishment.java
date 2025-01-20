@@ -149,6 +149,9 @@ public abstract class AbstractPunishment implements Punishment {
     @Override
     public final CompletableFuture<Punishment> cancel() {
         return applyCancellation().whenCompleteAsync((punishment, throwable) -> {
+            if (throwable != null) {
+                plugin.getLogger().error("could not cancel punishment", throwable);
+            }
             if (punishment != null) {
                 getEventDispatcher().dispatch(new PunishmentCancelledEvent(punishment));
                 log(PunishmentLogAction.REMOVED, null);

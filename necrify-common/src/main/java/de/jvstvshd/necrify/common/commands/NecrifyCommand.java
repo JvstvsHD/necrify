@@ -82,7 +82,6 @@ public class NecrifyCommand {
             @Argument(value = "target", description = "Player to ban", suggestions = "suggestOnlinePlayers") NecrifyUser target,
             @Argument(value = "reason", description = "Reason the user should be banned for", suggestions = "suggestMiniMessage") @Greedy String reason
     ) {
-        System.out.println("Thread.currentThread().getName() = " + Thread.currentThread().getName());
         var finalReason = reasonOrDefaultTo(reason, StandardPunishmentType.PERMANENT_BAN);
         target.banPermanent(finalReason).whenComplete((ban, throwable) -> {
             if (throwable != null) {
@@ -235,13 +234,19 @@ public class NecrifyCommand {
         switch (option) {
             case "info" ->
                     sender.sendMessage(buildComponent(PunishmentHelper.buildPunishmentData(punishmentParsed, plugin.getMessageProvider())));
-            case "cancel", "remove" -> punishmentParsed.cancel().whenCompleteAsync((unused, th) -> {
-                if (th != null) {
-                    logException(sender, th);
-                    return;
+            case "cancel", "remove" -> {
+                try {
+                    punishmentParsed.cancel().whenCompleteAsync((unused, th) -> {
+                        if (th != null) {
+                            logException(sender, th);
+                            return;
+                        }
+                        sender.sendMessage(provider.provide("command.punishment.cancel.success").color(NamedTextColor.GREEN));
+                    }, plugin.getExecutor());
+                } catch (UnsupportedOperationException e) {
+                    sender.sendMessage(Component.text("Error: Punishment can not be deleted, maybe because it is not active anymore.", NamedTextColor.RED));
                 }
-                sender.sendMessage(provider.provide("command.punishment.cancel.success").color(NamedTextColor.GREEN));
-            }, plugin.getExecutor());
+            }
             case "change" -> sender.sendMessage(miniMessage("Soon (TM)").color(NamedTextColor.LIGHT_PURPLE));
             case "chain" -> {
                 if (!punishmentParsed.getType().getRelatedTypes().contains(otherPunishment.getType())) {
@@ -271,7 +276,7 @@ public class NecrifyCommand {
                         logException(sender, throwable);
                         return;
                     }
-                    var paginator = Pagination.builder().build(Component.text("Necrify Punishment Log"),
+                    var paginator = Pagination.builder().width(42).resultsPerPage(5).build(Component.text("Necrify Punishment Log"),
                                     new PunishmentLogPaginationRowRenderer(miniMessage, plugin),
                                     functionPage -> "/necrify punishment " + punishmentParsed.getPunishmentUuid() + " log --page " + functionPage)
                             .render(punishmentLog.getEntries(), page);

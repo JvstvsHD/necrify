@@ -13,14 +13,6 @@ CREATE TABLE IF NOT EXISTS punishment_log
     created_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP()
 );
 
-CREATE TABLE IF NOT EXISTS temp_x
-(
-    id         INTEGER AUTO_INCREMENT PRIMARY KEY,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
-    value      UUID,
-    value_new  UUID
-);
-
 DELIMITER $$
 CREATE OR REPLACE FUNCTION necrify_punishment_determine_action(old_reason VARCHAR(1000),
                                                                new_reason VARCHAR(1000),
@@ -33,8 +25,6 @@ CREATE OR REPLACE FUNCTION necrify_punishment_determine_action(old_reason VARCHA
     RETURNS TEXT
     LANGUAGE SQL
 BEGIN
-    -- TODO remove before release
-    INSERT INTO temp_x (value, value_new) VALUES (old_successor, new_successor);
     IF old_reason != new_reason THEN
         RETURN 'change_reason';
     ELSEIF !(old_successor <=> new_successor) THEN
@@ -136,7 +126,7 @@ END;
 $$
 
 DELIMITER $$
-CREATE OR REPLACE PROCEDURE necrify_punishment_trigger_delete(IN old_punishment_id UUID, IN old_successor UUID)
+CREATE OR REPLACE PROCEDURE necrify_punishment_trigger_delete(IN old_punishment_id UUID)
 BEGIN
     DECLARE log_id INT;
     CALL necrify_punishment_trigger_execute('removed', old_punishment_id, NULL, log_id);
@@ -178,7 +168,8 @@ CREATE OR REPLACE TRIGGER before_punishment_delete
     BEFORE DELETE
     ON necrify_punishment
     FOR EACH ROW
-    CALL necrify_punishment_trigger_delete(OLD.punishment_id, OLD.successor);
+    -- this also removes references to former successors
+    CALL necrify_punishment_trigger_delete(OLD.punishment_id);
 $$
 
 DELIMITER $$

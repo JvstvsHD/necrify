@@ -83,6 +83,9 @@ public class PunishmentLogPaginationRowRenderer implements Pagination.Renderer.R
                 } else if (action == CHANGE_SUCCESSOR) {
                     acquire = entry -> entry.successor() == null ? "none" : entry.successor().getUuid().toString();
                     actionName = "log.change-successor";
+                } else if (action == CHANGE_TIME) {
+                    acquire = entry -> Util.dtf.format(entry.beginsAt()) + " - " + Util.dtf.format(entry.duration().expiration());
+                    actionName = "log.change-time";
                 } else {
                     return List.of();
                 }

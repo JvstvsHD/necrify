@@ -37,6 +37,7 @@ import java.util.*;
 public final class UserLoader {
 
     private final List<Map<String, Object>> data = new ArrayList<>();
+    private final List<UUID> invalidPunishments = new ArrayList<>();
     private final NecrifyUser user;
 
     public UserLoader(NecrifyUser user) {
@@ -56,6 +57,9 @@ public final class UserLoader {
             final UUID punishmentUuid = Util.getUuid(row, 4);
             final UUID successorId = Util.getUuid(row, 5);
             final LocalDateTime issuedAt = row.getTimestamp(6).toLocalDateTime();
+            if (duration.expiration().isBefore(LocalDateTime.now())) {
+                invalidPunishments.add(punishmentUuid);
+            }
             var data = new HashMap<String, Object>() {
                 {
                     put("type", type);
@@ -96,5 +100,9 @@ public final class UserLoader {
 
     public List<Map<String, Object>> getData() {
         return data;
+    }
+
+    public List<UUID> getInvalidPunishments() {
+        return invalidPunishments;
     }
 }

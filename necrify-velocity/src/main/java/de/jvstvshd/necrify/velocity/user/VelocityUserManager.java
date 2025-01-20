@@ -180,7 +180,7 @@ public class VelocityUserManager implements UserManager {
     /**
      * Expects to be executed in an async context (otherwise blocks the current thread) and the user to exist.
      *
-     * @param uuid non-null uuid of the user
+     * @param uuid       non-null uuid of the user
      * @param playerName non-null name of the user
      * @return the created user
      * @throws IllegalStateException if the user already exists
@@ -233,8 +233,21 @@ public class VelocityUserManager implements UserManager {
     }
 
     public void loadPunishmentsToUser(UserLoader loader) {
+        var invalidPunishments = loader.getInvalidPunishments();
+        var punishments = loader.loadPunishments();
+        if (!invalidPunishments.isEmpty()) {
+            //execute in async context to avoid blocking the current thread and somewhere in the future, does not matter that much when
+            plugin.getExecutor().submit(() -> invalidPunishments.stream()
+                    .map(uuid -> punishments.stream().filter(punishment -> punishment.getUuid().equals(uuid)).findFirst().orElse(null))
+                    .forEach(punishment -> {
+                        if (punishment != null) {
+                            punishment.cancel().join();
+                        }
+                    }));
+        }
         for (Punishment loadedPunishment : loader.loadPunishments()) {
-            ((VelocityUser) loader.getUser()).addPunishment(loadedPunishment);
+            if (loadedPunishment.isOngoing())
+                ((VelocityUser) loader.getUser()).addPunishment(loadedPunishment);
         }
     }
 

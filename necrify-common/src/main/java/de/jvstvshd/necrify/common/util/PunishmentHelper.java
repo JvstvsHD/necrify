@@ -58,7 +58,7 @@ public class PunishmentHelper {
                         Util.copyComponent(punishment.getReason(), PlainTextComponentSerializer.plainText().serialize(punishment.getReason()), provider),
                         Component.newline(),
                         ic,
-                        provider.prefixed(Component.text("ID: ")).color(NamedTextColor.AQUA),
+                        provider.provide("ID: ").color(NamedTextColor.AQUA),
                         copyable(punishment.getPunishmentUuid().toString(), NamedTextColor.YELLOW, provider),
                         Component.newline(),
                         punishment instanceof TemporalPunishment temporalPunishment ?
@@ -71,12 +71,19 @@ public class PunishmentHelper {
                             .color(NamedTextColor.RED)
                             .clickEvent(ClickEvent.runCommand("/necrify punishment " + punishment.getPunishmentUuid().toString().toLowerCase(Locale.ROOT) + " remove"))
                             .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(clickToRemove.color(NamedTextColor.GREEN))),
-                    Component.newline());
+                    Component.text(" | ", NamedTextColor.GRAY));
+        } else {
+            builder.append(Component.newline());
         }
+        builder.append(provider.unprefixedProvider()
+                        .provide("helper.view-log")
+                        .color(NamedTextColor.GRAY)
+                        .clickEvent(ClickEvent.runCommand("/necrify punishment " + punishment.getPunishmentUuid().toString().toLowerCase(Locale.ROOT) + " log")),
+                Component.newline());
         if (punishment.hasSuccessor()) {
             int newIndenting;
             if (indents == 0) {
-                newIndenting = 10;
+                newIndenting = 6;
             } else {
                 newIndenting = indents + 3;
             }

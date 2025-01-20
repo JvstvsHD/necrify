@@ -69,7 +69,11 @@ public final class ConnectListener {
                 return;
             }
         }
-        punishments.stream().filter(punishment -> !punishment.isOngoing()).forEach(Punishment::cancel);
+        try {
+            punishments.stream().filter(punishment -> !punishment.isOngoing()).forEach(Punishment::cancel);
+        } catch (Exception e) {
+            plugin.getLogger().error("Error while cancelling expired punishments for player {} ({})", event.getPlayer().getUsername(), event.getPlayer().getUniqueId(), e);
+        }
         punishments.removeIf(punishment -> !punishment.isOngoing());
         List<Ban> bans = new ArrayList<>();
         for (Punishment punishment : punishments) {

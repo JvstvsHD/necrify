@@ -26,7 +26,6 @@ import de.jvstvshd.necrify.api.event.punishment.PunishmentChangedEvent;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
 import de.jvstvshd.necrify.api.punishment.TemporalPunishment;
-import de.jvstvshd.necrify.api.punishment.log.PunishmentLogAction;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.io.Adapters;
@@ -213,16 +212,16 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
                 successorNewExpiration = PunishmentDuration.PERMANENT.expiration();
             }
             var issuanceSuccessor = duration.expiration();
-            Query.query(APPLY_TIMESTAMP_UPDATE)
-                    .single(Call.of()
-                            .bind(Timestamp.valueOf(successorNewExpiration))
-                            .bind(issuanceSuccessor)
-                            .bind(successor.getPunishmentUuid(), Adapters.UUID_ADAPTER))
-                    .update();
             if (successor instanceof TemporalPunishment temporalSuccessor) {
                 var newSuccessor = temporalSuccessor.change(PunishmentDuration.from(successorNewExpiration), issuanceSuccessor, successor.getReason()).join();
                 setSuccessor0(newSuccessor);
             } else {
+                Query.query(APPLY_TIMESTAMP_UPDATE)
+                        .single(Call.of()
+                                .bind(Timestamp.valueOf(successorNewExpiration))
+                                .bind(issuanceSuccessor)
+                                .bind(successor.getPunishmentUuid(), Adapters.UUID_ADAPTER))
+                        .update();
                 setSuccessor0(successor);
             }
             return this;
