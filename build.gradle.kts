@@ -149,7 +149,11 @@ tasks {
         //setDestinationDir(file("${layout.buildDirectory.get()}/docs/javadoc"))
         setDestinationDir(file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/${rootProject.version}"))
         println(destinationDir?.toString())
-        Documentation.buildJavadocIndexFile(file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/index.html").toPath(), rootProject.version.toString())
 
+    }
+
+    register<Javadoc>("createIndexFile") {
+        mustRunAfter("alljavadoc")
+        Documentation.buildJavadocIndexFile(file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/index.html").toPath(), rootProject.version.toString())
     }
 }
