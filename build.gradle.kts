@@ -143,7 +143,7 @@ tasks {
             "implSpec:a:Implementation Requirements",
             "implNote:a:Implementation Note"
         )
-        setDestinationDir(file("${layout.buildDirectory.get()}/docs/javadoc"))
+        setDestinationDir(file("${layout.buildDirectory.get()}/docs/javadoc/${rootProject.version}"))
         val projects = rootProject.allprojects
         setSource(projects.map { project -> project.sourceSets.main.get().allJava })
         classpath = files(projects.map { project -> project.sourceSets.main.get().compileClasspath })
