@@ -149,11 +149,12 @@ tasks {
         //setDestinationDir(file("${layout.buildDirectory.get()}/docs/javadoc"))
         setDestinationDir(file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/${rootProject.version}"))
         println(destinationDir?.toString())
-
-    }
-
-    register<Javadoc>("createIndexFile") {
-        mustRunAfter("alljavadoc")
-        Documentation.buildJavadocIndexFile(file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/index.html").toPath(), rootProject.version.toString())
+        doLast {
+            try {
+                Documentation.buildJavadocIndexFile(file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/index.html").toPath(), rootProject.version.toString())
+            } catch (e: Exception) {
+                logger.error("Failed to build Javadoc index file", e)
+            }
+        }
     }
 }
