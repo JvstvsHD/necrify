@@ -27,7 +27,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: build/docs/javadoc
-            target-folder: javadoc
+          target-folder: javadoc
   publish:
     needs: build
     runs-on: ubuntu-latest
