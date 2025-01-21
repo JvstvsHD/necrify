@@ -143,11 +143,18 @@ tasks {
             "implSpec:a:Implementation Requirements",
             "implNote:a:Implementation Note"
         )
-        val baseDir = file("${layout.buildDirectory.get()}/docs/javadoc/").toPath()
-        Documentation.buildJavadocIndexFile(baseDir.resolve("index.html"), rootProject.version.toString())
-        setDestinationDir(baseDir.resolve(rootProject.version.toString()).toFile())
         val projects = rootProject.allprojects
         setSource(projects.map { project -> project.sourceSets.main.get().allJava })
         classpath = files(projects.map { project -> project.sourceSets.main.get().compileClasspath })
+        //setDestinationDir(file("${layout.buildDirectory.get()}/docs/javadoc"))
+        setDestinationDir(file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/${rootProject.version}"))
+        println(destinationDir?.toString())
+        doLast {
+            try {
+                Documentation.buildJavadocIndexFile(file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/index.html").toPath(), rootProject.version.toString())
+            } catch (e: Exception) {
+                logger.error("Failed to build Javadoc index file", e)
+            }
+        }
     }
 }
