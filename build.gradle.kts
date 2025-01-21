@@ -145,6 +145,7 @@ tasks {
         )
         val baseDir = file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/").toPath()
         setDestinationDir(baseDir.resolve(rootProject.version.toString()).toFile())
+        println(destinationDir?.toString())
         Documentation.buildJavadocIndexFile(baseDir.resolve("index.html"), rootProject.version.toString())
         val projects = rootProject.allprojects
         setSource(projects.map { project -> project.sourceSets.main.get().allJava })
