@@ -18,6 +18,7 @@
 
 package de.jvstvshd.necrify.common.util;
 
+import de.chojo.sadu.core.conversion.UUIDConverter;
 import de.chojo.sadu.mapper.wrapper.Row;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
@@ -57,6 +58,7 @@ public class Util {
     public static UUID getUuid(Row row, int index) throws SQLException {
         return switch (NecrifyDatabase.SQL_TYPE.toLowerCase(Locale.ROOT)) {
             case "postgres", "postgresql" -> row.getObject(index, UUID.class);
+            case "mysql" -> UUIDConverter.convert(row.getBytes(index));
             default -> {
                 var uuidBytes = row.getString(index);
                 if (uuidBytes == null) yield null;

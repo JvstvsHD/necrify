@@ -78,6 +78,7 @@ public class PunishmentLogPaginationRowRenderer implements Pagination.Renderer.R
                     acquire = entry -> entry.duration().toString();
                     actionName = "log.change-duration";
                 } else if (action == CHANGE_PREDECESSOR) {
+                    //TODO acquire 'none' over message provider
                     acquire = entry -> entry.predecessor() == null ? "none" : entry.predecessor().getUuid().toString();
                     actionName = "log.change-predecessor";
                 } else if (action == CHANGE_SUCCESSOR) {
