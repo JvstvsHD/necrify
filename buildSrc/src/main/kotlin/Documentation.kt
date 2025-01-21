@@ -9,6 +9,7 @@ object Documentation {
 
     fun buildJavadocIndexFile(path: Path, version: String) {
         val document = if (!path.exists()) {
+            path.parent.createFile()
             path.createFile()
             generateNewIndexFile(path)
         } else Jsoup.parse(path.toFile())
