@@ -143,12 +143,13 @@ tasks {
             "implSpec:a:Implementation Requirements",
             "implNote:a:Implementation Note"
         )
-        setDestinationDir(file("${rootProject.layout.buildDirectory.get()}/docs/javadoc"))
-        //setDestinationDir(file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/${rootProject.version}"))
-        println(destinationDir?.toString())
-        //Documentation.buildJavadocIndexFile(file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/index.html").toPath(), rootProject.version.toString())
         val projects = rootProject.allprojects
         setSource(projects.map { project -> project.sourceSets.main.get().allJava })
         classpath = files(projects.map { project -> project.sourceSets.main.get().compileClasspath })
+        //setDestinationDir(file("${layout.buildDirectory.get()}/docs/javadoc"))
+        setDestinationDir(file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/${rootProject.version}"))
+        println(destinationDir?.toString())
+        Documentation.buildJavadocIndexFile(file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/index.html").toPath(), rootProject.version.toString())
+
     }
 }
