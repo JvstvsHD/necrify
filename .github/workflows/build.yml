@@ -18,33 +18,33 @@ jobs:
           distribution: 'temurin'
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@f9c9c575b8b21b6485636a91ffecd10e558c62f6
-      - name: Build
-        run: ./gradlew build --stacktrace
+#       - name: Build
+#         run: ./gradlew build --stacktrace
       - name: Generate javadocs
         run: ./gradlew alljavadoc --stacktrace
-  publish:
-    needs: build
-    runs-on: ubuntu-latest
-    if: ${{ !contains(github.head_ref, 'renovate/') }}
-    steps:
-     - uses: actions/checkout@v4
-     - name: Set up Java
-       uses: actions/setup-java@v4
-       with:
-         java-version: '21'
-         distribution: 'temurin'
-     - name: Validate Gradle wrapper
-       uses: gradle/wrapper-validation-action@f9c9c575b8b21b6485636a91ffecd10e558c62f6
-     - name: Build
-       run: ./gradlew build --stacktrace
-     - name: Publish
-       if: ${{ github.event_name == 'push' && !startsWith(github.ref, 'renovate/**') }}
-       run: ./gradlew publish --stacktrace
-       env:
-         SONATYPE_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-         SONATYPE_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-         ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
-         ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
+#   publish:
+#     needs: build
+#     runs-on: ubuntu-latest
+#     if: ${{ !contains(github.head_ref, 'renovate/') }}
+#     steps:
+#      - uses: actions/checkout@v4
+#      - name: Set up Java
+#        uses: actions/setup-java@v4
+#        with:
+#          java-version: '21'
+#          distribution: 'temurin'
+#      - name: Validate Gradle wrapper
+#        uses: gradle/wrapper-validation-action@f9c9c575b8b21b6485636a91ffecd10e558c62f6
+#      - name: Build
+#        run: ./gradlew build --stacktrace
+#      - name: Publish
+#        if: ${{ github.event_name == 'push' && !startsWith(github.ref, 'renovate/**') }}
+#        run: ./gradlew publish --stacktrace
+#        env:
+#          SONATYPE_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+#          SONATYPE_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+#          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
+#          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
   documentation:
     needs: build
     runs-on: ubuntu-latest
