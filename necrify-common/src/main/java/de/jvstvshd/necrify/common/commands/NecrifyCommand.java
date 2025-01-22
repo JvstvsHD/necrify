@@ -394,7 +394,7 @@ public class NecrifyCommand {
                 .stream()
                 .filter(pair -> pair.first().toLowerCase(Locale.ROOT).startsWith(input.peekString().toLowerCase(Locale.ROOT)))
                 .map(pair -> {
-                    var select = provider.unprefixedProvider().provide("suggestion.select-player", context.sender().getLocale(), miniMessage(
+                    var select = provider.provide("suggestion.select-player", context.sender().getLocale(), false, miniMessage(
                             "<yellow>(<name>/<uuid>)</yellow>",
                             Placeholder.parsed("name", pair.first()),
                             Placeholder.parsed("uuid", pair.second().toString()))).color(NamedTextColor.RED);
@@ -405,7 +405,7 @@ public class NecrifyCommand {
     @Suggestions("suggestMiniMessage")
     public List<? extends Suggestion> suggestMiniMessage(CommandContext<NecrifyUser> context, CommandInput input) {
         return Collections.singletonList(ComponentTooltipSuggestion.suggestion(input.remainingInput()
-                        + " (" + provider.unprefixedProvider().provideString("suggestion.hover-over-me", context.sender().getLocale()) + ")",
+                        + " (" + provider.provideString("suggestion.hover-over-me", context.sender().getLocale()) + ")",
                 miniMessage(input.remainingInput())));
     }
 
@@ -517,8 +517,7 @@ public class NecrifyCommand {
         return provider.provide("command.whitelist.status",
                         Component.text(Objects.requireNonNullElse(user.getUsername(), "Unknown Username")).color(NamedTextColor.YELLOW),
                         provider
-                                .unprefixedProvider()
-                                .provide("whitelist.status." + (whitelisted ? "whitelisted" : "disallowed"))
+                                .provide("whitelist.status." + (whitelisted ? "whitelisted" : "disallowed"), false)
                                 .color(whitelisted ? NamedTextColor.GREEN : NamedTextColor.RED))
                 .color(NamedTextColor.GRAY);
     }

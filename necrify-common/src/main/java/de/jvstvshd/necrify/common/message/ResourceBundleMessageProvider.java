@@ -27,6 +27,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.kyori.adventure.translation.TranslationRegistry;
 import net.kyori.adventure.translation.Translator;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -130,25 +131,25 @@ public class ResourceBundleMessageProvider implements MessageProvider {
     }
 
     @Override
-    public @NotNull Component provide(@NotNull String key, @Nullable Locale locale, Component... args) {
-        return GlobalTranslator.render(provide(key, args), orDefault(locale));
+    public @NotNull Component provide(@NotNull String key, @Nullable Locale locale, boolean prefixed, Component... args) {
+        return GlobalTranslator.render(provide(key, prefixed, args), orDefault(locale));
     }
 
     @Override
-    public @NotNull Component provide(@NotNull String key, Component... args) {
+    public @NotNull Component provide(@NotNull String key, boolean prefixed, Component... args) {
         Objects.requireNonNull(key, "key may not be null");
         var component = Component.translatable(key, args);
-        return autoPrefixed ? prefixed(component) : component;
+        return prefixed ? prefixed(component) : component;
     }
 
     @Override
-    public @NotNull Component internalError(@Nullable Locale locale) {
-        return provide("error.internal", locale).color(NamedTextColor.DARK_RED);
+    public @NotNull Component internalError(@Nullable Locale locale, boolean prefixed) {
+        return provide("error.internal", locale, prefixed).color(NamedTextColor.DARK_RED);
     }
 
     @Override
-    public @NotNull Component internalError() {
-        return provide("error.internal").color(NamedTextColor.DARK_RED);
+    public @NotNull Component internalError(boolean prefixed) {
+        return provide("error.internal", prefixed).color(NamedTextColor.DARK_RED);
     }
 
     @Override
@@ -166,6 +167,13 @@ public class ResourceBundleMessageProvider implements MessageProvider {
         return input == null ? defaultLocale : input;
     }
 
+    @Override
+    public MessageProvider autoPrefixed(boolean autoPrefixed) {
+        return new ResourceBundleMessageProvider(defaultLocale, autoPrefixed);
+    }
+
+    @Deprecated(forRemoval = true)
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.3.0")
     @Override
     public MessageProvider unprefixedProvider() {
         if (!autoPrefixed) {

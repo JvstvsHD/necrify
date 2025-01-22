@@ -56,7 +56,7 @@ public class PunishmentDurationParser implements ArgumentParser<NecrifyUser, Pun
     }
     @Override
     public @NonNull SuggestionProvider<NecrifyUser> suggestionProvider() {
-        var unprefixedProvider = this.provider.unprefixedProvider();
+        var unprefixedProvider = this.provider.autoPrefixed(false);
         return (context, input) -> {
             var string = input.peekString();
             ComponentTooltipSuggestion suggestion;

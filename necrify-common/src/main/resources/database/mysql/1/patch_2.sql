@@ -13,6 +13,16 @@ CREATE TABLE IF NOT EXISTS punishment_log
     created_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP()
 );
 
+DROP FUNCTION IF EXISTS necrify_punishment_determine_action;
+DROP PROCEDURE IF EXISTS necrify_punishment_trigger_execute;
+DROP PROCEDURE IF EXISTS necrify_punishment_trigger_update;
+DROP PROCEDURE IF EXISTS necrify_punishment_trigger_insert;
+DROP PROCEDURE IF EXISTS necrify_punishment_trigger_delete;
+DROP TRIGGER IF EXISTS necrify_punishment_trigger_update;
+DROP TRIGGER IF EXISTS after_punishment_insert;
+DROP TRIGGER IF EXISTS before_punishment_delete;
+DROP TRIGGER IF EXISTS after_punishment_delete;
+
 DELIMITER $$
 CREATE FUNCTION necrify_punishment_determine_action(old_reason VARCHAR(1000),
                                                     new_reason VARCHAR(1000),

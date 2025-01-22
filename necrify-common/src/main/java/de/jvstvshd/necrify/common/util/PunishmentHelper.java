@@ -44,7 +44,7 @@ public class PunishmentHelper {
     }
 
     public static Component buildPunishmentData(Punishment punishment, MessageProvider messageProvider, int indents) {
-        var provider = indents == 0 ? messageProvider : messageProvider.unprefixedProvider();
+        var provider = indents == 0 ? messageProvider : messageProvider.autoPrefixed(false);
         var ic = indentComponent(indents);
         var clickToRemove = provider.provide("command.punishment.click-to-remove");
 
@@ -75,8 +75,8 @@ public class PunishmentHelper {
         } else {
             builder.append(Component.newline());
         }
-        builder.append(provider.unprefixedProvider()
-                        .provide("helper.view-log")
+        builder.append(provider
+                        .provide("helper.view-log", false)
                         .color(NamedTextColor.GRAY)
                         .clickEvent(ClickEvent.runCommand("/necrify punishment " + punishment.getPunishmentUuid().toString().toLowerCase(Locale.ROOT) + " log")),
                 Component.newline());

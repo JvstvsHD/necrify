@@ -44,7 +44,7 @@ public class PunishmentLogPaginationRowRenderer implements Pagination.Renderer.R
 
     public PunishmentLogPaginationRowRenderer(MiniMessage miniMessage, AbstractNecrifyPlugin plugin) {
         this.miniMessage = miniMessage;
-        this.messageProvider = plugin.getMessageProvider().unprefixedProvider();
+        this.messageProvider = plugin.getMessageProvider().autoPrefixed(false);
         this.plugin = plugin;
     }
 
@@ -65,9 +65,9 @@ public class PunishmentLogPaginationRowRenderer implements Pagination.Renderer.R
             }
             Component change;
             if (action == CREATED) {
-                change = messageProvider.unprefixedProvider().provide("log.punishment.created", punishment.getReason()).color(NamedTextColor.GRAY);
+                change = messageProvider.provide("log.punishment.created", false, punishment.getReason()).color(NamedTextColor.GRAY);
             } else if (action == REMOVED) {
-                change = messageProvider.unprefixedProvider().provide("log.punishment.removed", punishment.getReason()).color(NamedTextColor.GRAY);
+                change = messageProvider.provide("log.punishment.removed", false, punishment.getReason()).color(NamedTextColor.GRAY);
             } else {
                 Function<PunishmentLogEntry, String> acquire;
                 String actionName;
