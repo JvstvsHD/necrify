@@ -7,7 +7,7 @@
     "dependencies"
   ],
   "extends": [
-    "config:base"
+    "config:recommended"
   ],
   "reviewers": [
     "JvstvsHD"
@@ -20,10 +20,10 @@
     },
     {
       "groupName": "jackson",
-      "matchPackagePatterns": [
-        "com.fasterxml.jackson.*"
-      ],
-      "automerge": true
+      "automerge": true,
+      "matchPackageNames": [
+        "/com.fasterxml.jackson.*/"
+      ]
     }
   ]
 }
