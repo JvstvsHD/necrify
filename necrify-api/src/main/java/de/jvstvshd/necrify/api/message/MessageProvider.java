@@ -161,7 +161,9 @@ public interface MessageProvider {
 
     /**
      * Provides a message to the user with the given key in the default locale. This yields the same result content-wise
-     * as calling {@link #provide(String, Locale, Component...)}, but as String instead of a Component.
+     * as calling {@link #provide(String, Locale, Component...)}, but as String instead of a Component. This method's return
+     * value will not get prefixed. Please use {@link #provideString(String, Locale, boolean, Component...)} with {@code false}
+     * for this case.
      *
      * @param key    an unique key identifying the message to provide.
      * @param locale the locale in whose language the message should be provided. If locale is null, the system's {@link #defaultLocale() default Locale}

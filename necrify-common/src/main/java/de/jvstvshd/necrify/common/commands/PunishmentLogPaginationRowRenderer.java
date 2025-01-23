@@ -90,7 +90,7 @@ public class PunishmentLogPaginationRowRenderer implements Pagination.Renderer.R
                 } else {
                     return List.of();
                 }
-                var actionComponent = messageProvider.unprefixedProvider().provide(actionName).color(NamedTextColor.LIGHT_PURPLE);
+                var actionComponent = messageProvider.provide(actionName, false).color(NamedTextColor.LIGHT_PURPLE);
                 change = Component.text().append(
                         actionComponent,
                         Component.space(),
@@ -98,12 +98,10 @@ public class PunishmentLogPaginationRowRenderer implements Pagination.Renderer.R
                         Component.text(" -> ", NamedTextColor.YELLOW),
                         Component.text(acquire.apply(value), NamedTextColor.GREEN)
                 ).build();
-                /*change = miniMessage.deserialize("<yellow>" + PlainTextComponentSerializer.plainText().serialize(messageProvider.provide(actionName))
-                        + ": <red><st>" + acquire.apply(value.previousOrThis()) + "</st></red><yellow> -> <green>" + acquire.apply(value));*/
             }
-            var username = value.actor() == null ? "null" :
-                    value.actor().getUsername() == null ? value.actor().getUuid().toString() : value.actor().getUsername();
-            var usernameComponent = Util.copyComponent(Component.text(username).color(NamedTextColor.YELLOW), username, messageProvider);
+            var username = value.actor() == null ? messageProvider.provide("user.unknown", false) :
+                    Component.text(value.actor().getUsername() == null ? value.actor().getUuid().toString() : value.actor().getUsername());
+            var usernameComponent = Util.copyComponent(username.color(NamedTextColor.YELLOW), username, messageProvider);
             var timeComponent = Component.text(Util.dtf.format(value.instant())).color(NamedTextColor.YELLOW);
             return List.of(Component.text().append(
                             messageProvider.prefix(),

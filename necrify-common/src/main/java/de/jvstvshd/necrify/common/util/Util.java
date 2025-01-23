@@ -32,6 +32,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.event.HoverEventSource;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
@@ -100,6 +101,11 @@ public class Util {
 
     public static Component copyComponent(Component base, String copy, MessageProvider provider) {
         return base.clickEvent(ClickEvent.suggestCommand(copy))
+                .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(provider.provide("commands.general.copy").color(NamedTextColor.GREEN)));
+    }
+
+    public static Component copyComponent(Component base, Component copy, MessageProvider provider) {
+        return base.clickEvent(ClickEvent.suggestCommand(PlainTextComponentSerializer.plainText().serialize(copy)))
                 .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(provider.provide("commands.general.copy").color(NamedTextColor.GREEN)));
     }
 
