@@ -90,8 +90,8 @@ public class NecrifyCommand {
             }
             sender.sendMessage("command.ban.success",
                     NamedTextColor.GRAY,
-                    miniMessage(target.getUsername()).color(NamedTextColor.YELLOW),
-                    copyComponent(target.getUuid().toString()).color(NamedTextColor.YELLOW),
+                    userReference(target),
+                    copyComponent(ban.getUuid().toString()).color(NamedTextColor.YELLOW),
                     finalReason);
             tryChainPunishments(sender, target, ban);
         });
@@ -113,8 +113,8 @@ public class NecrifyCommand {
             }
             sender.sendMessage("command.mute.success",
                     NamedTextColor.GRAY,
-                    miniMessage(target.getUsername()).color(NamedTextColor.YELLOW),
-                    copyComponent(target.getUuid().toString()).color(NamedTextColor.YELLOW),
+                    userReference(target),
+                    copyComponent(mute.getUuid().toString()).color(NamedTextColor.YELLOW),
                     finalReason);
             tryChainPunishments(sender, target, mute);
         });
@@ -136,7 +136,7 @@ public class NecrifyCommand {
             }
             sender.sendMessage("command.kick.success",
                     NamedTextColor.GRAY,
-                    miniMessage(target.getUsername()).color(NamedTextColor.YELLOW),
+                    userReference(target),
                     copyComponent(target.getUuid().toString()).color(NamedTextColor.YELLOW),
                     finalReason);
         });
@@ -159,8 +159,8 @@ public class NecrifyCommand {
             }
             sender.sendMessage("command.tempban.success",
                     NamedTextColor.GRAY,
-                    miniMessage(target.getUsername()).color(NamedTextColor.YELLOW),
-                    copyComponent(target.getUuid().toString()).color(NamedTextColor.YELLOW),
+                    userReference(target),
+                    copyComponent(ban.getUuid().toString()).color(NamedTextColor.YELLOW),
                     finalReason,
                     miniMessage(duration.expirationAsString()).color(NamedTextColor.YELLOW));
             tryChainPunishments(sender, target, ban);
@@ -184,8 +184,8 @@ public class NecrifyCommand {
             }
             sender.sendMessage("command.tempmute.success",
                     NamedTextColor.GRAY,
-                    miniMessage(target.getUsername()).color(NamedTextColor.YELLOW),
-                    copyComponent(target.getUuid().toString()).color(NamedTextColor.YELLOW),
+                    userReference(target),
+                    copyComponent(mute.getUuid().toString()).color(NamedTextColor.YELLOW),
                     finalReason,
                     miniMessage(duration.expirationAsString()).color(NamedTextColor.YELLOW));
             tryChainPunishments(sender, target, mute);
@@ -405,7 +405,7 @@ public class NecrifyCommand {
     @Suggestions("suggestMiniMessage")
     public List<? extends Suggestion> suggestMiniMessage(CommandContext<NecrifyUser> context, CommandInput input) {
         return Collections.singletonList(ComponentTooltipSuggestion.suggestion(input.remainingInput()
-                        + " (" + provider.provideString("suggestion.hover-over-me", context.sender().getLocale()) + ")",
+                        + " (" + provider.provideString("suggestion.hover-over-me", context.sender().getLocale(), false) + ")",
                 miniMessage(input.remainingInput())));
     }
 
@@ -498,6 +498,18 @@ public class NecrifyCommand {
 
     private Component reasonOrDefaultTo(String reason, StandardPunishmentType type) {
         return miniMessage(reason == null ? plugin.getDefaultReason(type) : reason);
+    }
+
+    private Component userReference(NecrifyUser user) {
+        return Component.text(getUsername(user), NamedTextColor.YELLOW)
+                .clickEvent(ClickEvent.runCommand("/necrify user " + user.getUuid() + " info"))
+                .hoverEvent((HoverEventSource<Component>) op -> HoverEvent
+                        .showText(provider.provide("commands.general.view-user-info", false,
+                                Component.text(getUsername(user), NamedTextColor.YELLOW)).color(NamedTextColor.GREEN)));
+    }
+
+    private String getUsername(NecrifyUser user) {
+        return Objects.requireNonNullElse(user.getUsername(), user.getUuid().toString());
     }
 
     private Component miniMessage(String message, TagResolver... resolvers) {
