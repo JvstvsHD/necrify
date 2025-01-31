@@ -49,12 +49,12 @@ public class MessagingChannelListener implements PluginMessageListener {
             return;
         }
         if (data.getVersion() > MuteData.PROTOCOL_VERSION) {
-            plugin.getSLF4JLogger().warn("Received MuteData with higher version than supported. This may lead to unexpected " +
-                    "results as newer features might be expected by the incoming data.");
+            plugin.getSLF4JLogger().warn("Received MuteData ({}) with higher version than supported ({}). This may lead to unexpected " +
+                    "results as newer features might be expected by the incoming data.", data.getVersion(), MuteData.PROTOCOL_VERSION);
             Updater.updateInformation(plugin.getSLF4JLogger());
         } else if (data.getVersion() < MuteData.PROTOCOL_VERSION) {
-            plugin.getSLF4JLogger().warn("Received MuteData with lower version than supported. TBackwards compatibility " +
-                    "should be ensured unless this version is really outdated.");
+            plugin.getSLF4JLogger().warn("Received MuteData ({}) with lower version than supported ({}). Backwards compatibility " +
+                    "should be ensured unless this version is really outdated.", data.getVersion(), MuteData.PROTOCOL_VERSION);
             Updater.updateInformation(plugin.getSLF4JLogger());
         }
         if (data.getType() == MuteData.RESET) {
