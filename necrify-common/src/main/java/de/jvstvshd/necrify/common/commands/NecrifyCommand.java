@@ -93,7 +93,10 @@ public class NecrifyCommand {
                     userReference(target),
                     copyComponent(ban.getUuid().toString()).color(NamedTextColor.YELLOW),
                     finalReason);
-            tryChainPunishments(sender, target, ban);
+            //TODO chaining permanent punishments does not make sense
+            //TODO offer option to merge reasons of both punishments
+            //TODO this also causes errors when chaining
+            //tryChainPunishments(sender, target, ban);
         });
     }
 
@@ -116,7 +119,8 @@ public class NecrifyCommand {
                     userReference(target),
                     copyComponent(mute.getUuid().toString()).color(NamedTextColor.YELLOW),
                     finalReason);
-            tryChainPunishments(sender, target, mute);
+            //see banCommand
+            //tryChainPunishments(sender, target, mute);
         });
     }
 
@@ -527,7 +531,7 @@ public class NecrifyCommand {
     private Component whitelistStatus(NecrifyUser user) {
         var whitelisted = user.isWhitelisted();
         return provider.provide("command.whitelist.status",
-                        Component.text(Objects.requireNonNullElse(user.getUsername(), "Unknown Username")).color(NamedTextColor.YELLOW),
+                        Component.text(Objects.requireNonNullElse(user.getUsername(), provider.provideString("user.unknown", user.getLocale()))).color(NamedTextColor.YELLOW),
                         provider
                                 .provide("whitelist.status." + (whitelisted ? "whitelisted" : "disallowed"), false)
                                 .color(whitelisted ? NamedTextColor.GREEN : NamedTextColor.RED))
