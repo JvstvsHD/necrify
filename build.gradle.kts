@@ -146,14 +146,17 @@ tasks {
         val projects = rootProject.allprojects
         setSource(projects.map { project -> project.sourceSets.main.get().allJava })
         classpath = files(projects.map { project -> project.sourceSets.main.get().compileClasspath })
-        //setDestinationDir(file("${layout.buildDirectory.get()}/docs/javadoc"))
-        setDestinationDir(file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/${rootProject.version}"))
-        println(destinationDir?.toString())
+        val destinationDirectory = file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/${rootProject.version}")
+        setDestinationDir(destinationDirectory)
         doLast {
             try {
                 Documentation.buildJavadocIndexFile(file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/index.html").toPath(), rootProject.version.toString())
             } catch (e: Exception) {
                 logger.error("Failed to build Javadoc index file", e)
+            }
+            copy {
+                from(destinationDirectory)
+                into(file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/latest"))
             }
         }
     }
