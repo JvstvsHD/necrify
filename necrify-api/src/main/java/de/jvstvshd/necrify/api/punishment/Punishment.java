@@ -203,6 +203,7 @@ public interface Punishment extends ReasonHolder {
      * to the last log entry in {@link #loadPunishmentLog() punishment log}.<br>
      * Please note that this entry is not able to iterate over previous and next entries. If you want to do so, use
      * {@link #loadPunishmentLog()} instead.
+     * @since 1.2.2
      */
     @NotNull
     PunishmentLogEntry createCurrentLogEntry();

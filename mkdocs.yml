@@ -74,6 +74,8 @@ markdown_extensions:
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.tasklist:
+      custom_checkbox: true
 copyright: Copyright &copy; 2025 JvstvsHD – <a href="#__consent">Change cookie settings</a>
 nav:
     - Introduction: index.md
@@ -82,7 +84,9 @@ nav:
     - Configuration: configuration.md
     - Storage: storage.md
     - Current plans: future.md
-    - API reference ↗: https://docs.jvstvshd.de/necrify/javadoc/
+    - Javadocs:
+        - Latest Javadoc↗: https://docs.jvstvshd.de/necrify/javadoc/latest/
+        - All Javadocs↗: https://docs.jvstvshd.de/necrify/javadoc/
     - Latest release ↗: https://hangar.papermc.io/JvstvsHD/Necrify/versions/
 
 plugins:
