@@ -1,8 +1,5 @@
 name: Build project
 on:
-  push:
-    branches:
-     - "**"
   pull_request:
     types: [opened, reopened, edited]
 jobs:
