@@ -12,7 +12,6 @@
   "reviewers": [
     "JvstvsHD"
   ],
-  "commitBody": "[skip ci]",
   "packageRules": [
     {
       "matchUpdateTypes": "patch",
