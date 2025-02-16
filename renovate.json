@@ -9,9 +9,6 @@
   "extends": [
     "config:recommended"
   ],
-  "reviewers": [
-    "JvstvsHD"
-  ],
   "packageRules": [
     {
       "matchUpdateTypes": "patch",
