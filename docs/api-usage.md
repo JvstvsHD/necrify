@@ -247,7 +247,7 @@ A punishment may have the following properties (required properties are marked):
 - [x] A user reference which is the user that the punishment was issued to
 - [x] A reason which is a string that describes why the punishment was issued (in the Necrify plugin, this is serialized through MiniMessage)
 - [x] Creation date to control when the punishment gets enacted
-- [x] A type which [identifies the punishment type](#punishment-types) (e.g. ban, mute, kick)
+- [x] A type which [identifies the punishment type](#punishment-log-types) (e.g. ban, mute, kick)
 - [ ] An expiration (fixed only for temporal punishments; technically all have one, but that of permanent punishments is in a couple thousand years)
 - [ ] successor punishments (value may be null)
 

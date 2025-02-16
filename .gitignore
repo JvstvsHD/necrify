@@ -8,3 +8,4 @@ necrify-paper/build
 necrify-velocity/build
 necrify-velocity/run
 **/.kotlin/**
+.env
