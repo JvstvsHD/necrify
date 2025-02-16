@@ -3,12 +3,12 @@ on:
   push:
     branches:
      - "**"
+     - "!renovate**"
 jobs:
   publish:
     if: ${{ github.actor != 'renovate[bot]' }}
     needs: build
     runs-on: ubuntu-latest
-    if: ${{ !contains(github.head_ref, 'renovate/') }}
     steps:
      - uses: actions/checkout@v4
      - name: Set up Java

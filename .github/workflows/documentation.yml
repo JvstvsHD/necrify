@@ -3,13 +3,12 @@ on:
   push:
     branches:
       - '**'
-      - '!renovate/**'
+      - '!renovate**'
 permissions:
   contents: write
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ !contains(github.head_ref, 'renovate/') }}
     steps:
       - uses: actions/checkout@v4
       - name: Configure Git Credentials
