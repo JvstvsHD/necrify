@@ -1,4 +1,5 @@
 .gradle
+.cache
 .idea
 build
 necrify-api/build

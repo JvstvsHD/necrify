@@ -1,6 +1,12 @@
-# Necrify configuration
-# See also here for more information: https://docs.jvstvshd.de/necrify/configuration/
-
+---
+search:
+  boost: 2
+title: Necrify plugin configuration
+description: Configuration of the Necrify plugin.
+---
+# Necrify's configuration
+More is coming Soon:tm:
+``` yaml
 # Determines whether the whitelist should be active or not. If set to true, only users who are whitelisted may join.
 whitelist-activated: false
 # Allows the registration of commands on a top-level, so /necrify ban is registered as well as plainly /ban.
@@ -47,3 +53,4 @@ database:
   # a dev build is used and new additions to the database schema patch files are made afterwards and before the release. This
   # will go only into effect when a dev build is used.
   enable-development-version-reset: false
+```

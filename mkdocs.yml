@@ -1,0 +1,111 @@
+site_name: Necrify
+site_url: https://docs.jvstvshd.de/necrify/
+repo_url: https://github.com/JvstvsHD/necrify/
+repo_name: JvstvsHD/necrify
+theme:
+    #custom_dir: docs/overrides
+    name: material
+    features:
+        - navigation.instant
+        - navigation.instant.progress
+        - navigation.tracking
+        - navigation.top
+        - toc.integrate
+        - content.code.copy
+        - content.code.annotate
+        - content.code.select
+        - content.tabs.link
+        - search.suggest
+        - search.highlight
+        - search.share
+    palette:
+      # Palette toggle for automatic mode
+      - media: "(prefers-color-scheme)"
+        toggle:
+          icon: material/brightness-auto
+          name: Switch to light mode
+
+      # Palette toggle for light mode
+      - media: "(prefers-color-scheme: light)"
+        scheme: default
+        primary: red
+        accent: light green
+        toggle:
+          icon: material/brightness-7
+          name: Switch to dark mode
+
+      # Palette toggle for dark mode
+      - media: "(prefers-color-scheme: dark)"
+        scheme: slate
+        primary: red
+        accent: light green
+        toggle:
+          icon: material/brightness-4
+          name: Switch to system preference
+    logo: assets/images/necrify-logo.png
+    icon:
+        annotation: material/arrow-right-circle
+
+markdown_extensions:
+  - def_list
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - pymdownx.blocks.caption
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.highlight:
+      linenums: true
+      linenums_style: pymdownx-inline
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.blocks.caption
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.tasklist:
+      custom_checkbox: true
+copyright: Copyright &copy; 2025 JvstvsHD – <a href="#__consent">Change cookie settings</a>
+nav:
+    - Introduction: index.md
+    - Commands: commands.md
+    - API: api-usage.md
+    - Configuration: configuration.md
+    - Storage: storage.md
+    - Current plans: future.md
+    - Javadocs:
+        - Latest Javadoc↗: https://docs.jvstvshd.de/necrify/javadoc/latest/
+        - All Javadocs↗: https://docs.jvstvshd.de/necrify/javadoc/
+    - Latest release ↗: https://hangar.papermc.io/JvstvsHD/Necrify/versions/
+
+plugins:
+  - tags
+  - privacy
+  - glightbox:
+      loop: true
+  - search
+
+
+extra:
+  consent:
+    title: Cookie consent
+    description: >-
+      We use cookies to recognize your repeated visits and preferences, as well
+      as to measure the effectiveness of our documentation and whether users
+      find what they're searching for. With your consent, you're helping us to
+      make our documentation better.
+    actions:
+      - accept
+      - manage
+      - reject
