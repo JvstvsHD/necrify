@@ -1,0 +1,1329 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://docs.jvstvshd.de/necrify/api-usage/">
+      
+      
+        <link rel="prev" href="../commands/">
+      
+      
+        <link rel="next" href="../configuration/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.4">
+    
+    
+      
+        <title>API - Necrify</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.8608ea7d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+  
+  
+  
+  
+  <style>:root{--md-annotation-icon:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M22 12a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10M6 13h8l-3.5 3.5 1.42 1.42L17.84 12l-5.92-5.92L10.5 7.5 14 11H6z"/></svg>');}</style>
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        
+        <link rel="stylesheet" href="../assets/external/fonts.googleapis.com/css.49ea35f2.css">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+   <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"/><style>
+    html.glightbox-open { overflow: initial; height: 100%; }
+    .gslide-title { margin-top: 0px; user-select: text; }
+    .gslide-desc { color: #666; user-select: text; }
+    .gslide-image img { background: white; }
+    .gscrollbar-fixer { padding-right: 15px; }
+    .gdesc-inner { font-size: 0.75rem; }
+    body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color);}
+    body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color);}
+    body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color);}</style> <script src="../assets/javascripts/glightbox.min.js"></script></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#how-to-use-the-api" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Necrify" class="md-header__button md-logo" aria-label="Necrify" data-md-component="logo">
+      
+  <img src="../assets/images/necrify-logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Necrify
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              API
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="light-green"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/JvstvsHD/necrify/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    JvstvsHD/necrify
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Necrify" class="md-nav__button md-logo" aria-label="Necrify" data-md-component="logo">
+      
+  <img src="../assets/images/necrify-logo.png" alt="logo">
+
+    </a>
+    Necrify
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/JvstvsHD/necrify/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    JvstvsHD/necrify
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Commands
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gradle-kotlin" class="md-nav__link">
+    <span class="md-ellipsis">
+      Gradle (kotlin)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gradle-groovy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Gradle (groovy)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maven" class="md-nav__link">
+    <span class="md-ellipsis">
+      Maven
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Concepts
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#first-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      First steps
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="First steps">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#obtain-an-instance-of-the-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      Obtain an instance of the API
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Obtain an instance of the API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#velocity" class="md-nav__link">
+    <span class="md-ellipsis">
+      Velocity
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#punishing-a-player" class="md-nav__link">
+    <span class="md-ellipsis">
+      Punishing a player
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#user-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      User API
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="User API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#retrieving-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      Retrieving users
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-usermanager-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Other UserManager operations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#users-and-their-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Users and their data
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#punishment-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      Punishment API
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Punishment API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#punishment-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Punishment logs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#punishment-durations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Punishment durations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#events-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      Events API
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extending-the-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      Extending the API
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extending the API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#punishment-log-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Punishment (log) types
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../storage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Storage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../future/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Current plans
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Javadocs
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Javadocs
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://docs.jvstvshd.de/necrify/javadoc/latest/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Latest Javadoc↗
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://docs.jvstvshd.de/necrify/javadoc/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    All Javadocs↗
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://hangar.papermc.io/JvstvsHD/Necrify/versions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Latest release ↗
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="how-to-use-the-api">How to use the API</h1>
+<h2 id="setup">Setup</h2>
+<h3 id="installation">Installation</h3>
+<p>Replace the version with the current version, e.g. 1.2.2. The latest version can be
+found in the top right corner right below the git repository name
+or <a href="https://ci.jvstvshd.de/job/Necrify/lastSuccessfulBuild/">here</a>.
+Note that you only want to use the string after necrify-{platform}- and without the version build number.</p>
+<h4 id="gradle-kotlin">Gradle (kotlin)</h4>
+<div class="language-kotlin highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><a href="#__codelineno-0-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">repositories</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a><a href="#__codelineno-0-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">   </span><span class="n">mavenCentral</span><span class="p">()</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3"></a><a href="#__codelineno-0-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">   </span><span class="n">maven</span><span class="p">(</span><span class="s">&quot;https://s01.oss.sonatype.org/content/repositories/snapshots&quot;</span><span class="p">)</span><span class="w"> </span><span class="c1">// (1)</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4"></a><a href="#__codelineno-0-4"><span class="linenos" data-linenos="4 "></span></a><span class="p">}</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5"></a><a href="#__codelineno-0-5"><span class="linenos" data-linenos="5 "></span></a>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6"></a><a href="#__codelineno-0-6"><span class="linenos" data-linenos="6 "></span></a><span class="n">dependencies</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7"></a><a href="#__codelineno-0-7"><span class="linenos" data-linenos="7 "></span></a><span class="w">    </span><span class="n">implementation</span><span class="p">(</span><span class="s">&quot;de.jvstvshd.necrify:necrify-api:1.2.2&quot;</span><span class="p">)</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8"></a><a href="#__codelineno-0-8"><span class="linenos" data-linenos="8 "></span></a><span class="p">}</span>
+</span></code></pre></div>
+<ol>
+<li>Only add this repository if you want to use the latest snapshot version.</li>
+</ol>
+<h4 id="gradle-groovy">Gradle (groovy)</h4>
+<div class="language-groovy highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1"></a><a href="#__codelineno-1-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">repositories</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2"></a><a href="#__codelineno-1-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">    </span><span class="n">mavenCentral</span><span class="o">()</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3"></a><a href="#__codelineno-1-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">    </span><span class="n">maven</span><span class="w"> </span><span class="o">{</span><span class="w"> </span><span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;https://s01.oss.sonatype.org/content/repositories/snapshots&#39;</span><span class="w"> </span><span class="o">}</span><span class="w"> </span><span class="c1">// (1)</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4"></a><a href="#__codelineno-1-4"><span class="linenos" data-linenos="4 "></span></a><span class="o">}</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5"></a><a href="#__codelineno-1-5"><span class="linenos" data-linenos="5 "></span></a>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6"></a><a href="#__codelineno-1-6"><span class="linenos" data-linenos="6 "></span></a><span class="n">dependencies</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7"></a><a href="#__codelineno-1-7"><span class="linenos" data-linenos="7 "></span></a><span class="w">   </span><span class="n">implementation</span><span class="w"> </span><span class="s1">&#39;de.jvstvshd.necrify:necrify-api:1.2.2&#39;</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8"></a><a href="#__codelineno-1-8"><span class="linenos" data-linenos="8 "></span></a><span class="o">}</span>
+</span></code></pre></div>
+<ol>
+<li>Only add this repository if you want to use the latest snapshot version.</li>
+</ol>
+<h4 id="maven">Maven</h4>
+<div class="language-xml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1"></a><a href="#__codelineno-2-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="nt">&lt;repositories&gt;</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2"></a><a href="#__codelineno-2-2"><span class="linenos" data-linenos=" 2 "></span></a><span class="w">    </span><span class="nt">&lt;repository&gt;</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3"></a><a href="#__codelineno-2-3"><span class="linenos" data-linenos=" 3 "></span></a><span class="w">        </span><span class="nt">&lt;id&gt;</span>sonatype-snapshots<span class="nt">&lt;/id&gt;</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4"></a><a href="#__codelineno-2-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="w">        </span><span class="nt">&lt;name&gt;</span>Sonatype<span class="w"> </span>Snapshots<span class="w"> </span>S01<span class="nt">&lt;/name&gt;</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5"></a><a href="#__codelineno-2-5"><span class="linenos" data-linenos=" 5 "></span></a><span class="w">        </span><span class="nt">&lt;url&gt;</span>https://s01.oss.sonatype.org/content/repositories/snapshots<span class="nt">&lt;/url&gt;</span><span class="w"> </span><span class="cm">&lt;!-- (1) --&gt;</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6"></a><a href="#__codelineno-2-6"><span class="linenos" data-linenos=" 6 "></span></a><span class="w">    </span><span class="nt">&lt;/repository&gt;</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7"></a><a href="#__codelineno-2-7"><span class="linenos" data-linenos=" 7 "></span></a><span class="nt">&lt;/repositories&gt;</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8"></a><a href="#__codelineno-2-8"><span class="linenos" data-linenos=" 8 "></span></a>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9"></a><a href="#__codelineno-2-9"><span class="linenos" data-linenos=" 9 "></span></a><span class="nt">&lt;dependencies&gt;</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10"></a><a href="#__codelineno-2-10"><span class="linenos" data-linenos="10 "></span></a><span class="w">   </span><span class="nt">&lt;dependency&gt;</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11"></a><a href="#__codelineno-2-11"><span class="linenos" data-linenos="11 "></span></a><span class="w">      </span><span class="nt">&lt;groupId&gt;</span>de.jvstvshd.necrify<span class="nt">&lt;/groupId&gt;</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12"></a><a href="#__codelineno-2-12"><span class="linenos" data-linenos="12 "></span></a><span class="w">      </span><span class="nt">&lt;artifactId&gt;</span>necrify-api<span class="nt">&lt;/artifactId&gt;</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13"></a><a href="#__codelineno-2-13"><span class="linenos" data-linenos="13 "></span></a><span class="w">      </span><span class="nt">&lt;version&gt;</span>1.2.2<span class="nt">&lt;/version&gt;</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14"></a><a href="#__codelineno-2-14"><span class="linenos" data-linenos="14 "></span></a><span class="w">   </span><span class="nt">&lt;/dependency&gt;</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15"></a><a href="#__codelineno-2-15"><span class="linenos" data-linenos="15 "></span></a><span class="nt">&lt;/dependencies&gt;</span>
+</span></code></pre></div>
+<ol>
+<li>Only add this repository if you want to use the latest snapshot version.</li>
+</ol>
+<div class="admonition warning">
+<p class="admonition-title">Snapshot builds</p>
+<p>Snapshot builds are not stable and may contain bugs. They are not recommended for production use. Use them at
+your own risk and only for testing purposes.</p>
+</div>
+<h2 id="concepts">Concepts</h2>
+<p>The Necrify API revolves around the <code>Necrify</code> interface. It allows you to access the different parts of the plugin like 
+the user system. The central concept of Necrify is the <code>NecrifyUser</code> which represents a user on the server. This user can
+be banned, muted, kicked, etc. The punishments are represented by the <code>Punishment</code> interface which is implemented by the
+<code>Ban</code> and <code>Mute</code> classes. These classes represent the different types of punishments that can be issued to a user and offer
+methods to change or cancel the punishment.</p>
+<div class="admonition danger">
+<p class="admonition-title">CompletableFuture#join</p>
+<p>On this page, when a method returns a <code>CompletableFuture</code>, there will be a #join call on it. This is done to simplify the
+code and to make it easier to understand. In a real-world scenario, you should use <code>CompletableFuture#whenComplete</code> or other
+methods that require a callback to be executed when the future is completed. Using #join or #get blocks the current thread
+and may lead to performance issues, especially in a server environment.</p>
+</div>
+<h2 id="first-steps">First steps</h2>
+<h3 id="obtain-an-instance-of-the-api">Obtain an instance of the API</h3>
+<h4 id="velocity">Velocity</h4>
+<p>If you use the Velocity version, you can use the following code snippet to obtain an instance of the API:
+<div class="language-java highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1"></a><a href="#__codelineno-3-1"><span class="linenos" data-linenos="1 "></span></a><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2"></a><a href="#__codelineno-3-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">    </span><span class="n">Necrify</span><span class="w"> </span><span class="n">necrify</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">Necrify</span><span class="p">)</span><span class="w"> </span><span class="n">server</span><span class="p">.</span><span class="na">getPluginManager</span><span class="p">()</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3"></a><a href="#__codelineno-3-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">            </span><span class="p">.</span><span class="na">getPlugin</span><span class="p">(</span><span class="s">&quot;necrify&quot;</span><span class="p">).</span><span class="na">orElseThrow</span><span class="p">().</span><span class="na">getInstance</span><span class="p">().</span><span class="na">orElseThrow</span><span class="p">();</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4"></a><a href="#__codelineno-3-4"><span class="linenos" data-linenos="4 "></span></a><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="p">(</span><span class="n">NoSuchElementException</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5"></a><a href="#__codelineno-3-5"><span class="linenos" data-linenos="5 "></span></a><span class="w">    </span><span class="n">logger</span><span class="p">.</span><span class="na">error</span><span class="p">(</span><span class="s">&quot;Punishment API is not available&quot;</span><span class="p">);</span><span class="w"> </span><span class="c1">// (1)</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6"></a><a href="#__codelineno-3-6"><span class="linenos" data-linenos="6 "></span></a><span class="p">}</span>
+</span></code></pre></div></p>
+<ol>
+<li>If the plugin is not available (yet), this will notify you about it in the console.</li>
+</ol>
+<details class="tip">
+<summary>Managing the plugin dependencies correctly</summary>
+<p>You need to specify that you depend on Necrify so your plugin loads after Necrify. This is important because
+otherwise, Necrify may not be found since it gets loaded afterwards.
+<div class="language-java highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1"></a><a href="#__codelineno-4-1"><span class="linenos" data-linenos="1 "></span></a><span class="w">    </span><span class="nd">@Plugin</span><span class="p">(</span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;your-plugin&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Your Plugin&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;1.0.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2"></a><a href="#__codelineno-4-2"><span class="linenos" data-linenos="2 "></span></a><span class="w">        </span><span class="nd">@Dependency</span><span class="p">(</span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;necrify&quot;</span><span class="p">)</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3"></a><a href="#__codelineno-4-3"><span class="linenos" data-linenos="3 "></span></a><span class="w">    </span><span class="p">})</span>
+</span></code></pre></div></p>
+</details>
+<p>More to come...</p>
+<h4 id="punishing-a-player">Punishing a player</h4>
+<p>All punishments are issued via the target user. For example, banning a player could be done this way:</p>
+<div class="language-java highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1"></a><a href="#__codelineno-5-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="w">    </span><span class="c1">//Firstly, obtain the user instance</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2"></a><a href="#__codelineno-5-2"><span class="linenos" data-linenos=" 2 "></span></a><span class="w">    </span><span class="n">NecrifyUser</span><span class="w"> </span><span class="n">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">api</span><span class="p">.</span><span class="na">getUserManager</span><span class="p">().</span><span class="na">getUser</span><span class="p">(</span><span class="n">uuid</span><span class="p">).</span><span class="na">orElseThrow</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">NoSuchElementException</span><span class="p">(</span><span class="s">&quot;User not found&quot;</span><span class="p">));</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3"></a><a href="#__codelineno-5-3"><span class="linenos" data-linenos=" 3 "></span></a><span class="w">    </span><span class="n">MiniMessage</span><span class="w"> </span><span class="n">miniMessage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MiniMessage</span><span class="p">.</span><span class="na">miniMessage</span><span class="p">();</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4"></a><a href="#__codelineno-5-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="w">    </span><span class="c1">//temporary ban:</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5"></a><a href="#__codelineno-5-5"><span class="linenos" data-linenos=" 5 "></span></a><span class="w">    </span><span class="n">Ban</span><span class="w"> </span><span class="n">temporaryBan</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">user</span><span class="p">.</span><span class="na">ban</span><span class="p">(</span><span class="n">PunishmentDuration</span><span class="p">.</span><span class="na">parse</span><span class="p">(</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6"></a><a href="#__codelineno-5-6"><span class="linenos" data-linenos=" 6 "></span></a><span class="w">            </span><span class="n">miniMessage</span><span class="p">.</span><span class="na">deserialize</span><span class="p">(</span><span class="s">&quot;&lt;red&gt;You broke the server&#39;s rules! Don&#39;t cheat!&quot;</span><span class="p">),</span><span class="w"> </span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7"></a><a href="#__codelineno-5-7"><span class="linenos" data-linenos=" 7 "></span></a><span class="w">            </span><span class="n">PunishmentDuration</span><span class="p">.</span><span class="na">parse</span><span class="p">(</span><span class="s">&quot;1d&quot;</span><span class="p">))).</span><span class="na">join</span><span class="p">();</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8"></a><a href="#__codelineno-5-8"><span class="linenos" data-linenos=" 8 "></span></a><span class="w">    </span><span class="c1">//1d equals 1 day, the duration is relative to the current time until the punishment is imposed.</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9"></a><a href="#__codelineno-5-9"><span class="linenos" data-linenos=" 9 "></span></a><span class="w">    </span><span class="c1">//permanent ban:</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10"></a><a href="#__codelineno-5-10"><span class="linenos" data-linenos="10 "></span></a><span class="w">    </span><span class="n">Ban</span><span class="w"> </span><span class="n">permanentBan</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">user</span><span class="p">.</span><span class="na">banPermanent</span><span class="p">(</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11"></a><a href="#__codelineno-5-11"><span class="linenos" data-linenos="11 "></span></a><span class="w">            </span><span class="n">miniMessage</span><span class="p">.</span><span class="na">deserialize</span><span class="p">(</span><span class="s">&quot;&lt;red&gt;You broke the server&#39;s rules again! You are not allowed to join someday again!&quot;</span><span class="p">)</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12"></a><a href="#__codelineno-5-12"><span class="linenos" data-linenos="12 "></span></a><span class="w">    </span><span class="p">).</span><span class="na">join</span><span class="p">();</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13"></a><a href="#__codelineno-5-13"><span class="linenos" data-linenos="13 "></span></a><span class="w">    </span><span class="c1">//The ban instance you get via #join is the punishment that was issued. Note that using #join blocks the current </span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14"></a><a href="#__codelineno-5-14"><span class="linenos" data-linenos="14 "></span></a><span class="w">    </span><span class="c1">//Thread and since database operations take some time to complete, it is recommended to use #whenComplete or other.</span>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15"></a><a href="#__codelineno-5-15"><span class="linenos" data-linenos="15 "></span></a><span class="w">    </span><span class="c1">//You can now use this instance to change or cancel the punishment:</span>
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16"></a><a href="#__codelineno-5-16"><span class="linenos" data-linenos="16 "></span></a><span class="w">    </span><span class="n">temporaryBan</span><span class="p">.</span><span class="na">cancel</span><span class="p">().</span><span class="na">whenComplete</span><span class="p">((</span><span class="n">punishment</span><span class="p">,</span><span class="w"> </span><span class="n">throwable</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17"></a><a href="#__codelineno-5-17"><span class="linenos" data-linenos="17 "></span></a><span class="w">        </span><span class="k">if</span><span class="p">(</span><span class="n">throwable</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18"></a><a href="#__codelineno-5-18"><span class="linenos" data-linenos="18 "></span></a><span class="w">            </span><span class="n">logger</span><span class="p">.</span><span class="na">error</span><span class="p">(</span><span class="s">&quot;An error occurred while cancelling the punishment&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">throwable</span><span class="p">);</span>
+</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19"></a><a href="#__codelineno-5-19"><span class="linenos" data-linenos="19 "></span></a><span class="w">            </span><span class="k">return</span><span class="p">;</span>
+</span><span id="__span-5-20"><a id="__codelineno-5-20" name="__codelineno-5-20"></a><a href="#__codelineno-5-20"><span class="linenos" data-linenos="20 "></span></a><span class="w">        </span><span class="p">}</span>
+</span><span id="__span-5-21"><a id="__codelineno-5-21" name="__codelineno-5-21"></a><a href="#__codelineno-5-21"><span class="linenos" data-linenos="21 "></span></a><span class="w">        </span><span class="n">logger</span><span class="p">.</span><span class="na">info</span><span class="p">(</span><span class="s">&quot;The punishment was successfully cancelled&quot;</span><span class="p">);</span>
+</span><span id="__span-5-22"><a id="__codelineno-5-22" name="__codelineno-5-22"></a><a href="#__codelineno-5-22"><span class="linenos" data-linenos="22 "></span></a><span class="w">    </span><span class="p">});</span>
+</span><span id="__span-5-23"><a id="__codelineno-5-23" name="__codelineno-5-23"></a><a href="#__codelineno-5-23"><span class="linenos" data-linenos="23 "></span></a><span class="w">    </span><span class="c1">//#cancel should always return the same instance that you called the method on</span>
+</span><span id="__span-5-24"><a id="__codelineno-5-24" name="__codelineno-5-24"></a><a href="#__codelineno-5-24"><span class="linenos" data-linenos="24 "></span></a><span class="w">    </span><span class="c1">//Event tough a permanent ban was issued for an indefinite time, you can still change the duration and the reason:        </span>
+</span><span id="__span-5-25"><a id="__codelineno-5-25" name="__codelineno-5-25"></a><a href="#__codelineno-5-25"><span class="linenos" data-linenos="25 "></span></a><span class="w">    </span><span class="n">permanentBan</span><span class="p">.</span><span class="na">change</span><span class="p">(</span><span class="n">PunishmentDuration</span><span class="p">.</span><span class="na">parse</span><span class="p">(</span><span class="s">&quot;300d&quot;</span><span class="p">),</span><span class="w"> </span><span class="n">miniMessage</span><span class="p">.</span><span class="na">deseriaize</span><span class="p">(</span><span class="s">&quot;&lt;green&gt;Okay, you may join again in 300 days!&quot;</span><span class="p">))</span>
+</span><span id="__span-5-26"><a id="__codelineno-5-26" name="__codelineno-5-26"></a><a href="#__codelineno-5-26"><span class="linenos" data-linenos="26 "></span></a><span class="w">            </span><span class="p">.</span><span class="na">whenComplete</span><span class="p">((</span><span class="n">punishment</span><span class="p">,</span><span class="w"> </span><span class="n">throwable</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-5-27"><a id="__codelineno-5-27" name="__codelineno-5-27"></a><a href="#__codelineno-5-27"><span class="linenos" data-linenos="27 "></span></a><span class="w">                </span><span class="k">if</span><span class="p">(</span><span class="n">throwable</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-5-28"><a id="__codelineno-5-28" name="__codelineno-5-28"></a><a href="#__codelineno-5-28"><span class="linenos" data-linenos="28 "></span></a><span class="w">                    </span><span class="n">logger</span><span class="p">.</span><span class="na">error</span><span class="p">(</span><span class="s">&quot;An error occurred while changing the punishment&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">throwable</span><span class="p">);</span>
+</span><span id="__span-5-29"><a id="__codelineno-5-29" name="__codelineno-5-29"></a><a href="#__codelineno-5-29"><span class="linenos" data-linenos="29 "></span></a><span class="w">                    </span><span class="k">return</span><span class="p">;</span>
+</span><span id="__span-5-30"><a id="__codelineno-5-30" name="__codelineno-5-30"></a><a href="#__codelineno-5-30"><span class="linenos" data-linenos="30 "></span></a><span class="w">                </span><span class="p">}</span>
+</span><span id="__span-5-31"><a id="__codelineno-5-31" name="__codelineno-5-31"></a><a href="#__codelineno-5-31"><span class="linenos" data-linenos="31 "></span></a><span class="w">                </span><span class="n">logger</span><span class="p">.</span><span class="na">info</span><span class="p">(</span><span class="s">&quot;The punishment was successfully changed&quot;</span><span class="p">);</span>
+</span><span id="__span-5-32"><a id="__codelineno-5-32" name="__codelineno-5-32"></a><a href="#__codelineno-5-32"><span class="linenos" data-linenos="32 "></span></a><span class="w">    </span><span class="p">});</span>
+</span></code></pre></div>
+<details class="tip">
+<summary>Loading vs. getting users</summary>
+<p>In this example, UserManager#getUser(UUID) is used to get a user instance. This method only returns a user if the user
+is already loaded. If the user is not loaded, the method will return an empty optional. If you want to load the user
+if it is not already loaded, you can use UserManager#loadUser(UUID) which will load the user from the database if it is
+not already loaded. See more in the <a href="#user-api">User API paragraph</a>.</p>
+</details>
+<p>Muting a player is similar, just replace 'ban' with 'mute'.<br>
+Kicking a player can be done by calling <code>user.kick(Reason).join();</code> where it is safe to call #join since there is no
+database query done synchronously. This form of punishment cannot be changed nor cancelled as it only lasts a single moment.<br></p>
+<h2 id="user-api">User API</h2>
+<p>As mentioned before, the central concept of Necrify is the <code>NecrifyUser</code> which represents a user on the server. This user
+can be retrieved through the <code>UserManager</code> which is accessible via the <code>Necrify</code> instance. The <code>UserManager</code> offers methods
+to get a user by its UUID, name, or to load a user if it is not already loaded.</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<p>This example shows how to get the user manager from the Necrify instance:
+<div class="language-java highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1"></a><a href="#__codelineno-6-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">UserManager</span><span class="w"> </span><span class="n">userManager</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">necrify</span><span class="p">.</span><span class="na">getUserManager</span><span class="p">();</span>
+</span></code></pre></div></p>
+</div>
+<h3 id="retrieving-users">Retrieving users</h3>
+<p>Retrieving users is split into two ways: #loadUser(...) and #getUser(...). The difference between these two methods is that
+#getUser(...) only returns a user if it is already loaded. If the user is not loaded, the method will return an empty optional.
+#loadUser(...) on the other hand will load the user from the database if it is not already loaded. If the user is already
+loaded, the return value of the corresponding #getUser(...) method is returned. If the user is not loaded, the user is loaded
+from the database, after which the returned CompletableFuture is completed with the user instance.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">#getUser(...)</label><label for="__tabbed_1_2">#loadUser(...)</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>#getUser(...) only returns a user if it is already loaded. If the user is not loaded, the method will return an empty optional.</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="language-java highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1"></a><a href="#__codelineno-7-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">Optional</span><span class="o">&lt;</span><span class="n">NecrifyUser</span><span class="o">&gt;</span><span class="w"> </span><span class="n">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">userManager</span><span class="p">.</span><span class="na">getUser</span><span class="p">(</span><span class="n">uuid</span><span class="p">).</span><span class="na">join</span><span class="p">();</span><span class="w"> </span><span class="c1">// (1)</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2"></a><a href="#__codelineno-7-2"><span class="linenos" data-linenos="2 "></span></a><span class="n">Optional</span><span class="o">&lt;</span><span class="n">NecrifyUser</span><span class="o">&gt;</span><span class="w"> </span><span class="n">userByName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">userManager</span><span class="p">.</span><span class="na">getUser</span><span class="p">(</span><span class="n">name</span><span class="p">).</span><span class="na">join</span><span class="p">();</span><span class="w"> </span><span class="c1">// (2)</span>
+</span></code></pre></div>
+<ol>
+<li>This will return the user identified by its UUID if it is already loaded. </li>
+<li>This will return the user identified by its name if it is already loaded.<br><b>Note</b>: This method may still return an empty optional
+    if the user's name is not stored.</li>
+</ol>
+</div>
+</div>
+<div class="tabbed-block">
+<p>#loadUser(...) will load the user from the database if it is not already loaded. If the user is already loaded, the return
+value of the corresponding #getUser(...) method is returned. If the user is not loaded, the user is loaded from the database,
+after which the returned CompletableFuture is completed with the user instance.</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="language-java highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1"></a><a href="#__codelineno-8-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">Optional</span><span class="o">&lt;</span><span class="n">NecrifyUser</span><span class="o">&gt;</span><span class="w"> </span><span class="n">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">userManager</span><span class="p">.</span><span class="na">loadUser</span><span class="p">(</span><span class="n">uuid</span><span class="p">).</span><span class="na">join</span><span class="p">();</span><span class="w"> </span><span class="c1">// (1)</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2"></a><a href="#__codelineno-8-2"><span class="linenos" data-linenos="2 "></span></a><span class="n">Optional</span><span class="o">&lt;</span><span class="n">NecrifyUser</span><span class="o">&gt;</span><span class="w"> </span><span class="n">userByName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">userManager</span><span class="p">.</span><span class="na">loadUser</span><span class="p">(</span><span class="n">name</span><span class="p">).</span><span class="na">join</span><span class="p">();</span><span class="w"> </span><span class="c1">// (2)</span>
+</span></code></pre></div>
+<ol>
+<li>This will return the user identified by its UUID if it is already loaded. If the already is not loaded, the cached instance is returned.</li>
+<li>This will return the user identified by its name if it is already loaded. If the already is not loaded, the cached instance is returned.<br>
+    <b>Note</b>: This method may still return an empty optional if the user's name is not stored.</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<p>You can query user's punishments by calling <code>NecrifyUser#getPunishments()</code> which returns a list of all punishments that were
+issued to the user. This list is immutable and cannot be modified. If you want to change or cancel a punishment, you need to
+use the corresponding methods on the punishment instance.</p>
+<h3 id="other-usermanager-operations">Other UserManager operations</h3>
+<p>You can also use the methods <code>#createUser(String|UUID)</code> to create a new user instance. You only need to supply either the
+UUID or the name of the user as this method will always fill out the other field. Necrify will create new user instances 
+automatically, so typically you don't need to use this method yourself.</p>
+<div class="admonition danger">
+<p class="admonition-title">Creating a user</p>
+<p>This method always tries to create a new user instance in the database. At least for the provided plugins, only one
+user can exist per UUID. So, trying to create a user with an already existing UUID will result in an exception.</p>
+</div>
+<p>Instead, is is more safe to use the <code>#loadOrCreateUser(String|UUID)</code> methods which will load the user if it is already
+existing or create a new user if it is not existing.</p>
+<p>Furthermore, you are able to get all users that are currently loaded by calling <code>#getLoadedUsers()</code> which returns a list
+of all users that are currently loaded. This list is immutable and cannot be modified.</p>
+<h3 id="users-and-their-data">Users and their data</h3>
+<p>If you have successfully obtained a user instance, you can access and modify the user's data. You cannot directly modify
+the UUID value of a user since this is a unique identifier for the user. You can, however, modify the user's name, 
+through calling <code>NecrifyUser#queryUsername(boolean)</code>, although this will only update the user name based on the given
+UUID. You may use the boolean parameter to determine whether the user's name should be updated in the database as well.
+If you choose to set this to false, you will only retrieve the current Minecraft username through Mojang's API.</p>
+<p>All methods that can be used to punish a user were mentioned <a href="#punishing-a-player">previously</a>.</p>
+<p>Necrify also offers whitelist management. You can check if a user is whitelisted by calling <code>NecrifyUser#isWhitelisted()</code>.
+To change this value, you can call <code>NecrifyUser#setWhitelisted(boolean)</code>. This will change the user's whitelist status
+to the desired value. If the player can no longer join and the whitelist is activated, they will be kicked automatically.</p>
+<p>If you want to delete a user, you can call <code>NecrifyUser#delete()</code>. This will delete the user from the database and
+remove it from the cache. This operation is irreversible and cannot be undone. Deleting a user will also delete all
+punishments that were issued to the user and all references in punishment logs. These may get replaced with a placeholder
+UUID. (Currently planned, implementation will follow in 1.2.3/1.3.0)</p>
+<h2 id="punishment-api">Punishment API</h2>
+<p>The punishment API is the central part of Necrify. It revolves around the <code>Punishment</code> interface which is extended
+by the TemporalPunishment interface. This interface is implemented by the <code>Ban</code> and <code>Mute</code> classes which represent
+the different types of punishments that can be issued to a user. The <code>Punishment</code> interface offers methods to change
+or cancel the punishment. The <code>TemporalPunishment</code> interface offers methods to manage punishments with a fixed expiration
+whilst <code>Punishment</code> offers general management options.</p>
+<p>A punishment may have the following properties (required properties are marked):</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Punishment ID (UUID) which is unique for each punishment</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> A user reference which is the user that the punishment was issued to</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> A reason which is a string that describes why the punishment was issued (in the Necrify plugin, this is serialized through MiniMessage)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Creation date to control when the punishment gets enacted</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> A type which <a href="#punishment-log-types">identifies the punishment type</a> (e.g. ban, mute, kick)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> An expiration (fixed only for temporal punishments; technically all have one, but that of permanent punishments is in a couple thousand years)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> successor punishments (value may be null)</li>
+</ul>
+<p>Those properties correspond to their setters and getters in the <code>Punishment</code> interface. You can change the reason (and the 
+duration for temporal punishment through <code>#change(...)</code>) and cancel the punishment through <code>#cancel()</code>. The <code>#punish()</code> method
+gets called when the punishment is issued. This method is called by the user instance when using the <code>#ban(...)</code> or <code>#mute(...)</code>
+methods and should not be called manually, only if you have newly created your own punishment instance.</p>
+<p>Moreover, temporal punishments offer </p>
+<h3 id="punishment-logs">Punishment logs</h3>
+<p>Punishment logs are a way to track all punishments that were issued to a user and changes that were made to the punishment.
+This includes the reason, the duration, the type, succession changes and the user that issued the punishment. The punishment logs are immutable
+and cannot be modified. You can access the punishment logs through the <code>Punishment#loadPunishmentLog()</code> method which returns
+an instance of <a href="https://docs.jvstvshd.de/necrify/javadoc/latest/de/jvstvshd/necrify/api/punishment/log/PunishmentLog.html"><code>PunishmentLog</code></a>.
+Using its methods, you can retrieve log entries through various ways (depending on type/action, index or latest entry) and also
+create new ones.</p>
+<div class="admonition danger">
+<p class="admonition-title">issuing own punishment log entries</p>
+<p>Entries of this system are issued automatically when a punishment is created, changed or cancelled. Issuing own entries
+can create inconsistencies in the system and confuse users. It is recommended to only use this system for reading purposes.
+Only create new entries when you are sure that the system is not able to do it itself.</p>
+</div>
+<h3 id="punishment-durations">Punishment durations</h3>
+<p>A punishment duration stores the expiration of punishments. There are the following three types:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:3"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Relative duration</label><label for="__tabbed_2_2">Fixed/absolute duration</label><label for="__tabbed_2_3">Permanent duration</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>This type of duration is relative to the current time. It is used to determine when the punishment should expire by adding
+the duration to the current time. This is useful for temporary punishments and also used in the commands. All relative
+durations become absolute durations when the action they are used for gets executed/stored.</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="language-java highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1"></a><a href="#__codelineno-9-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">PunishmentDuration</span><span class="w"> </span><span class="n">duration</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PunishmentDuration</span><span class="p">.</span><span class="na">parse</span><span class="p">(</span><span class="s">&quot;1d&quot;</span><span class="p">);</span><span class="w"> </span><span class="c1">// (1)</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2"></a><a href="#__codelineno-9-2"><span class="linenos" data-linenos="2 "></span></a><span class="n">PunishmentDuration</span><span class="w"> </span><span class="n">relativeDuration</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PunishmentDuration</span><span class="p">.</span><span class="na">fromMillis</span><span class="p">(</span><span class="mi">1000</span><span class="p">);</span><span class="w"> </span><span class="c1">// (2)</span>
+</span></code></pre></div>
+<ol>
+<li>This will create a new punishment duration that lasts for one day using the typical duration format also used for user input.</li>
+<li>This creates a new punishment duration that lasts for one second. Similar method exists for java.time.Duration.</li>
+</ol>
+</div>
+</div>
+<div class="tabbed-block">
+<p>Absolute durations only contain a fixed expiration date. All durations become absolute when stored. All durations read
+from database contexts are absolute.</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="language-java highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1"></a><a href="#__codelineno-10-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">PunishmentDuration</span><span class="w"> </span><span class="n">duration</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PunishmentDuration</span><span class="p">.</span><span class="na">from</span><span class="p">(</span><span class="n">LocalDateTime</span><span class="p">.</span><span class="na">now</span><span class="p">().</span><span class="na">plusDays</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span><span class="w"> </span><span class="c1">// (1)</span>
+</span></code></pre></div>
+<ol>
+<li>This will create a new punishment duration that lasts until today plus one day. There exists a similar method for java.sql.Timestamp <code>#fromTimestamp</code>.</li>
+</ol>
+</div>
+</div>
+<div class="tabbed-block">
+<p>Permanent durations are used for punishments that do not expire. Internally, their expiration date is set to December 31, 9999
+and therefore is also a fixed duration. This is used for punishments that should last indefinitely.</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="language-java highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1"></a><a href="#__codelineno-11-1"><span class="linenos" data-linenos="1 "></span></a><span class="n">PunishmentDuration</span><span class="w"> </span><span class="n">duration</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PunishmentDuration</span><span class="p">.</span><span class="na">PERMANENT</span><span class="p">;</span><span class="w"> </span><span class="c1">// (1)</span>
+</span></code></pre></div>
+<ol>
+<li>This will create a new punishment duration that lasts indefinitely.</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<p>You can easily convert between relative and absolute durations by calling <code>PunishmentDuration#absolute()</code> or <code>PunishmentDuration#relative()</code>.
+You can also check if a duration is permanent by calling <code>PunishmentDuration#isPermanent()</code>. The string representation used
+in user input can also be generated by calling <code>PunishmentDuration#remainingDuration()</code>. </p>
+<p>Use <code>PunishmentDuration#ofPunishment(Punishment)</code> to get the duration of a punishment. This will return the duration of the punishment
+if it is a temporal punishment and <code>PunishmentDuration.PERMANENT</code> otherwise.</p>
+<h2 id="events-api">Events API</h2>
+<p>Necrify offers an event system that allows you to listen to events that are fired by the plugin. The events are fired, for example,
+when a punishment is issued, changed, or cancelled. You can listen to these events through the <a href="https://docs.jvstvshd.de/necrify/javadoc/latest/de/jvstvshd/necrify/api/event/EventDispatcher.html"><code>EventDispatcher</code></a>.
+The event dispatcher is accessible through the <code>Necrify</code> instance. You can register event listeners by calling <code>EventDispatcher#register(Object)</code>:</p>
+<div class="admonition example">
+<p class="admonition-title">Registering an event listener</p>
+<div class="language-java highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1"></a><a href="#__codelineno-12-1"><span class="linenos" data-linenos=" 1 "></span></a><span class="n">EventDispatcher</span><span class="w"> </span><span class="n">eventDispatcher</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">necrify</span><span class="p">.</span><span class="na">getEventDispatcher</span><span class="p">();</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2"></a><a href="#__codelineno-12-2"><span class="linenos" data-linenos=" 2 "></span></a><span class="n">eventDispatcher</span><span class="p">.</span><span class="na">register</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">YourEventListener</span><span class="p">());</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3"></a><a href="#__codelineno-12-3"><span class="linenos" data-linenos=" 3 "></span></a>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4"></a><a href="#__codelineno-12-4"><span class="linenos" data-linenos=" 4 "></span></a><span class="n">eventDispatcher</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5"></a><a href="#__codelineno-12-5"><span class="linenos" data-linenos=" 5 "></span></a>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6"></a><a href="#__codelineno-12-6"><span class="linenos" data-linenos=" 6 "></span></a><span class="kd">class</span> <span class="nc">YourEventListener</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7"></a><a href="#__codelineno-12-7"><span class="linenos" data-linenos=" 7 "></span></a><span class="w">    </span><span class="nd">@Subscribe</span><span class="w"> </span><span class="c1">// (1)</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8"></a><a href="#__codelineno-12-8"><span class="linenos" data-linenos=" 8 "></span></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onPunishmentIssued</span><span class="p">(</span><span class="n">PunishmentPersecutedEvent</span><span class="w"> </span><span class="n">event</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9"></a><a href="#__codelineno-12-9"><span class="linenos" data-linenos=" 9 "></span></a><span class="w">        </span><span class="c1">//Your code here</span>
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10"></a><a href="#__codelineno-12-10"><span class="linenos" data-linenos="10 "></span></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11"></a><a href="#__codelineno-12-11"><span class="linenos" data-linenos="11 "></span></a><span class="p">}</span>
+</span></code></pre></div>
+<ol>
+<li>This annotation is used to mark a method as an event listener. The method must have exactly one parameter which is the event that is fired.
+    Note: You have to use the annotation from org.greenrobot.eventbus.Subscribe and not from any other package.</li>
+</ol>
+</div>
+<p>Event listening also works hierarchically regarding event class inheritance. This means that if you register an event listener for a superclass, it will also listen
+to events of subclasses. This is useful if you want to listen to all punishment events, for example. In this case, you can use
+the <code>PunishmentEvent</code> class as the parameter type for the event listener method. Look at the <a href="https://docs.jvstvshd.de/necrify/javadoc/latest/de/jvstvshd/necrify/api/event/package-summary.html">Javadocs to gain an overview</a></p>
+<p>You can unregister your listener by calling <code>EventDispatcher#unregister(Object)</code> and cancel event propagation by calling <code>EventDisptacher#cancel(NecrifyEvent)</code>. </p>
+<h2 id="extending-the-api">Extending the API</h2>
+<div class="admonition warning">
+<p class="admonition-title">This introductory part is not implemented completely yet. It will be in 1.2.3.</p>
+</div>
+<p>You can easily extend this API. First, you are able to exchange the implementations of the UserManager and, consequently, the User
+interface and message providers through the corresponding setters in the <code>Necrify</code> interface. This is useful if you want 
+to store additional data for the user or if you want to use a different storage system. Please note that this is only possible
+after <code>NecrifyPreInitializationEvent</code> has fired and before <code>NecrifyInitializedEvent</code> has fired.</p>
+<div class="admonition tip">
+<p class="admonition-title">Regarding availability</p>
+<p>On Velocity, the initialisation of the plugin is done at the last possible point. Therefore, you can acquire the Necrify
+API instance directly in the initialization phase and directly register a listener for the PreInitializationEvent.</p>
+</div>
+<h3 id="punishment-log-types">Punishment (log) types</h3>
+<p>A punishment's type is identified by an integer value. The following types are available per default (<code>StandardPunishmentType</code>):
+- 1: temporary ban
+- 2: permanent ban
+- 3: temporary mute
+- 4: permanent mute
+- 5: kick</p>
+<p>If you want to create new punishment types, you can use the <code>PunishmentTypeRegistry</code> class where you have to register your type
+with a unique integer value. This integer value must be unique and not already used by another type. You also have to provide
+a <code>PunishmentFactory</code> instance that is able to instantiate your punishment type. This factory is used to create new instances
+of punishments from a data map (<code>Map&lt;String, Object&gt;</code>). Per default, if you have not overwritten other core parts of Necrify,
+this contains the <code>duration</code> (<code>PunishmentDuration</code>), the <code>reason</code> (<code>String</code>), the user (<code>NecrifyUser</code>), the creation date/
+<code>issued_at</code> (<code>LocalDateTime</code>), the <code>punishmentUuid</code> (<code>UUID</code>) and the <code>successor</code> (<code>UUID</code>) if available. Inconsistencies in
+this naming might get fixed in future versions, but with backwards compatibility in mind.</p>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 18, 2025</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Created">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 18, 2025</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 JvstvsHD – <a href="#__consent">Change cookie settings</a>
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+      <div class="md-consent" data-md-component="consent" id="__consent" hidden>
+        <div class="md-consent__overlay"></div>
+        <aside class="md-consent__inner">
+          <form class="md-consent__form md-grid md-typeset" name="consent">
+            
+
+
+  
+    
+  
+
+
+
+
+<h4>Cookie consent</h4>
+<p>We use cookies to recognize your repeated visits and preferences, as well as to measure the effectiveness of our documentation and whether users find what they're searching for. With your consent, you're helping us to make our documentation better.</p>
+<input class="md-toggle" type="checkbox" id="__settings" >
+<div class="md-consent__settings">
+  <ul class="task-list">
+    
+      
+      
+        
+        
+      
+      <li class="task-list-item">
+        <label class="task-list-control">
+          <input type="checkbox" name="github" checked>
+          <span class="task-list-indicator"></span>
+          GitHub
+        </label>
+      </li>
+    
+  </ul>
+</div>
+<div class="md-consent__controls">
+  
+    
+      <button class="md-button md-button--primary">Accept</button>
+    
+    
+    
+  
+    
+    
+    
+      <label class="md-button" for="__settings">Manage settings</label>
+    
+  
+    
+    
+      <button type="reset" class="md-button md-button--primary">Reject</button>
+    
+    
+  
+</div>
+          </form>
+        </aside>
+      </div>
+      <script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script>
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.instant.progress", "navigation.tracking", "navigation.top", "toc.integrate", "content.code.copy", "content.code.annotate", "content.code.select", "content.tabs.link", "search.suggest", "search.highlight", "search.share"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f1b6f286.min.js"></script>
+      
+    
+  <script id="init-glightbox">document.querySelectorAll('.glightbox').forEach(function(element) {
+    try {
+        var img = element.querySelector('img');
+        if (img && img.src) {
+            element.setAttribute('href', img.src);
+        } else {
+            console.log('No img element with src attribute found');
+        }
+    } catch (error) {
+        console.log('Error:', error);
+    }
+});
+const lightbox = GLightbox({"touchNavigation": true, "loop": true, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(() => { lightbox.reload() });
+</script></body>
+</html>
