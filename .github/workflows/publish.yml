@@ -2,8 +2,8 @@ name: Publish project and JavaDocs
 on:
   push:
     branches:
-     - "**"
-     - "!renovate**"
+      - '**'
+      - '!renovate**'
 jobs:
   publish:
     if: ${{ github.actor != 'renovate[bot]' }}
