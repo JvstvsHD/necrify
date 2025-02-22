@@ -85,8 +85,8 @@ nav:
     - Storage: storage.md
     - Current plans: future.md
     - Javadocs:
-        - Latest Javadoc↗: https://docs.jvstvshd.de/necrify/javadoc/latest/
-        - All Javadocs↗: https://docs.jvstvshd.de/necrify/javadoc/
+        - Latest Javadoc↗: https://jd.jvstvshd.de/necrify/latest/
+        - All Javadocs↗: https://jd.jvstvshd.de/necrify/
     - Latest release ↗: https://hangar.papermc.io/JvstvsHD/Necrify/versions/
 
 plugins:

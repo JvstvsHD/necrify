@@ -18,15 +18,8 @@ jobs:
          distribution: 'temurin'
      - name: Validate Gradle wrapper
        uses: gradle/wrapper-validation-action@f9c9c575b8b21b6485636a91ffecd10e558c62f6
-     - name: Generate javadocs
-       run: ./gradlew alljavadoc --stacktrace
      - name: Build
        run: ./gradlew build --stacktrace
-     - name: Deploy 🚀
-       uses: JamesIves/github-pages-deploy-action@v4
-       with:
-         folder: build/docs/javadoc
-         target-folder: javadoc
      - name: Publish
        if: ${{ github.event_name == 'push' && !startsWith(github.ref, 'renovate/**') }}
        run: ./gradlew publish --stacktrace
