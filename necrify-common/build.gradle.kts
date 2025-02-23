@@ -22,6 +22,7 @@ sourceSets {
 
 dependencies {
     api(projects.necrifyApi)
+    api(libs.caffeine)
     api(libs.bundles.jackson)
     runtimeDownload(libs.bundles.database.drivers) {
         exclude(group = "org.slf4j")
