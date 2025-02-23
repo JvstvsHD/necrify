@@ -138,15 +138,21 @@ hangarPublish {
 tasks {
     register<Javadoc>("alljavadoc") {
         title = "Necrify " + buildVersion()
-        (options as StandardJavadocDocletOptions).tags(
+        val sjd = options as StandardJavadocDocletOptions
+        sjd.tags(
             "apiNote:a:API Note",
             "implSpec:a:Implementation Requirements",
             "implNote:a:Implementation Note"
         )
+        sjd.bottom("© 2025 JvstvsHD | <a href=\"https://docs.jvstvshd.de/necrify/\">Tutorials & further documenation</a> | <a href=\"https://github.com/JvstvsHD/necrify\">Github</a> | <a href=\"https://jd.jvstvshd.de/necrify/\">Return to version list</a>")
+        //"""e
+        //            <a href=\"https://jd.jvstvshd.de/necrify/\">Return to version list</a>
+        //            """.trimMargin()
         val projects = rootProject.allprojects
         setSource(projects.map { project -> project.sourceSets.main.get().allJava })
         classpath = files(projects.map { project -> project.sourceSets.main.get().compileClasspath })
-        val destinationDirectory = file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/${rootProject.version}")
+        val destinationDirectory =
+            file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/${rootProject.version}")
         setDestinationDir(destinationDirectory)
         doLast {
             /*try {
