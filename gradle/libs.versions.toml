@@ -21,6 +21,7 @@ eventbus = "3.3.1"
 jetbrains-annotations = "26.0.2"
 slf4j = "2.0.16"
 minecraftdependencydownload = "1.0.0"
+caffeine = "3.2.0"
 
 [libraries]
 
@@ -64,6 +65,7 @@ junit-jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engi
 jetbrains-annotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrains-annotations" }
 eventbus = { group = "org.greenrobot", name = "eventbus-java", version.ref = "eventbus" }
 minecraftdependencydownload-velocity = { group = "dev.vankka", name = "minecraftdependencydownload-velocity", version.ref = "minecraftdependencydownload" }
+caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version.ref = "caffeine" }
 
 [bundles]
 
