@@ -18,6 +18,7 @@
 
 package de.jvstvshd.necrify.api.user;
 
+import de.jvstvshd.necrify.api.Necrify;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -118,4 +119,26 @@ public interface UserManager {
      * @return a collection of all loaded users
      */
     @NotNull Collection<? extends NecrifyUser> getLoadedUsers();
+
+    /**
+     * Tries to retrieve a user instance from the underlying cache using the given punishment id as search criteria.
+     * <p>Note: inactive punishments are not checked!</p>
+     *
+     * @param uuid the punishment id to use as search criteria
+     * @return a future either being completed with an Optional containing the user or an empty Optional if not found
+     * @see Necrify#getPunishment(UUID)
+     * @since 1.2.3
+     */
+    CompletableFuture<Optional<NecrifyUser>> getUserByPunishmentId(@NotNull UUID uuid);
+
+    /**
+     * Loads a user from the underlying storage using the given punishment id as search criteria.
+     * <p>Note: inactive punishments are not checked!</p>
+     *
+     * @param uuid the punishment id to use as search criteria
+     * @return a future either being completed with an Optional containing the user or an empty Optional if no user is associated with this punishment id
+     * @since 1.2.3
+     * @see Necrify#getPunishment(UUID)
+     */
+    CompletableFuture<Optional<NecrifyUser>> loadUserByPunishmentId(@NotNull UUID uuid);
 }

@@ -19,9 +19,9 @@
 package de.jvstvshd.necrify.common.user;
 
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
-import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.*;
 import de.jvstvshd.necrify.api.user.UserDeletionReason;
+import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.util.Util;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -39,14 +39,14 @@ public abstract class AbstractSystemUser extends AbstractNecrifyUser {
     private final Locale locale;
     private final Audience delegateAudience;
 
-    public AbstractSystemUser(Locale locale, MessageProvider provider, Audience delegateAudience) {
-        super(provider);
+    public AbstractSystemUser(Locale locale, AbstractNecrifyPlugin plugin, Audience delegateAudience) {
+        super(Util.NULL_UUID, "CONSOLE", plugin, true);
         this.locale = locale;
         this.delegateAudience = delegateAudience;
     }
 
-    public AbstractSystemUser(MessageProvider provider, Audience delegateAudience) {
-        super(provider);
+    public AbstractSystemUser(AbstractNecrifyPlugin plugin, Audience delegateAudience) {
+        super(Util.NULL_UUID, "CONSOLE", plugin, true);
         this.delegateAudience = delegateAudience;
         this.locale = Locale.getDefault();
     }

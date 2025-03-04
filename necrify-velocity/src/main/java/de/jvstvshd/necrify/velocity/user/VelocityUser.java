@@ -18,157 +18,42 @@
 
 package de.jvstvshd.necrify.velocity.user;
 
-import com.google.common.collect.ImmutableList;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
-import de.chojo.sadu.queries.api.call.Call;
-import de.chojo.sadu.queries.api.query.Query;
-import de.jvstvshd.necrify.api.duration.PunishmentDuration;
-import de.jvstvshd.necrify.api.event.user.UserDeletedEvent;
-import de.jvstvshd.necrify.api.message.MessageProvider;
-import de.jvstvshd.necrify.api.punishment.*;
-import de.jvstvshd.necrify.api.user.UserDeletionReason;
-import de.jvstvshd.necrify.common.io.Adapters;
-import de.jvstvshd.necrify.common.punishment.PunishmentBuilder;
 import de.jvstvshd.necrify.common.user.AbstractNecrifyUser;
-import de.jvstvshd.necrify.common.user.MojangAPI;
-import de.jvstvshd.necrify.common.util.Util;
 import de.jvstvshd.necrify.velocity.NecrifyVelocityPlugin;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.sql.DataSource;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 public class VelocityUser extends AbstractNecrifyUser {
 
     private final UUID uuid;
-    private final List<Punishment> punishments;
-    private final DataSource dataSource;
-    private final ExecutorService executor;
-    private final MessageProvider messageProvider;
     private final ProxyServer server;
     private final NecrifyVelocityPlugin plugin;
-    private boolean whitelisted;
-    private String name;
     private Player player;
 
     public VelocityUser(@NotNull UUID uuid, @Nullable String name, boolean whitelisted, @Nullable Player player, NecrifyVelocityPlugin plugin) {
-        super(plugin.getMessageProvider());
-        this.whitelisted = whitelisted;
+        super(uuid, name, plugin, whitelisted);
         this.plugin = plugin;
-        this.punishments = new ArrayList<>();
         this.player = player;
-        this.name = name;
         this.uuid = uuid;
-        this.dataSource = plugin.getDataSource();
-        this.executor = plugin.getExecutor();
-        this.messageProvider = plugin.getMessageProvider();
         this.server = plugin.getServer();
     }
 
     public VelocityUser(@NotNull UUID uuid, @Nullable String name, boolean whitelisted, NecrifyVelocityPlugin plugin) {
-        super(plugin.getMessageProvider());
-        this.whitelisted = whitelisted;
+        super(uuid, name, plugin, whitelisted);
         this.plugin = plugin;
-        this.punishments = new ArrayList<>();
         this.server = plugin.getServer();
         this.player = server.getPlayer(uuid).orElse(null);
-        this.name = name;
         this.uuid = uuid;
-        this.dataSource = plugin.getDataSource();
-        this.executor = plugin.getExecutor();
-        this.messageProvider = plugin.getMessageProvider();
 
-    }
-
-    @Override
-    public @NotNull UUID getUuid() {
-        return uuid;
-    }
-
-    @Override
-    public @Nullable String getUsername() {
-        return name;
-    }
-
-    @Override
-    public @NotNull CompletableFuture<Ban> ban(@Nullable Component reason, @NotNull PunishmentDuration duration) {
-        return punish(PunishmentBuilder.newBuilder(plugin)
-                .withDuration(duration)
-                .withReason(reason)
-                .withUser(this)
-                .buildBan());
-    }
-
-    @Override
-    public @NotNull CompletableFuture<Ban> banPermanent(@Nullable Component reason) {
-        return ban(reason, PunishmentDuration.PERMANENT);
-    }
-
-    @Override
-    public @NotNull CompletableFuture<Mute> mute(@Nullable Component reason, @NotNull PunishmentDuration duration) {
-        return punish(PunishmentBuilder.newBuilder(plugin)
-                .withDuration(duration)
-                .withReason(reason)
-                .withUser(this)
-                .buildMute());
-    }
-
-    @Override
-    public @NotNull CompletableFuture<Mute> mutePermanent(@Nullable Component reason) {
-        return mute(reason, PunishmentDuration.PERMANENT);
-    }
-
-    @Override
-    public @NotNull CompletableFuture<Kick> kick(@Nullable Component reason) {
-        var kick = PunishmentBuilder.newBuilder(plugin)
-                .withReason(reason)
-                .withUser(this)
-                .buildKick();
-        kick.punish();
-        return CompletableFuture.completedFuture(kick);
-    }
-
-    //We're just returning the same instance that was passed in via 'punishment', so we can safely cast it to T.
-    @SuppressWarnings("unchecked")
-    private <T extends Punishment> CompletableFuture<T> punish(T punishment) {
-        punishments.add(punishment);
-        return (CompletableFuture<T>) punishment.punish();
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public @NotNull <T extends Punishment> List<T> getPunishments(PunishmentType... types) {
-        validatePunishments();
-        if (types == null || types.length == 0)
-            return (List<T>) ImmutableList.copyOf(punishments);
-        return (List<T>) ImmutableList.copyOf(punishments.stream().filter(punishment -> {
-            for (PunishmentType type : types) {
-                if (punishment.getType().equals(type))
-                    return true;
-            }
-            return false;
-        }).toList());
-    }
-
-    private synchronized void validatePunishments() {
-        punishments.removeIf(punishment -> !punishment.isOngoing());
-    }
-
-    @Override
-    public @NotNull CompletableFuture<String> queryUsername(boolean update) {
-        return MojangAPI.getPlayerNameAsync(uuid, executor).thenApplyAsync(s -> {
-            if (update)
-                name = s.orElse(null);
-            return s.orElse(null);
-        });
     }
 
     public Optional<Player> queryPlayer() {
@@ -185,39 +70,8 @@ public class VelocityUser extends AbstractNecrifyUser {
         return player;
     }
 
-    @Override
-    public boolean isWhitelisted() {
-        return whitelisted;
-    }
-
-    @Override
-    public CompletableFuture<Boolean> setWhitelisted(boolean whitelisted) {
-        if (whitelisted == this.whitelisted)
-            CompletableFuture.completedFuture(false);
-        return de.jvstvshd.necrify.common.util.Util.executeAsync(() -> {
-            Query.query("UPDATE necrify_user SET whitelisted = ? WHERE uuid = ?;")
-                    .single(Call.of().bind(whitelisted).bind(uuid, Adapters.UUID_ADAPTER))
-                    .update();
-            this.whitelisted = whitelisted;
-            if (!whitelisted && plugin.isWhitelistActive()) {
-                kick(messageProvider.provide("whitelist.removed").color(NamedTextColor.RED));
-            }
-            return true;
-        }, executor);
-    }
-
     public void setPlayer(Player player) {
         this.player = player;
-    }
-
-    public void addPunishment(Punishment punishment) {
-        if (punishments.contains(punishment))
-            return;
-        punishments.add(punishment);
-    }
-
-    public void removePunishment(Punishment punishment) {
-        punishments.remove(punishment);
     }
 
     @Override
@@ -231,31 +85,6 @@ public class VelocityUser extends AbstractNecrifyUser {
     @Override
     public int hashCode() {
         return uuid.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return "VelocityUser{" +
-                "uuid=" + uuid +
-                ", punishments=" + punishments +
-                ", dataSource=" + dataSource +
-                ", service=" + executor +
-                ", messageProvider=" + messageProvider +
-                ", server=" + server +
-                ", plugin=" + plugin +
-                ", whitelisted=" + whitelisted +
-                ", name='" + name + '\'' +
-                ", player=" + player +
-                '}';
-    }
-
-    @Override
-    public CompletableFuture<Integer> delete(@NotNull UserDeletionReason reason) {
-        plugin.getEventDispatcher().dispatch(new UserDeletedEvent(this, reason));
-        return Util.executeAsync(() -> Query
-                .query("DELETE FROM necrify_user WHERE uuid = ?;")
-                .single(Call.of().bind(uuid, Adapters.UUID_ADAPTER))
-                .delete().rows() + punishments.size(), executor);
     }
 
     @Override

@@ -19,7 +19,7 @@
 package de.jvstvshd.necrify.velocity.user;
 
 import com.velocitypowered.api.proxy.ConsoleCommandSource;
-import de.jvstvshd.necrify.api.message.MessageProvider;
+import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.user.AbstractSystemUser;
 
 import java.util.Locale;
@@ -28,13 +28,13 @@ public class VelocitySystemUser extends AbstractSystemUser {
 
     private final ConsoleCommandSource console;
 
-    public VelocitySystemUser(Locale locale, MessageProvider provider, ConsoleCommandSource console) {
-        super(locale, provider, console);
+    public VelocitySystemUser(Locale locale, AbstractNecrifyPlugin plugin, ConsoleCommandSource console) {
+        super(locale, plugin, console);
         this.console = console;
     }
 
-    public VelocitySystemUser(MessageProvider provider, ConsoleCommandSource console) {
-        super(provider, console);
+    public VelocitySystemUser(AbstractNecrifyPlugin plugin, ConsoleCommandSource console) {
+        super(plugin, console);
         this.console = console;
     }
 }

@@ -190,7 +190,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
             return;
         }
         this.messageProvider = new ResourceBundleMessageProvider(configurationManager.getConfiguration().getDefaultLanguage());
-        this.systemUser = new VelocitySystemUser(messageProvider, server.getConsoleCommandSource());
+        this.systemUser = new VelocitySystemUser(this, server.getConsoleCommandSource());
         dataSource = createDataSource();
         QueryConfiguration.setDefault(QueryConfiguration.builder(dataSource).setThrowExceptions(true).build());
         punishmentManager = new DefaultPunishmentManager(server, dataSource, this);
