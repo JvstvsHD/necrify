@@ -41,11 +41,13 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
+import org.incendo.cloud.type.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
@@ -54,6 +56,7 @@ public abstract class AbstractNecrifyUser implements NecrifyUser {
     private final MessageProvider messageProvider;
     private final AbstractNecrifyPlugin plugin;
     private final List<Punishment> punishments;
+    private final Map<NecrifyTemplate, NecrifyTemplateStage> templateStages = new ConcurrentHashMap<>();
     private String username;
     private final UUID uuid;
     private final ExecutorService executor;
@@ -150,17 +153,25 @@ public abstract class AbstractNecrifyUser implements NecrifyUser {
 
     @Override
     public @NotNull Optional<NecrifyTemplateStage> getCurrentTemplateStage(@NotNull NecrifyTemplate template) {
-        return Optional.empty();
+        return Optional.ofNullable(templateStages.get(template));
     }
 
     @Override
     public @NotNull NecrifyTemplateStage getNextTemplateStage(@NotNull NecrifyTemplate template) {
-        return null;
+        try {
+            return templateStages.get(template).nextOrThis();
+        } catch (NoSuchElementException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Override
     public @NotNull CompletableFuture<Punishment> punishModelled(@NotNull NecrifyTemplate template) {
-        return null;
+        var nextStage = getNextTemplateStage(template);
+        Map<String, Object> data = Map.of("user", this, "duration", nextStage.duration(), "punishmentUuid", UUID.randomUUID(),
+                "reason", nextStage.reason());
+        var punishment = PunishmentTypeRegistry.createPunishment(nextStage.punishmentType(), data);
+        return punishment.punish();
     }
 
     @Override
@@ -216,6 +227,37 @@ public abstract class AbstractNecrifyUser implements NecrifyUser {
 
     public MessageProvider getProvider() {
         return messageProvider;
+    }
+
+    /**
+     * Loads all template stages of this user from the storage. This method will be executed asynchronously and will not
+     * block the calling thread unless using {@link CompletableFuture#join()} or similar.
+     */
+    public CompletableFuture<Void> loadTemplateStages() {
+        return Util.executeAsync(() -> {
+            Query.query("SELECT template.name, stage.index FROM necrify_punishment_template_stage stage, " +
+                            "necrify_punishment_template template, necrify_punishment_template_user_stage users WHERE " +
+                            "users.user_id = ? AND template.id = users.template_id AND stage.id = template.stage_id")
+                    .single(Call.of().bind(uuid, Adapters.UUID_ADAPTER))
+                    .map(row -> {
+                        var template = plugin.getTemplateManager().getTemplate(row.getString(1));
+                        if (template.isEmpty()) {
+                            plugin.getLogger().warn("Template {} not found for user {}", row.getString(1), uuid);
+                            return null;
+                        }
+                        try {
+                            var stage = template.get().getStage(row.getInt(2));
+                            return Pair.of(template.get(), stage);
+                        } catch (NoSuchElementException | IndexOutOfBoundsException e) {
+                            plugin.getLogger().warn("Template stage {} not found in template {} for user {}", row.getInt(2), template.get().name(), uuid);
+                            return null;
+                        }
+                    }).all().forEach(pair -> {
+                        if (pair == null) return;
+                        templateStages.put(pair.first(), pair.second());
+                    });
+            return null;
+        }, executor);
     }
 
     //--- implementations of Audience

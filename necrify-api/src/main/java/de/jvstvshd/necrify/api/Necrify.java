@@ -23,6 +23,7 @@ import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.PunishmentManager;
 import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
+import de.jvstvshd.necrify.api.template.TemplateManager;
 import de.jvstvshd.necrify.api.user.UserManager;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -181,4 +182,22 @@ public interface Necrify {
      * @param eventDispatcher the event dispatcher to set.
      */
     void setEventDispatcher(@NotNull EventDispatcher eventDispatcher);
+
+    /**
+     * Returns the system's template manager. It is used to create, load and manipulate templates and to manage their lifecycle.
+     *
+     * @return the template manager.
+     * @since 1.2.3
+     */
+    @NotNull
+    TemplateManager getTemplateManager();
+
+    /**
+     * Sets the system's template manager.
+     * <p>This may does not effect everything after full system initialization</p>
+     *
+     * @param templateManager the template manager to set.
+     * @since 1.2.3
+     */
+    void setTemplateManager(@NotNull TemplateManager templateManager);
 }

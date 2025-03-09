@@ -129,7 +129,7 @@ public interface UserManager {
      * @see Necrify#getPunishment(UUID)
      * @since 1.2.3
      */
-    CompletableFuture<Optional<NecrifyUser>> getUserByPunishmentId(@NotNull UUID uuid);
+    Optional<NecrifyUser> getUserByPunishmentId(@NotNull UUID uuid);
 
     /**
      * Loads a user from the underlying storage using the given punishment id as search criteria.

@@ -29,7 +29,7 @@ import java.util.concurrent.CompletableFuture;
  * A stage of a {@link NecrifyTemplate template} that can be used to punish a user gradually. One stage consists of
  * the punishment type, the punishment duration and the punishment reason.
  */
-public interface NecrifyTemplateStage {
+public interface NecrifyTemplateStage extends Comparable<NecrifyTemplateStage> {
 
     /**
      * Returns the punishment duration of this stage that would apply if this stage was used to punish someone.
@@ -53,6 +53,12 @@ public interface NecrifyTemplateStage {
     NecrifyTemplate template();
 
     /**
+     * The index of this stage in its template. Starting from 0 with the first stage until the last index with the last stage to apply.
+     * @return this stage's index in its template
+     */
+    int index();
+
+    /**
      * Changes the punishment duration of this stage.
      * @param duration the new punishment duration
      * @return a {@link CompletableFuture} finishing either successfully or with an error but with no result value
@@ -73,4 +79,19 @@ public interface NecrifyTemplateStage {
      */
     @NotNull
     PunishmentType punishmentType();
+
+    /**
+     * If there is another stage with a higher index, returns it, otherwise throws {@link java.util.NoSuchElementException}
+     * @return the stage with the next higher index
+     * @throws java.util.NoSuchElementException if there is no next stage
+     */
+    @NotNull
+    NecrifyTemplateStage next();
+
+    /**
+     * If there is another stage with a higher index, returns it, otherwise returns this stage.
+     * @return the stage with the next higher index or this stage if there is no next stage
+     */
+    @NotNull
+    NecrifyTemplateStage nextOrThis();
 }

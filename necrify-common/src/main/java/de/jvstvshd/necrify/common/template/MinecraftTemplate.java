@@ -18,14 +18,30 @@
 
 package de.jvstvshd.necrify.common.template;
 
+import de.chojo.sadu.queries.api.call.Call;
+import de.chojo.sadu.queries.api.query.Query;
 import de.jvstvshd.necrify.api.template.NecrifyTemplate;
 import de.jvstvshd.necrify.api.template.NecrifyTemplateStage;
+import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
+import de.jvstvshd.necrify.common.util.Util;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-public record MinecraftTemplate(String name, Collection<NecrifyTemplateStage> stages) implements NecrifyTemplate {
+public class MinecraftTemplate implements NecrifyTemplate {
+
+    private final Set<NecrifyTemplateStage> stages = Collections.synchronizedSet(new TreeSet<>());
+    private final String name;
+    private final AbstractNecrifyPlugin plugin;
+    private final MiniMessage miniMessage;
+
+    public MinecraftTemplate(String name, AbstractNecrifyPlugin plugin, MiniMessage miniMessage) {
+        this.name = name;
+        this.plugin = plugin;
+        this.miniMessage = miniMessage;
+    }
 
     @Override
     public @NotNull String name() {
@@ -44,11 +60,24 @@ public record MinecraftTemplate(String name, Collection<NecrifyTemplateStage> st
 
     @Override
     public @NotNull CompletableFuture<Void> addStage(NecrifyTemplateStage stage) {
-        return null;
+        return Util.executeAsync(() -> {
+            Query.query("INSERT INTO necrify_punishment_template_stage (template_id, index, duration, type, reason) " +
+                            "VALUES ((SELECT id FROM necrify_punishment_template WHERE name = ?), ?, ?, ?, ?)")
+                    .single(Call.of().bind(name).bind(stage.index()).bind(stage.punishmentType().getId())
+                            .bind(stage.duration().javaDuration().toMillis()).bind(miniMessage.serialize(stage.reason())))
+                    .insert().rows();
+            return null;
+        }, plugin.getExecutor());
+    }
+
+    public void addStage(MinecraftTemplateStage stage) {
+        stages.add(stage);
     }
 
     @Override
     public CompletableFuture<Integer> delete() {
-        return null;
+        return Util.executeAsync(() -> Query.query("DELETE FROM necrify_punishment_template WHERE name = ?")
+                .single(Call.of().bind(name))
+                .delete().rows(), plugin.getExecutor());
     }
 }

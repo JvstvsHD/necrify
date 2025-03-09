@@ -145,13 +145,32 @@ public abstract class AbstractUserManager<T extends NecrifyUser> implements User
     }
 
     @Override
-    public CompletableFuture<Optional<NecrifyUser>> getUserByPunishmentId(@NotNull UUID uuid) {
-        return null;
+    public Optional<NecrifyUser> getUserByPunishmentId(@NotNull UUID uuid) {
+        return userCache.asMap().values().stream()
+                .flatMap(t -> t.getPunishments().stream())
+                .filter(punishment -> punishment.getUuid() == uuid).findFirst().map(Punishment::getUser);
     }
 
     @Override
     public CompletableFuture<Optional<NecrifyUser>> loadUserByPunishmentId(@NotNull UUID uuid) {
-        return null;
+        var optional = getUserByPunishmentId(uuid);
+        if (optional.isPresent()) {
+            return CompletableFuture.completedFuture(optional);
+        }
+        return executeAsync(() -> {
+            var user= Query.query("SELECT necrify_user.* FROM necrify_user, necrify_punishment WHERE necrify_punishment.punishment_id = ? AND necrify_punishment.uuid = necrify_user.uuid")
+                    .single(Call.of().bind(uuid, Adapters.UUID_ADAPTER))
+                    .map(row -> constructUser(uuid, row.getString(1), row.getBoolean(2), plugin))
+                    .first();
+            user.ifPresent(velocityUser -> {
+                var loader = new UserLoader(velocityUser);
+                Query.query(SELECT_USER_PUNISHMENTS_QUERY)
+                        .single(Call.of().bind(uuid, Adapters.UUID_ADAPTER))
+                        .map(loader::addDataFromRow).all();
+                loadPunishmentsToUser(loader);
+            });
+            return user.map(this::cache);
+        }, executor);
     }
 
     @Override

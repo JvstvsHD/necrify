@@ -38,7 +38,7 @@ public interface TemplateManager {
      * @return a {@link CompletableFuture} containing all loaded templates or an error
      */
     @NotNull
-    CompletableFuture<Collection<NecrifyTemplate>> loadTemplates();
+    CompletableFuture<Collection<? extends NecrifyTemplate>> loadTemplates();
 
     /**
      * Tries to retrieve a template with the given name.

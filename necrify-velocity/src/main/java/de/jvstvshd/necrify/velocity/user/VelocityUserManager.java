@@ -50,7 +50,9 @@ public class VelocityUserManager extends AbstractUserManager<VelocityUser> {
     @Override
     public VelocityUser constructUser(UUID uuid, String playerName, boolean whitelisted, AbstractNecrifyPlugin plugin) {
         //TODO remove cast with introduction of proper storage abstraction
-        return new VelocityUser(uuid, playerName, whitelisted, server.getPlayer(uuid).orElse(null), (NecrifyVelocityPlugin) plugin);
+        var user = new VelocityUser(uuid, playerName, whitelisted, server.getPlayer(uuid).orElse(null), (NecrifyVelocityPlugin) plugin);
+        user.loadTemplateStages();
+        return user;
     }
 
     @Override

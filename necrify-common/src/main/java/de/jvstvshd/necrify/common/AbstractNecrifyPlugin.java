@@ -26,12 +26,14 @@ import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.PunishmentType;
 import de.jvstvshd.necrify.api.punishment.PunishmentTypeRegistry;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
+import de.jvstvshd.necrify.api.template.TemplateManager;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.commands.*;
 import de.jvstvshd.necrify.common.config.ConfigurationManager;
 import de.jvstvshd.necrify.common.punishment.NecrifyKick;
 import de.jvstvshd.necrify.common.punishment.NecrifyPunishmentFactory;
 import de.jvstvshd.necrify.common.punishment.log.NecrifyPunishmentLog;
+import de.jvstvshd.necrify.common.template.MinecraftTemplateManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -64,6 +66,7 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
     private final Cache<UUID, Punishment> historicalPunishmentCache =
             Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build();
     private final Logger logger;
+    private TemplateManager templateManager = new MinecraftTemplateManager(this, MiniMessage.miniMessage());
 
     public AbstractNecrifyPlugin(ExecutorService executorService, ConfigurationManager configurationManager, Logger logger) {
         this.executorService = executorService;
@@ -260,6 +263,16 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
      */
     public Cache<UUID, Punishment> getHistoricalPunishmentCache() {
         return historicalPunishmentCache;
+    }
+
+    @Override
+    public @NotNull TemplateManager getTemplateManager() {
+        return templateManager;
+    }
+
+    @Override
+    public void setTemplateManager(@NotNull TemplateManager templateManager) {
+        this.templateManager = templateManager;
     }
 
     public abstract NecrifyKick createKick(Component reason, NecrifyUser user, UUID punishmentUuid);

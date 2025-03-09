@@ -18,30 +18,60 @@
 
 package de.jvstvshd.necrify.common.template;
 
+import de.chojo.sadu.queries.api.call.Call;
+import de.chojo.sadu.queries.api.query.Query;
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.punishment.PunishmentType;
 import de.jvstvshd.necrify.api.template.NecrifyTemplate;
 import de.jvstvshd.necrify.api.template.NecrifyTemplateStage;
+import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
+import de.jvstvshd.necrify.common.util.Util;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
 public record MinecraftTemplateStage(NecrifyTemplate template, PunishmentType punishmentType,
-                                     PunishmentDuration duration, Component reason) implements NecrifyTemplateStage {
+                                     PunishmentDuration duration, Component reason,
+                                     int index, AbstractNecrifyPlugin plugin) implements NecrifyTemplateStage {
 
     @Override
     public @NotNull CompletableFuture<Void> changeDuration(PunishmentDuration duration) {
-        return null;
+        return Util.executeAsync(() -> {
+            Query.query("UPDATE necrify_punishment_template_stage SET duration = ? WHERE template_id = (SELECT id FROM necrify_punishment_template WHERE name = ?) AND index = ?")
+                    .single(Call.of().bind(duration.javaDuration().toMillis()).bind(template.name()).bind(index))
+                    .update();
+            return null;
+        }, plugin.getExecutor());
     }
 
     @Override
     public @NotNull CompletableFuture<Void> delete() {
-        return null;
+        return Util.executeAsync(() -> {
+            Query.query("DELETE FROM necrify_punishment_template_stage WHERE template_id = (SELECT id FROM necrify_punishment_template WHERE name = ?) AND index = ?")
+                    .single(Call.of().bind(template.name()).bind(index))
+                    .delete();
+            return null;
+        }, plugin.getExecutor());
     }
 
     @Override
     public @NotNull PunishmentType punishmentType() {
-        return null;
+        return punishmentType;
+    }
+
+    @Override
+    public int compareTo(@NotNull NecrifyTemplateStage o) {
+        return Integer.compare(index, o.index());
+    }
+
+    @Override
+    public @NotNull NecrifyTemplateStage next() {
+        return template.getStage(index + 1);
+    }
+
+    @Override
+    public @NotNull NecrifyTemplateStage nextOrThis() {
+        return index + 1 < template.stages().size() ? template.getStage(index + 1) : this;
     }
 }

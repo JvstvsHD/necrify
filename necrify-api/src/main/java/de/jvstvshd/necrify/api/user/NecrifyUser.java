@@ -222,8 +222,7 @@ public interface NecrifyUser extends CommandSender {
      * @return the current stage of the template for this user or an empty optional
      * @since 1.2.3
      */
-    @NotNull
-    Optional<NecrifyTemplateStage> getCurrentTemplateStage(@NotNull NecrifyTemplate template);
+    @NotNull Optional<NecrifyTemplateStage> getCurrentTemplateStage(@NotNull NecrifyTemplate template);
 
     /**
      * Gets the next template stage of the given template. If this user has no punishments applied through this template,

@@ -18,35 +18,71 @@
 
 package de.jvstvshd.necrify.common.template;
 
+import de.chojo.sadu.queries.api.call.Call;
+import de.chojo.sadu.queries.api.query.Query;
+import de.jvstvshd.necrify.api.duration.PunishmentDuration;
+import de.jvstvshd.necrify.api.punishment.PunishmentTypeRegistry;
 import de.jvstvshd.necrify.api.template.NecrifyTemplate;
 import de.jvstvshd.necrify.api.template.TemplateManager;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
+import de.jvstvshd.necrify.common.util.Util;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class MinecraftTemplateManager implements TemplateManager {
 
     private final AbstractNecrifyPlugin plugin;
+    private final Set<NecrifyTemplate> templates = Collections.synchronizedSet(new HashSet<>());
+    private final MiniMessage miniMessage;
 
-    public MinecraftTemplateManager(AbstractNecrifyPlugin plugin) {
+    public MinecraftTemplateManager(AbstractNecrifyPlugin plugin, MiniMessage miniMessage) {
         this.plugin = plugin;
+        this.miniMessage = miniMessage;
     }
 
     @Override
-    public @NotNull CompletableFuture<Collection<NecrifyTemplate>> loadTemplates() {
-        return null;
+    public @NotNull CompletableFuture<Collection<? extends NecrifyTemplate>> loadTemplates() {
+        return Util.executeAsync(() -> {
+            Map<String, MinecraftTemplate> loadedTemplates = new HashMap<>();
+            Query.query("SELECT t.name, s.index, s.duration, s.type, s.reason FROM necrify_punishment_template t, necrify_punishment_template_stage s WHERE t.id = s.template_id")
+                    .single(Call.of())
+                    .map(row -> {
+                        var templateName = row.getString(1);
+                        var template = loadedTemplates.computeIfAbsent(templateName, s -> new MinecraftTemplate(templateName, plugin, miniMessage));
+                        var stage = new MinecraftTemplateStage(
+                                template, PunishmentTypeRegistry.getType(row.getInt(4)),
+                                PunishmentDuration.fromMillis(row.getLong(3)),
+                                miniMessage.deserialize(row.getString(5)),
+                                row.getInt(2), plugin);
+                        template.addStage(stage);
+                        return null;
+                    });
+            var values = loadedTemplates.values();
+            templates.addAll(values);
+            return values;
+        }, plugin.getExecutor());
     }
 
     @Override
     public @NotNull Optional<NecrifyTemplate> getTemplate(String name) {
-        return Optional.empty();
+        return templates.stream().filter(t -> t.name().equals(name)).findFirst();
     }
 
     @Override
     public @NotNull CompletableFuture<NecrifyTemplate> createTemplate(String name) {
-        return null;
+        if (templates.stream().anyMatch(t -> t.name().equals(name))) {
+            throw new IllegalArgumentException("Template with name " + name + " already exists");
+        }
+        return Util.executeAsync(() -> {
+            Query.query("INSERT INTO necrify_punishment_template (name) VALUES (?)")
+                    .single(Call.call().bind(name))
+                    .insert();
+            var template = new MinecraftTemplate(name, plugin, miniMessage);
+            templates.add(template);
+            return template;
+        }, plugin.getExecutor());
     }
 }
