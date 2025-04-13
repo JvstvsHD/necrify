@@ -186,10 +186,24 @@ public interface PunishmentDuration extends Comparable<PunishmentDuration> {
 
     /**
      * Formats the remaining duration in the same format as parsed by {@link Parser}, unless specified otherwise.
+     * This method uses {@link StringRepresentation#LONG}.
      *
+     * @see #remainingDuration(StringRepresentation)
      * @return the remaining duration
      */
-    String remainingDuration();
+    default String remainingDuration() {
+        return remainingDuration(StringRepresentation.LONG);
+    }
+
+    /**
+     * Formats the remaining duration in the same format as parsed by {@link Parser}, unless specified otherwise using
+     * the given {@link StringRepresentation}.
+     *
+     * @param mode the representation mode used to display this duration
+     * @return the remaining duration
+     * @since 1.2.2
+     */
+    String remainingDuration(StringRepresentation mode);
 
     /**
      * The initial duration (before any changes to the punishment this duration was created for).
@@ -305,5 +319,31 @@ public interface PunishmentDuration extends Comparable<PunishmentDuration> {
                 super(message);
             }
         }
+    }
+
+    /**
+     * This enum defines modes that change the way how the String representation of PunishmentDurations is styled, mostly,
+     * what time units are displayed.
+     *
+     * @since 1.2.2
+     * @see PunishmentDuration#remainingDuration(StringRepresentation)
+     */
+    enum StringRepresentation {
+        /**
+         * Choosing this mode will displays every time unit (from day - second), regardless of its value.
+         */
+        FULL,
+
+        /**
+         * in the short mode, only time units with non-zero values will be displayed
+         */
+        SHORT,
+
+        /**
+         * Long mode displays time units smaller than or equal to the first time unit (counting from day down to second) whose
+         * value is non-zero. All following smaller time unit's values will also be displayed regardless of their value.<br>
+         * <i>DEFAULT</i>
+         */
+        LONG
     }
 }
