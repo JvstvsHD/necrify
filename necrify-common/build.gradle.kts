@@ -37,7 +37,7 @@ dependencies {
     compileOnly(libs.brigadier)
     annotationProcessor(libs.cloud.annotations)
     compileOnly(libs.slf4j.api)
-    compileOnly("com.google.code.gson:gson:2.12.1")
+    compileOnly("com.google.code.gson:gson:2.13.1")
     compileOnly(libs.bundles.adventure)
     api(libs.adventure.text.feature.pagination) {
         exclude(group = "net.kyori")
