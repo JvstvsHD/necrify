@@ -59,4 +59,12 @@ public interface TemplateManager {
      */
     @NotNull
     CompletableFuture<NecrifyTemplate> createTemplate(String name);
+
+    /**
+     * Returns a list of all currently loaded templates. If {@link #loadTemplates()} has not yet been called, this list
+     * will remain empty except newly created templates may be listed.
+     * @return a list of all currently loaded templates
+     */
+    @NotNull
+    Collection<? extends NecrifyTemplate> getTemplates();
 }

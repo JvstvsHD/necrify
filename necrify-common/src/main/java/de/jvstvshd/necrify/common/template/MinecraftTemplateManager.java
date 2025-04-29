@@ -47,19 +47,23 @@ public class MinecraftTemplateManager implements TemplateManager {
     public @NotNull CompletableFuture<Collection<? extends NecrifyTemplate>> loadTemplates() {
         return Util.executeAsync(() -> {
             Map<String, MinecraftTemplate> loadedTemplates = new HashMap<>();
+            Query.query("SELECT name FROM necrify_punishment_template;")
+                    .single(Call.of())
+                    .map(row -> new MinecraftTemplate(row.getString(1), plugin, miniMessage))
+                    .all().forEach(minecraftTemplate -> loadedTemplates.put(minecraftTemplate.name(), minecraftTemplate));
             Query.query("SELECT t.name, s.index, s.duration, s.type, s.reason FROM necrify_punishment_template t, necrify_punishment_template_stage s WHERE t.id = s.template_id")
                     .single(Call.of())
                     .map(row -> {
                         var templateName = row.getString(1);
-                        var template = loadedTemplates.computeIfAbsent(templateName, s -> new MinecraftTemplate(templateName, plugin, miniMessage));
+                        var template = loadedTemplates.get(templateName);
                         var stage = new MinecraftTemplateStage(
                                 template, PunishmentTypeRegistry.getType(row.getInt(4)),
                                 PunishmentDuration.fromMillis(row.getLong(3)),
                                 miniMessage.deserialize(row.getString(5)),
                                 row.getInt(2), plugin);
-                        template.addStage(stage);
+                        template.addStage0(stage);
                         return null;
-                    });
+                    }).all();
             var values = loadedTemplates.values();
             templates.addAll(values);
             return values;
@@ -84,5 +88,14 @@ public class MinecraftTemplateManager implements TemplateManager {
             templates.add(template);
             return template;
         }, plugin.getExecutor());
+    }
+
+    @Override
+    public @NotNull Collection<? extends NecrifyTemplate> getTemplates() {
+        return Collections.unmodifiableCollection(templates);
+    }
+
+    public void removeTemplate(String name) {
+        templates.removeIf(t -> t.name().equals(name));
     }
 }

@@ -20,6 +20,7 @@ package de.jvstvshd.necrify.common.util;
 
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
+import de.jvstvshd.necrify.api.punishment.PunishmentType;
 import de.jvstvshd.necrify.api.punishment.TemporalPunishment;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -51,7 +52,7 @@ public class PunishmentHelper {
         var builder = Component.text()
                 .append(ic,
                         provider.provide("helper.type").color(NamedTextColor.AQUA),
-                        copyable("%s (%d)".formatted(punishment.getType().getName(), punishment.getType().getId()), NamedTextColor.YELLOW, provider),
+                        buildPunishmentTypeInformation(punishment.getType(), provider),
                         Component.newline(),
                         ic,
                         provider.provide("helper.reason").color(NamedTextColor.AQUA),
@@ -118,6 +119,11 @@ public class PunishmentHelper {
             return Component.empty();
         }
         return Component.text(" ".repeat(n) + "> ").color(NamedTextColor.GRAY);
+    }
+
+    //TODO add information on hover/click
+    public static Component buildPunishmentTypeInformation(PunishmentType type, MessageProvider provider) {
+        return copyable("%s (%d)".formatted(type.getName(), type.getId()), NamedTextColor.YELLOW, provider);
     }
 
     private static Component copyable(String s, NamedTextColor color, MessageProvider provider) {

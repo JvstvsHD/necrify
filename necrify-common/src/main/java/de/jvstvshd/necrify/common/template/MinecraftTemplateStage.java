@@ -51,6 +51,7 @@ public record MinecraftTemplateStage(NecrifyTemplate template, PunishmentType pu
             Query.query("DELETE FROM necrify_punishment_template_stage WHERE template_id = (SELECT id FROM necrify_punishment_template WHERE name = ?) AND index = ?")
                     .single(Call.of().bind(template.name()).bind(index))
                     .delete();
+            template.removeStage(index);
             return null;
         }, plugin.getExecutor());
     }

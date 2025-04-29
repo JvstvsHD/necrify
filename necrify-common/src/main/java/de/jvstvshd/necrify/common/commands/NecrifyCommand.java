@@ -23,10 +23,14 @@ import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.PunishmentType;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
+import de.jvstvshd.necrify.api.template.NecrifyTemplate;
+import de.jvstvshd.necrify.api.template.NecrifyTemplateStage;
+import de.jvstvshd.necrify.api.template.TemplateManager;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserDeletionReason;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.config.ConfigData;
+import de.jvstvshd.necrify.common.template.MinecraftTemplateStage;
 import de.jvstvshd.necrify.common.util.PunishmentHelper;
 import de.jvstvshd.necrify.common.util.Util;
 import net.kyori.adventure.text.Component;
@@ -49,10 +53,9 @@ import org.incendo.cloud.suggestion.Suggestion;
 import org.slf4j.Logger;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 public class NecrifyCommand {
 
@@ -60,15 +63,18 @@ public class NecrifyCommand {
     private final MiniMessage miniMessage;
     private final Logger logger;
     private final MessageProvider provider;
+    private final TemplateManager templateManager;
 
     private static final List<String> PUNISHMENT_COMMAND_OPTIONS = List.of("cancel", "remove", "info", "change", "log");
     private static final List<String> USER_COMMAND_OPTIONS = List.of("info", "delete", "whitelist");
+    private static final List<String> TEMPLATE_COMMAND_OPTIONS = List.of("info", "delete");
 
     public NecrifyCommand(AbstractNecrifyPlugin plugin) {
         this.plugin = plugin;
         this.miniMessage = MiniMessage.miniMessage();
         this.logger = plugin.getLogger();
         this.provider = plugin.getMessageProvider();
+        this.templateManager = plugin.getTemplateManager();
     }
 
     //COMMANDS
@@ -80,24 +86,9 @@ public class NecrifyCommand {
     public void banCommand(
             NecrifyUser sender,
             @Argument(value = "target", description = "Player to ban", suggestions = "suggestOnlinePlayers") NecrifyUser target,
-            @Argument(value = "reason", description = "Reason the user should be banned for", suggestions = "suggestMiniMessage") @Greedy String reason
+            @Argument(value = "reason", description = "Reason the user should be banned for", suggestions = "suggestMiniMessageAndTemplate") @Greedy String templateOrReason
     ) {
-        var finalReason = reasonOrDefaultTo(reason, StandardPunishmentType.PERMANENT_BAN);
-        target.banPermanent(finalReason).whenComplete((ban, throwable) -> {
-            if (throwable != null) {
-                logException(sender, throwable);
-                return;
-            }
-            sender.sendMessage("command.ban.success",
-                    NamedTextColor.GRAY,
-                    userReference(target),
-                    copyComponent(ban.getUuid().toString()).color(NamedTextColor.YELLOW),
-                    finalReason);
-            //TODO chaining permanent punishments does not make sense
-            //TODO offer option to merge reasons of both punishments
-            //TODO this also causes errors when chaining
-            //tryChainPunishments(sender, target, ban);
-        });
+        infinitePunishmentCommand(sender, target, templateOrReason, target::banPermanent, "command.ban.success", StandardPunishmentType.PERMANENT_BAN);
     }
 
     @Command("necrify mute <target> [reason]")
@@ -106,22 +97,9 @@ public class NecrifyCommand {
     public void muteCommand(
             NecrifyUser sender,
             @Argument(value = "target", description = "Player to mute", suggestions = "suggestOnlinePlayers") NecrifyUser target,
-            @Argument(value = "reason", description = "Reason the user should be muted for", suggestions = "suggestMiniMessage") @Greedy String reason
+            @Argument(value = "reason", description = "Reason the user should be muted for", suggestions = "suggestMiniMessage") @Greedy String templateOrReason
     ) {
-        var finalReason = reasonOrDefaultTo(reason, StandardPunishmentType.PERMANENT_MUTE);
-        target.mutePermanent(finalReason).whenComplete((mute, throwable) -> {
-            if (throwable != null) {
-                logException(sender, throwable);
-                return;
-            }
-            sender.sendMessage("command.mute.success",
-                    NamedTextColor.GRAY,
-                    userReference(target),
-                    copyComponent(mute.getUuid().toString()).color(NamedTextColor.YELLOW),
-                    finalReason);
-            //see banCommand
-            //tryChainPunishments(sender, target, mute);
-        });
+        infinitePunishmentCommand(sender, target, templateOrReason, target::mutePermanent, "command.mute.success", StandardPunishmentType.PERMANENT_MUTE);
     }
 
     @Command("necrify kick <target> [reason]")
@@ -130,20 +108,9 @@ public class NecrifyCommand {
     public void kickCommand(
             NecrifyUser sender,
             @Argument(value = "target", description = "Player to kick", suggestions = "suggestOnlinePlayers") NecrifyUser target,
-            @Argument(value = "reason", description = "Reason the user should be kicked for", suggestions = "suggestMiniMessage") @Greedy String reason
+            @Argument(value = "reason", description = "Reason the user should be kicked for", suggestions = "suggestMiniMessage") @Greedy String templateOrReason
     ) {
-        var finalReason = reasonOrDefaultTo(reason, StandardPunishmentType.KICK);
-        target.kick(finalReason).whenComplete((unused, throwable) -> {
-            if (throwable != null) {
-                logException(sender, throwable);
-                return;
-            }
-            sender.sendMessage("command.kick.success",
-                    NamedTextColor.GRAY,
-                    userReference(target),
-                    copyComponent(target.getUuid().toString()).color(NamedTextColor.YELLOW),
-                    finalReason);
-        });
+        infinitePunishmentCommand(sender, target, templateOrReason, target::kick, "command.kick.success", StandardPunishmentType.KICK);
     }
 
     @Command("necrify tempban <target> <duration> [reason]")
@@ -236,7 +203,7 @@ public class NecrifyCommand {
             @Flag(value = "page", description = "Page to display") Integer pageArgument
     ) {
         switch (option) {
-            case "info" ->
+            case "info" -> //TODO paginate punishments
                     sender.sendMessage(buildComponent(PunishmentHelper.buildPunishmentData(punishmentParsed, plugin.getMessageProvider())));
             case "cancel", "remove" -> {
                 try {
@@ -389,6 +356,113 @@ public class NecrifyCommand {
         sender.sendMessage(provider.provide("whitelist.change-in-config"));
     }
 
+    //template management
+
+    @Command("necrify createtemplate <name>")
+    public void createTemplateCommand(
+            NecrifyUser sender,
+            @Argument(value = "name", description = "Name of the template") String name
+    ) {
+        if (templateManager.getTemplate(name).isPresent()) {
+            sender.sendMessage("command.template.create.already-exists", NamedTextColor.RED);
+            return;
+        }
+        templateManager.createTemplate(name).whenComplete((necrifyTemplate, throwable) -> {
+            if (throwable != null) {
+                logException(sender, throwable);
+                return;
+            }
+            sender.sendMessage("command.template.create.success", NamedTextColor.GREEN, Component.text(name, NamedTextColor.YELLOW));
+        });
+    }
+
+    @Command("necrify template <name>")
+    public void templateInfoCommand(NecrifyUser sender, @Argument(value = "name", description = "Description") NecrifyTemplate template, @Flag("page") Integer pageArgument) {
+        int page = pageArgument == null ? 1 : pageArgument;
+        sender.sendMessage("command.template.manage.info", NamedTextColor.GRAY, Component.text(template.name(), NamedTextColor.YELLOW),
+                Component.text(template.stages().size(), NamedTextColor.YELLOW));
+        Pagination.Renderer.RowRenderer<NecrifyTemplateStage> rowRenderer = (stage, index) -> List.of(provider.provide("command.template.stage.info", Component.text(stage.index() + 1, NamedTextColor.YELLOW),
+                stage.reason(), Component.text(stage.duration().remainingDuration(PunishmentDuration.StringRepresentation.SHORT), NamedTextColor.YELLOW),
+                PunishmentHelper.buildPunishmentTypeInformation(stage.punishmentType(), provider)).color(NamedTextColor.GRAY));
+        var components = Pagination.builder().width(42).resultsPerPage(5).build(Component.text(template.name(), NamedTextColor.YELLOW), rowRenderer,
+                functionPage -> "/necrify template " + template.name() + " --page " + functionPage).render(template.stages(), page);
+        for (Component component : components) {
+            sender.sendMessage(component);
+        }
+    }
+
+    @Command("necrify template <name> delete")
+    public void templateDeleteCommand(
+            NecrifyUser sender,
+            @Argument(value = "name", description = "Name of the template") NecrifyTemplate template
+    ) {
+        //TODO add confirmation
+        template.delete().whenComplete((integer, throwable) -> {
+            if (throwable != null) {
+                logException(sender, throwable);
+                return;
+            }
+            sender.sendMessage("command.template.delete.success", NamedTextColor.GREEN, Component.text(template.name(), NamedTextColor.YELLOW), Component.text(integer, NamedTextColor.YELLOW));
+        });
+    }
+
+    @Command("necrify template <name> addstage <duration> <type> <reason>")
+    public void templateAddStageCommand(
+            NecrifyUser sender,
+            @Argument(value = "name") NecrifyTemplate template,
+            @Argument(value = "duration") PunishmentDuration duration,
+            @Argument(value = "type") PunishmentType punishmentType,
+            @Argument(value = "reason", suggestions = "suggestMiniMessage") @Greedy String reasonString
+    ) {
+        Component reason = miniMessage(reasonString);
+        //TODO add creation wizard, duration optional (omit if permanent punishment)
+        if (punishmentType instanceof StandardPunishmentType standardPunishmentType && standardPunishmentType.isPermanent()) {
+            duration = PunishmentDuration.PERMANENT;
+        }
+        template.addStage(new MinecraftTemplateStage(template, punishmentType, duration, reason, template.stages().size(), plugin)).whenComplete((stage, throwable) -> {
+            if (throwable != null) {
+                logException(sender, throwable);
+                return;
+            }
+            sender.sendMessage("command.template.stage.add.success", NamedTextColor.GREEN);
+        });
+    }
+
+    @Command("necrify template <name> removestage <index>")
+    public void templateRemoveStageCommand(
+            NecrifyUser sender,
+            @Argument(value = "name") NecrifyTemplate template,
+            @Argument(value = "index") int index
+    ) {
+        //TODO add confirmation
+        template.getStage(index - 1).delete().whenCompleteAsync((integer, throwable) -> {
+            if (throwable != null) {
+                logException(sender, throwable);
+                return;
+            }
+            sender.sendMessage("command.template.stage.remove.success");
+        });
+    }
+
+    @Command("necrify template <name> apply <user>")
+    public void templateApplyCommand(
+            NecrifyUser sender,
+            @Argument(value = "name") NecrifyTemplate template,
+            @Argument(value = "user") NecrifyUser user
+    ) {
+        user.punishModelled(template).whenComplete((punishment, throwable) -> {
+            if (throwable != null) {
+                logException(sender, throwable);
+                return;
+            }
+            sender.sendMessage("command.template.apply.success", NamedTextColor.GREEN, userReference(user),
+                    PunishmentHelper.buildPunishmentTypeInformation(punishment.getType(), provider),
+                    punishment.getReason(), Component.text(PunishmentDuration.ofPunishment(punishment).remainingDuration()),
+                    Component.text(template.name(), NamedTextColor.YELLOW),
+                    copyComponent(punishment.getUuid().toString()).color(NamedTextColor.YELLOW));
+        });
+    }
+
     //SUGGESTIONS
 
     @Suggestions("suggestOnlinePlayers")
@@ -413,6 +487,17 @@ public class NecrifyCommand {
                 miniMessage(input.remainingInput())));
     }
 
+    @Suggestions("suggestMiniMessageAndTemplate")
+    public List<? extends Suggestion> suggestMiniMessageAndTemplate(CommandContext<NecrifyUser> context, CommandInput input) {
+        List<Suggestion> suggestions = new ArrayList<>(suggestMiniMessage(context, input));
+        suggestions.addAll(0, templateManager.getTemplates()
+                .stream()
+                .filter(template -> template.name().toLowerCase().startsWith(input.peekString().toLowerCase()))
+                .map(template -> ComponentTooltipSuggestion.suggestion(template.name(), MiniMessage.miniMessage().deserialize(template.name())))
+                .toList());
+        return suggestions;
+    }
+
     @Suggestions("suggestPunishmentCommandOptions")
     public List<? extends Suggestion> suggestPunishmentCommandOptions(CommandContext<NecrifyUser> context, CommandInput input) {
         return PUNISHMENT_COMMAND_OPTIONS
@@ -431,7 +516,47 @@ public class NecrifyCommand {
                 .toList();
     }
 
+    @Suggestions("suggestTemplateCommandOptions")
+    public List<? extends Suggestion> suggestTemplateCommandOptions(CommandContext<NecrifyUser> context, CommandInput input) {
+        return TEMPLATE_COMMAND_OPTIONS
+                .stream()
+                .filter(option -> option.toLowerCase().startsWith(input.peekString().toLowerCase()))
+                .map(option -> ComponentTooltipSuggestion.suggestion(option, miniMessage(option)))
+                .toList();
+    }
+
     //HELPER METHODS
+
+    public void infinitePunishmentCommand(NecrifyUser sender, NecrifyUser target, String templateOrReasonString,
+                                          Function<Component, CompletableFuture<? extends Punishment>> reasonExecution,
+                                          String successString, StandardPunishmentType defaultReasonType) {
+        var templateOrReason = ComponentOrTemplate.fromString(templateOrReasonString, templateManager);
+        CompletableFuture<? extends Punishment> punishmentFuture;
+        if (templateOrReason.template().isPresent()) {
+            punishmentFuture = target.punishModelled(templateOrReason.template().get());
+        } else if (templateOrReason.component().isPresent()) {
+            var finalReason = reasonOrDefaultTo(templateOrReason.component().get(), defaultReasonType);
+            punishmentFuture = reasonExecution.apply(finalReason);
+        } else {
+            throw new IllegalArgumentException("No reason or template provided");
+        }
+        punishmentFuture.whenComplete((punishment, throwable) -> {
+            if (throwable != null) {
+                logException(sender, throwable);
+                return;
+            }
+            sender.sendMessage(successString,
+                    NamedTextColor.GRAY,
+                    userReference(target),
+                    copyComponent(punishment.getUuid().toString()).color(NamedTextColor.YELLOW),
+                    punishment.getReason());
+            //TODO chaining permanent punishments does not make sense
+            //TODO offer option to merge reasons of both punishments
+            //TODO this also causes errors when chaining
+            //tryChainPunishments(sender, target, ban);
+        });
+    }
+
 
     /**
      * This will execute the punishment removal process for the given punishments. If more than one punishment is found,

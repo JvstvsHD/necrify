@@ -20,5 +20,6 @@ CREATE TABLE IF NOT EXISTS necrify_schema.necrify_punishment_template_user_stage
     id          INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     user_id     UUID REFERENCES necrify_schema.necrify_user (uuid) ON DELETE CASCADE,
     template_id INTEGER REFERENCES necrify_schema.necrify_punishment_template (id) ON DELETE CASCADE,
-    stage_id    INTEGER REFERENCES necrify_schema.necrify_punishment_template_stage (id) ON DELETE CASCADE
+    stage_id    INTEGER REFERENCES necrify_schema.necrify_punishment_template_stage (id) ON DELETE CASCADE,
+    UNIQUE(user_id, template_id)
 );

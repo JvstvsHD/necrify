@@ -195,6 +195,7 @@ public interface PunishmentDuration extends Comparable<PunishmentDuration> {
         return remainingDuration(StringRepresentation.LONG);
     }
 
+    //TODO represent permanent durations more readable/intuitive
     /**
      * Formats the remaining duration in the same format as parsed by {@link Parser}, unless specified otherwise using
      * the given {@link StringRepresentation}.

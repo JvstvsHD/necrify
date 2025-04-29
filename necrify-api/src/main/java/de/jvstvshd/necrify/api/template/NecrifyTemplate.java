@@ -79,4 +79,12 @@ public interface NecrifyTemplate {
      */
     CompletableFuture<Integer> delete();
 
+    /**
+     * Removes the stage at the specified index from this template.
+     *
+     * @param index the index of the stage to be removed
+     * @return the removed stage that was previously located at the specified index
+     * @throws IndexOutOfBoundsException if the specified index is invalid or out of bounds
+     */
+    NecrifyTemplateStage removeStage(int index);
 }

@@ -159,7 +159,11 @@ public abstract class AbstractNecrifyUser implements NecrifyUser {
     @Override
     public @NotNull NecrifyTemplateStage getNextTemplateStage(@NotNull NecrifyTemplate template) {
         try {
-            return templateStages.get(template).nextOrThis();
+            if (templateStages.containsKey(template)) {
+                return templateStages.get(template).nextOrThis();
+            } else {
+                return template.getStage(0);
+            }
         } catch (NoSuchElementException e) {
             throw new IllegalStateException(e);
         }
@@ -171,7 +175,21 @@ public abstract class AbstractNecrifyUser implements NecrifyUser {
         Map<String, Object> data = Map.of("user", this, "duration", nextStage.duration(), "punishmentUuid", UUID.randomUUID(),
                 "reason", nextStage.reason());
         var punishment = PunishmentTypeRegistry.createPunishment(nextStage.punishmentType(), data);
-        return punishment.punish();
+        return punishment.punish().whenComplete((punishment1, throwable) -> {
+            var secondNextStage = nextStage.nextOrThis();
+            if (secondNextStage.equals(nextStage)) return;
+            updateUserStage(nextStage);
+        });
+    }
+
+    public void updateUserStage(NecrifyTemplateStage stage) {
+        templateStages.put(stage.template(), stage);
+        Query.query("WITH template_data AS (SELECT id FROM necrify_punishment_template t WHERE t.name = ?), stage_data AS (SELECT id FROM necrify_punishment_template_stage s WHERE s.template_id = (SELECT id FROM template_data) AND s.index = ?) " +
+                        "INSERT INTO necrify_punishment_template_user_stage (user_id, template_id, stage_id) " +
+                        "VALUES (?, (SELECT id FROM template_data), (SELECT id FROM stage_data))" +
+                        "ON CONFLICT (user_id, template_id) DO UPDATE SET stage_id = (SELECT id FROM stage_data);")
+                .single(Call.of().bind(stage.template().name()).bind(stage.index()).bind(uuid, Adapters.UUID_ADAPTER))
+                .update();
     }
 
     @Override
@@ -237,7 +255,7 @@ public abstract class AbstractNecrifyUser implements NecrifyUser {
         return Util.executeAsync(() -> {
             Query.query("SELECT template.name, stage.index FROM necrify_punishment_template_stage stage, " +
                             "necrify_punishment_template template, necrify_punishment_template_user_stage users WHERE " +
-                            "users.user_id = ? AND template.id = users.template_id AND stage.id = template.stage_id")
+                            "users.user_id = ? AND template.id = users.template_id AND stage.template_id = template.id")
                     .single(Call.of().bind(uuid, Adapters.UUID_ADAPTER))
                     .map(row -> {
                         var template = plugin.getTemplateManager().getTemplate(row.getString(1));

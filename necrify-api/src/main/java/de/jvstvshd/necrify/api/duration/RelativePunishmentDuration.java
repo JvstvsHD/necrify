@@ -116,12 +116,10 @@ public class RelativePunishmentDuration implements PunishmentDuration {
         List<String> values = Stream.concat(Stream.of(String.valueOf(duration.toDaysPart())),
                 Stream.of(duration.toHoursPart(), duration.toMinutesPart(), duration.toSecondsPart()).map(this::normalizeTimeUnit)).toList();
         List<Character> units = Arrays.asList('d', 'h', 'm', 's');
-        System.out.println(values);
         var l = IntStream.range(0, values.size())
                 .boxed()
                 .collect(Collectors.toMap(units::get, values::get, (s, s2) -> s + s2, LinkedHashMap::new)).entrySet();
         //using an unordered Map implementation like HashMap causes the entry set to be unordered which produces a random ordered output string
-        System.out.println(l);
         var valuesMapped = l.stream();
         Stream<Map.Entry<Character, String>> stream = switch (mode) {
             case FULL -> valuesMapped;

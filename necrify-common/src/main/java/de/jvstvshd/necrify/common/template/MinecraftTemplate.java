@@ -63,21 +63,34 @@ public class MinecraftTemplate implements NecrifyTemplate {
         return Util.executeAsync(() -> {
             Query.query("INSERT INTO necrify_punishment_template_stage (template_id, index, duration, type, reason) " +
                             "VALUES ((SELECT id FROM necrify_punishment_template WHERE name = ?), ?, ?, ?, ?)")
-                    .single(Call.of().bind(name).bind(stage.index()).bind(stage.punishmentType().getId())
-                            .bind(stage.duration().javaDuration().toMillis()).bind(miniMessage.serialize(stage.reason())))
+                    .single(Call.of().bind(name).bind(stage.index()).bind(stage.duration().javaDuration().toMillis())
+                            .bind(stage.punishmentType().getId()).bind(miniMessage.serialize(stage.reason())))
                     .insert().rows();
+            addStage0(stage);
             return null;
         }, plugin.getExecutor());
     }
 
-    public void addStage(MinecraftTemplateStage stage) {
+    public void addStage0(NecrifyTemplateStage stage) {
         stages.add(stage);
+    }
+
+    //TODO fix behaviour for stages in the middle
+    @Override
+    public NecrifyTemplateStage removeStage(int index) {
+        var stage = getStage(index);
+        stages.remove(stage);
+        return stage;
     }
 
     @Override
     public CompletableFuture<Integer> delete() {
-        return Util.executeAsync(() -> Query.query("DELETE FROM necrify_punishment_template WHERE name = ?")
-                .single(Call.of().bind(name))
-                .delete().rows(), plugin.getExecutor());
+        return Util.executeAsync(() -> {
+            var rows = Query.query("DELETE FROM necrify_punishment_template WHERE name = ?")
+                    .single(Call.of().bind(name))
+                    .delete().rows();
+            ((MinecraftTemplateManager) plugin.getTemplateManager()).removeTemplate(name);
+            return rows;
+        }, plugin.getExecutor());
     }
 }
