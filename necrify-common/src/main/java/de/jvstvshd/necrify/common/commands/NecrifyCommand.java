@@ -43,6 +43,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.checkerframework.checker.units.qual.N;
 import org.incendo.cloud.annotation.specifier.Greedy;
 import org.incendo.cloud.annotations.*;
 import org.incendo.cloud.annotations.suggestion.Suggestions;
@@ -381,9 +382,8 @@ public class NecrifyCommand {
         int page = pageArgument == null ? 1 : pageArgument;
         sender.sendMessage("command.template.manage.info", NamedTextColor.GRAY, Component.text(template.name(), NamedTextColor.YELLOW),
                 Component.text(template.stages().size(), NamedTextColor.YELLOW));
-        Pagination.Renderer.RowRenderer<NecrifyTemplateStage> rowRenderer = (stage, index) -> List.of(provider.provide("command.template.stage.info", Component.text(stage.index() + 1, NamedTextColor.YELLOW),
-                stage.reason(), Component.text(stage.duration().remainingDuration(PunishmentDuration.StringRepresentation.SHORT), NamedTextColor.YELLOW),
-                PunishmentHelper.buildPunishmentTypeInformation(stage.punishmentType(), provider)).color(NamedTextColor.GRAY));
+        Pagination.Renderer.RowRenderer<NecrifyTemplateStage> rowRenderer = (stage, index) ->
+                List.of(PunishmentHelper.buildTemplateStageInformation(stage, provider));
         var components = Pagination.builder().width(42).resultsPerPage(5).build(Component.text(template.name(), NamedTextColor.YELLOW), rowRenderer,
                 functionPage -> "/necrify template " + template.name() + " --page " + functionPage).render(template.stages(), page);
         for (Component component : components) {
@@ -448,7 +448,7 @@ public class NecrifyCommand {
     public void templateApplyCommand(
             NecrifyUser sender,
             @Argument(value = "name") NecrifyTemplate template,
-            @Argument(value = "user") NecrifyUser user
+            @Argument(value = "user", suggestions = "suggestOnlinePlayers") NecrifyUser user
     ) {
         user.punishModelled(template).whenComplete((punishment, throwable) -> {
             if (throwable != null) {
@@ -461,6 +461,40 @@ public class NecrifyCommand {
                     Component.text(template.name(), NamedTextColor.YELLOW),
                     copyComponent(punishment.getUuid().toString()).color(NamedTextColor.YELLOW));
         });
+    }
+
+    @Command("necrify template <name> amnesty <target>")
+    public void templateAmnestyCommand(
+            NecrifyUser sender,
+            @Argument(value = "name") NecrifyTemplate template,
+            @Argument(value = "target", suggestions = "suggestOnlinePlayers") NecrifyUser target,
+            @Flag("to") @Default("0") Integer toStage
+    ) {
+        int stageIndex = toStage == null ? 0 : Math.min(Math.max(toStage, 1), template.stages().size()) - 1;
+        target.amnesty(template, stageIndex).whenComplete((unused, throwable) -> {
+            sender.sendMessage("command.template.amnesty.success", NamedTextColor.GREEN);
+        });
+    }
+
+    @Command("necrify template <name> state <target>")
+    public void templateStateCommand(
+            NecrifyUser sender,
+            @Argument(value = "name") NecrifyTemplate template,
+            @Argument(value = "target", suggestions = "suggestOnlinePlayers") NecrifyUser target
+    ) {
+        var stageOptional = target.getCurrentTemplateStage(template);
+        if (stageOptional.isEmpty()) {
+            sender.sendMessage("command.template.state.no-stage", NamedTextColor.RED);
+            return;
+        }
+        NecrifyTemplateStage currentStage = stageOptional.get();
+        NecrifyTemplateStage nextStage = currentStage.nextOrThis();
+        sender.sendMessage("command.template.state.text", NamedTextColor.GRAY, Component.text(template.name(), NamedTextColor.YELLOW), userReference(target),
+                Component.text(currentStage.index() + 1, NamedTextColor.YELLOW)
+                        .hoverEvent(HoverEvent.showText(PunishmentHelper.buildTemplateStageInformation(currentStage, provider))),
+                Component.text(nextStage.index() + 1, NamedTextColor.YELLOW)
+                        .hoverEvent(HoverEvent.showText(PunishmentHelper.buildTemplateStageInformation(nextStage, provider))));
+        //TODO show active punishment (if exists)
     }
 
     //SUGGESTIONS

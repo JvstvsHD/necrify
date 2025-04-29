@@ -22,12 +22,14 @@ import de.jvstvshd.necrify.api.PunishmentException;
 import de.jvstvshd.necrify.api.punishment.log.PunishmentLog;
 import de.jvstvshd.necrify.api.punishment.log.PunishmentLogEntry;
 import de.jvstvshd.necrify.api.punishment.util.ReasonHolder;
+import de.jvstvshd.necrify.api.template.NecrifyTemplateStage;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -207,4 +209,12 @@ public interface Punishment extends ReasonHolder {
      */
     @NotNull
     PunishmentLogEntry createCurrentLogEntry();
+
+    /**
+     * Retrieves the current template stage associated with this punishment, if any.
+     *
+     * @return an {@code Optional} containing the {@code NecrifyTemplateStage} associated with this punishment, or an empty {@code Optional} if none is associated
+     * @since 1.2.3
+     */
+    @NotNull Optional<NecrifyTemplateStage> getTemplateStage();
 }

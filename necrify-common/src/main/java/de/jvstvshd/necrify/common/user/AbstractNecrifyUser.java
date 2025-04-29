@@ -182,14 +182,45 @@ public abstract class AbstractNecrifyUser implements NecrifyUser {
         });
     }
 
-    public void updateUserStage(NecrifyTemplateStage stage) {
-        templateStages.put(stage.template(), stage);
-        Query.query("WITH template_data AS (SELECT id FROM necrify_punishment_template t WHERE t.name = ?), stage_data AS (SELECT id FROM necrify_punishment_template_stage s WHERE s.template_id = (SELECT id FROM template_data) AND s.index = ?) " +
-                        "INSERT INTO necrify_punishment_template_user_stage (user_id, template_id, stage_id) " +
-                        "VALUES (?, (SELECT id FROM template_data), (SELECT id FROM stage_data))" +
-                        "ON CONFLICT (user_id, template_id) DO UPDATE SET stage_id = (SELECT id FROM stage_data);")
-                .single(Call.of().bind(stage.template().name()).bind(stage.index()).bind(uuid, Adapters.UUID_ADAPTER))
-                .update();
+    @Override
+    public CompletableFuture<Void> amnesty(@NotNull NecrifyTemplate template, int stageIndex) {
+        if (stageIndex < 0) {
+            throw new IllegalArgumentException("stageIndex must be >= 0");
+        }
+        if (stageIndex > template.stages().size() - 1) {
+            throw new IllegalArgumentException("stageIndex must be < " + template.stages().size());
+        }
+        if (templateStages.containsKey(template)) {
+            if (templateStages.get(template).index() == stageIndex - 1) {
+                return CompletableFuture.completedFuture(null);
+            }
+            if (stageIndex == 0) {
+                return Util.executeAsync(() -> {
+                    Query.query("DELETE FROM necrify_punishment_template_user_stage WHERE user_id = ? AND template_id = (SELECT id FROM necrify_punishment_template WHERE name = ?);")
+                            .single(Call.of().bind(uuid, Adapters.UUID_ADAPTER).bind(template.name()))
+                            .update();
+                    templateStages.remove(template);
+                    return null;
+                }, executor);
+            } else {
+                var newStage = template.getStage(stageIndex - 1);
+                return updateUserStage(newStage).thenAccept( unused -> templateStages.put(template, newStage));
+            }
+        }
+        return CompletableFuture.completedFuture(null);
+    }
+
+    public CompletableFuture<Void> updateUserStage(NecrifyTemplateStage stage) {
+        return Util.executeAsync(() -> {
+            Query.query("WITH template_data AS (SELECT id FROM necrify_punishment_template t WHERE t.name = ?), stage_data AS (SELECT id FROM necrify_punishment_template_stage s WHERE s.template_id = (SELECT id FROM template_data) AND s.index = ?) " +
+                            "INSERT INTO necrify_punishment_template_user_stage (user_id, template_id, stage_id) " +
+                            "VALUES (?, (SELECT id FROM template_data), (SELECT id FROM stage_data))" +
+                            "ON CONFLICT (user_id, template_id) DO UPDATE SET stage_id = (SELECT id FROM stage_data);")
+                    .single(Call.of().bind(stage.template().name()).bind(stage.index()).bind(uuid, Adapters.UUID_ADAPTER))
+                    .update();
+            templateStages.put(stage.template(), stage);
+            return null;
+        }, executor);
     }
 
     @Override

@@ -232,6 +232,7 @@ public interface NecrifyUser extends CommandSender {
      * @param template the template to get the next stage for
      * @return the next stage of the template for this user
      * @throws IllegalStateException if the user already maxed out this template
+     * @since 1.2.3
      */
     @NotNull
     NecrifyTemplateStage getNextTemplateStage(@NotNull NecrifyTemplate template);
@@ -248,4 +249,16 @@ public interface NecrifyUser extends CommandSender {
      */
     @NotNull
     CompletableFuture<Punishment> punishModelled(@NotNull NecrifyTemplate template);
+
+    /**
+     * Amnesties this user regarding the given template meaning a reset of the user-bound stage index of this template.
+     * If {@code stageIndex == 0}, this user will receive full amnesty regarding the template. {@code stageIndex} always
+     * marks the index of a stage that this user would receive as soon as punished again through the template.
+     * @param template the template to use for the amnesty
+     * @param stageIndex the stage index that would be received by this user after amnesty
+     * @return a {@link CompletableFuture}
+     * @since 1.2.3
+     * @throws IllegalArgumentException if {@code stageIndex} is negative or greater than the maximum stage index of the given template
+     */
+    CompletableFuture<Void> amnesty(@NotNull NecrifyTemplate template, int stageIndex);
 }
