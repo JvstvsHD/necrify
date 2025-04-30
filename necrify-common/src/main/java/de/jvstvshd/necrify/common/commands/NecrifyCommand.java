@@ -383,7 +383,7 @@ public class NecrifyCommand {
         sender.sendMessage("command.template.manage.info", NamedTextColor.GRAY, Component.text(template.name(), NamedTextColor.YELLOW),
                 Component.text(template.stages().size(), NamedTextColor.YELLOW));
         Pagination.Renderer.RowRenderer<NecrifyTemplateStage> rowRenderer = (stage, index) ->
-                List.of(PunishmentHelper.buildTemplateStageInformation(stage, provider));
+                List.of(PunishmentHelper.buildTemplateStageInformation(Objects.requireNonNull(stage), provider));
         var components = Pagination.builder().width(42).resultsPerPage(5).build(Component.text(template.name(), NamedTextColor.YELLOW), rowRenderer,
                 functionPage -> "/necrify template " + template.name() + " --page " + functionPage).render(template.stages(), page);
         for (Component component : components) {
@@ -440,7 +440,7 @@ public class NecrifyCommand {
                 logException(sender, throwable);
                 return;
             }
-            sender.sendMessage("command.template.stage.remove.success");
+            sender.sendMessage("command.template.stage.remove.success", NamedTextColor.GREEN);
         });
     }
 

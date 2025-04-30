@@ -29,16 +29,32 @@ import de.jvstvshd.necrify.common.util.Util;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-public record MinecraftTemplateStage(NecrifyTemplate template, PunishmentType punishmentType,
-                                     PunishmentDuration duration, Component reason,
-                                     int index, AbstractNecrifyPlugin plugin) implements NecrifyTemplateStage {
+public final class MinecraftTemplateStage implements NecrifyTemplateStage {
+    private final NecrifyTemplate template;
+    private final PunishmentType punishmentType;
+    private final PunishmentDuration duration;
+    private final Component reason;
+    private int index;
+    private final AbstractNecrifyPlugin plugin;
+
+    public MinecraftTemplateStage(NecrifyTemplate template, PunishmentType punishmentType,
+                                  PunishmentDuration duration, Component reason,
+                                  int index, AbstractNecrifyPlugin plugin) {
+        this.template = template;
+        this.punishmentType = punishmentType;
+        this.duration = duration;
+        this.reason = reason;
+        this.index = index;
+        this.plugin = plugin;
+    }
 
     @Override
     public @NotNull CompletableFuture<Void> changeDuration(PunishmentDuration duration) {
         return Util.executeAsync(() -> {
-            Query.query("UPDATE necrify_punishment_template_stage SET duration = ? WHERE template_id = (SELECT id FROM necrify_punishment_template WHERE name = ?) AND index = ?")
+            Query.query("UPDATE necrify_template_stage SET duration = ? WHERE template_id = (SELECT id FROM necrify_template WHERE name = ?) AND index = ?")
                     .single(Call.of().bind(duration.javaDuration().toMillis()).bind(template.name()).bind(index))
                     .update();
             return null;
@@ -48,7 +64,7 @@ public record MinecraftTemplateStage(NecrifyTemplate template, PunishmentType pu
     @Override
     public @NotNull CompletableFuture<Void> delete() {
         return Util.executeAsync(() -> {
-            Query.query("DELETE FROM necrify_punishment_template_stage WHERE template_id = (SELECT id FROM necrify_punishment_template WHERE name = ?) AND index = ?")
+            Query.query("DELETE FROM necrify_template_stage WHERE template_id = (SELECT id FROM necrify_template WHERE name = ?) AND index = ?")
                     .single(Call.of().bind(template.name()).bind(index))
                     .delete();
             template.removeStage(index);
@@ -75,4 +91,63 @@ public record MinecraftTemplateStage(NecrifyTemplate template, PunishmentType pu
     public @NotNull NecrifyTemplateStage nextOrThis() {
         return index + 1 < template.stages().size() ? template.getStage(index + 1) : this;
     }
+
+    @Override
+    public void changeIndex(int index) {
+        this.index = index;
+    }
+
+    @Override
+    public @NotNull NecrifyTemplate template() {
+        return template;
+    }
+
+    @Override
+    public @NotNull PunishmentDuration duration() {
+        return duration;
+    }
+
+    @Override
+    public @NotNull Component reason() {
+        return reason;
+    }
+
+    @Override
+    public int index() {
+        return index;
+    }
+
+    public AbstractNecrifyPlugin plugin() {
+        return plugin;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (MinecraftTemplateStage) obj;
+        return Objects.equals(this.template, that.template) &&
+                Objects.equals(this.punishmentType, that.punishmentType) &&
+                Objects.equals(this.duration, that.duration) &&
+                Objects.equals(this.reason, that.reason) &&
+                this.index == that.index &&
+                Objects.equals(this.plugin, that.plugin);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(template, punishmentType, duration, reason, index, plugin);
+    }
+
+    @Override
+    public String toString() {
+        return "MinecraftTemplateStage[" +
+                "template=" + template + ", " +
+                "punishmentType=" + punishmentType + ", " +
+                "duration=" + duration + ", " +
+                "reason=" + reason + ", " +
+                "index=" + index + ", " +
+                "plugin=" + plugin + ']';
+    }
+
 }

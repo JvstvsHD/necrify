@@ -94,4 +94,11 @@ public interface NecrifyTemplateStage extends Comparable<NecrifyTemplateStage> {
      */
     @NotNull
     NecrifyTemplateStage nextOrThis();
+
+    /**
+     * Changes this stage's index value. This method may be used when preceding stages are deleted so to have a continuous
+     * list of stages.
+     * @param index the new index
+     */
+    void changeIndex(int index);
 }
