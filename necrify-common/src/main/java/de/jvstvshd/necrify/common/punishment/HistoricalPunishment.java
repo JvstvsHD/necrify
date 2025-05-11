@@ -25,6 +25,7 @@ import de.jvstvshd.necrify.api.punishment.PunishmentType;
 import de.jvstvshd.necrify.api.punishment.TemporalPunishment;
 import de.jvstvshd.necrify.api.punishment.log.PunishmentLog;
 import de.jvstvshd.necrify.api.punishment.log.PunishmentLogEntry;
+import de.jvstvshd.necrify.api.template.NecrifyTemplateStage;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.util.EmptyPunishmentType;
 import net.kyori.adventure.text.Component;
@@ -34,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -172,6 +174,11 @@ public class HistoricalPunishment implements TemporalPunishment {
     @Override
     public @NotNull PunishmentDuration totalDuration() {
         return getDuration();
+    }
+
+    @Override
+    public @NotNull Optional<NecrifyTemplateStage> getTemplateStage() {
+        return Optional.empty();
     }
 
     private <T> T throwException() {

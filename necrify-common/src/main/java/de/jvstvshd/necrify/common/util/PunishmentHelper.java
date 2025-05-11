@@ -18,17 +18,22 @@
 
 package de.jvstvshd.necrify.common.util;
 
+import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
+import de.jvstvshd.necrify.api.punishment.PunishmentType;
 import de.jvstvshd.necrify.api.punishment.TemporalPunishment;
+import de.jvstvshd.necrify.api.template.NecrifyTemplateStage;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.event.HoverEventSource;
+import net.kyori.adventure.text.feature.pagination.Pagination;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 
 public class PunishmentHelper {
@@ -51,7 +56,7 @@ public class PunishmentHelper {
         var builder = Component.text()
                 .append(ic,
                         provider.provide("helper.type").color(NamedTextColor.AQUA),
-                        copyable("%s (%d)".formatted(punishment.getType().getName(), punishment.getType().getId()), NamedTextColor.YELLOW, provider),
+                        buildPunishmentTypeInformation(punishment.getType(), provider),
                         Component.newline(),
                         ic,
                         provider.provide("helper.reason").color(NamedTextColor.AQUA),
@@ -118,6 +123,17 @@ public class PunishmentHelper {
             return Component.empty();
         }
         return Component.text(" ".repeat(n) + "> ").color(NamedTextColor.GRAY);
+    }
+
+    //TODO add information on hover/click
+    public static Component buildPunishmentTypeInformation(PunishmentType type, MessageProvider provider) {
+        return copyable("%s (%d)".formatted(type.getName(), type.getId()), NamedTextColor.YELLOW, provider);
+    }
+
+    public static Component buildTemplateStageInformation(NecrifyTemplateStage stage, MessageProvider provider) {
+        return provider.provide("command.template.stage.info", Component.text(stage.index() + 1, NamedTextColor.YELLOW),
+                stage.reason(), Component.text(stage.duration().remainingDuration(PunishmentDuration.StringRepresentation.SHORT), NamedTextColor.YELLOW),
+                PunishmentHelper.buildPunishmentTypeInformation(stage.punishmentType(), provider)).color(NamedTextColor.GRAY);
     }
 
     private static Component copyable(String s, NamedTextColor color, MessageProvider provider) {

@@ -23,7 +23,10 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * A punishment duration that is relative to the current time meaning its expiration date is never fixed.
@@ -79,8 +82,8 @@ public class RelativePunishmentDuration implements PunishmentDuration {
     }
 
     @Override
-    public String remainingDuration() {
-        return representDuration(Duration.between(LocalDateTime.now(), expiration()));
+    public String remainingDuration(StringRepresentation mode) {
+        return representDuration(Duration.between(LocalDateTime.now(), expiration()), mode);
     }
 
     @Override
@@ -109,22 +112,32 @@ public class RelativePunishmentDuration implements PunishmentDuration {
         return duration.compareTo(other.relative().javaDuration());
     }
 
-    private String representDuration(Duration duration) {
-        String days = duration.toDaysPart() > 0 ? duration.toDaysPart() + "d" : "";
-        String hours = normalizeTimeUnit(duration.toHoursPart()) + "h";
-        String minutes = normalizeTimeUnit(duration.toMinutesPart()) + "m";
-        String seconds = normalizeTimeUnit(duration.toSecondsPart()) + "s";
-        return formatRemainingDuration(days, hours, minutes, seconds);
+    private String representDuration(Duration duration, StringRepresentation mode) {
+        List<String> values = Stream.concat(Stream.of(String.valueOf(duration.toDaysPart())),
+                Stream.of(duration.toHoursPart(), duration.toMinutesPart(), duration.toSecondsPart()).map(this::normalizeTimeUnit)).toList();
+        List<Character> units = Arrays.asList('d', 'h', 'm', 's');
+        var l = IntStream.range(0, values.size())
+                .boxed()
+                .collect(Collectors.toMap(units::get, values::get, (s, s2) -> s + s2, LinkedHashMap::new)).entrySet();
+        //using an unordered Map implementation like HashMap causes the entry set to be unordered which produces a random ordered output string
+        var valuesMapped = l.stream();
+        Stream<Map.Entry<Character, String>> stream = switch (mode) {
+            case FULL -> valuesMapped;
+            case SHORT -> valuesMapped.filter(entry -> !zeroDuration(entry.getValue()));
+            case LONG -> {
+                int skip = 0;
+                for (int i = 0; i < values.size(); i++) {
+                    if (skip != i) break; //only remove trailing 0-value time units
+                    if (zeroDuration(values.get(i))) skip++;
+                }
+                yield valuesMapped.skip(skip);
+            }
+        };
+        return stream.map(entry -> entry.getValue() + entry.getKey()).collect(Collectors.joining(""));
     }
 
-    private String formatRemainingDuration(String days, String hours, String minutes, String seconds) {
-        if (hours.equalsIgnoreCase("00h") && days.isBlank()) {
-            hours = "";
-        }
-        if (days.isBlank() && minutes.equalsIgnoreCase("00m")) {
-            minutes = "";
-        }
-        return days + hours + minutes + seconds;
+    private boolean zeroDuration(String duration) {
+        return duration.chars().allMatch(value -> value == '0');
     }
 
     private String normalizeTimeUnit(long value) {

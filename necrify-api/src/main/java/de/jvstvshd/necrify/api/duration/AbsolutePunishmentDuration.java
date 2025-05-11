@@ -90,8 +90,8 @@ public class AbsolutePunishmentDuration implements PunishmentDuration {
     }
 
     @Override
-    public String remainingDuration() {
-        return relative().remainingDuration();
+    public String remainingDuration(StringRepresentation mode) {
+        return relative().remainingDuration(mode);
     }
 
     @Override

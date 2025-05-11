@@ -28,6 +28,7 @@ import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.log.PunishmentLog;
 import de.jvstvshd.necrify.api.punishment.log.PunishmentLogAction;
 import de.jvstvshd.necrify.api.punishment.log.PunishmentLogEntry;
+import de.jvstvshd.necrify.api.template.NecrifyTemplateStage;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
 import de.jvstvshd.necrify.common.punishment.log.NecrifyPunishmentLog;
@@ -41,6 +42,7 @@ import org.jetbrains.annotations.Nullable;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -276,6 +278,12 @@ public abstract class AbstractPunishment implements Punishment {
         return new PunishmentLogEntry(plugin.getSystemUser(), "Current state", PunishmentDuration.ofPunishment(this),
                 getReason(), getPredecessor(), this, getSuccessorOrNull(), getCreationTime(), PunishmentLogAction.CREATED,
                 cachedLog, LocalDateTime.now(), -1);
+    }
+
+    //TODO implement
+    @Override
+    public @NotNull Optional<NecrifyTemplateStage> getTemplateStage() {
+        return Optional.empty();
     }
 
     public PunishmentLog getCachedLog() {

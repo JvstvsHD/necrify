@@ -60,6 +60,7 @@ import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.PunishmentManager;
 import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
+import de.jvstvshd.necrify.api.template.NecrifyTemplate;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserManager;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
@@ -190,7 +191,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
             return;
         }
         this.messageProvider = new ResourceBundleMessageProvider(configurationManager.getConfiguration().getDefaultLanguage());
-        this.systemUser = new VelocitySystemUser(messageProvider, server.getConsoleCommandSource());
+        this.systemUser = new VelocitySystemUser(this, server.getConsoleCommandSource());
         dataSource = createDataSource();
         QueryConfiguration.setDefault(QueryConfiguration.builder(dataSource).setThrowExceptions(true).build());
         punishmentManager = new DefaultPunishmentManager(server, dataSource, this);
@@ -204,6 +205,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         } catch (SQLException | IOException e) {
             getLogger().error("Could not create table necrify_punishment in database {}", dataSource.getDataSourceProperties().get("dataSource.databaseName"), e);
         }
+        getTemplateManager().loadTemplates();
         setup(server.getEventManager());
         getLogger().warn("Persecution of mutes cannot be granted on all servers unless the required paper plugin is installed.");
         eventDispatcher.register(communicator);

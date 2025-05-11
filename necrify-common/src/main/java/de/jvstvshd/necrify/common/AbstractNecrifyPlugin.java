@@ -26,12 +26,15 @@ import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.PunishmentType;
 import de.jvstvshd.necrify.api.punishment.PunishmentTypeRegistry;
 import de.jvstvshd.necrify.api.punishment.StandardPunishmentType;
+import de.jvstvshd.necrify.api.template.NecrifyTemplate;
+import de.jvstvshd.necrify.api.template.TemplateManager;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.common.commands.*;
 import de.jvstvshd.necrify.common.config.ConfigurationManager;
 import de.jvstvshd.necrify.common.punishment.NecrifyKick;
 import de.jvstvshd.necrify.common.punishment.NecrifyPunishmentFactory;
 import de.jvstvshd.necrify.common.punishment.log.NecrifyPunishmentLog;
+import de.jvstvshd.necrify.common.template.MinecraftTemplateManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -64,6 +67,8 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
     private final Cache<UUID, Punishment> historicalPunishmentCache =
             Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build();
     private final Logger logger;
+    private final MiniMessage miniMessage = MiniMessage.miniMessage();
+    private TemplateManager templateManager = new MinecraftTemplateManager(this, miniMessage);
 
     public AbstractNecrifyPlugin(ExecutorService executorService, ConfigurationManager configurationManager, Logger logger) {
         this.executorService = executorService;
@@ -137,21 +142,29 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
                     context.context().sender().sendMessage(component);
                 });
         manager.exceptionController()
+                .registerHandler(ArgumentParseException.class, ExceptionHandler.unwrappingHandler(TemplateParser.ParseException.class))
+                .registerHandler(TemplateParser.ParseException.class, context -> {
+                    context.context().sender().sendMessage("command.template.not-found", NamedTextColor.RED, Component.text(context.exception().getTemplate(), NamedTextColor.YELLOW));
+                });
+        manager.exceptionController()
                 .registerHandler(CommandExecutionException.class, ExceptionHandler.unwrappingHandler(Throwable.class))
                 .registerHandler(Throwable.class, context -> {
                     logger.error("An internal error occurred while executing a command", context.exception());
                     var component = getMessageProvider().provide("error.internal");
                     context.context().sender().sendMessage(component);
                 });
+
         manager.captionRegistry().registerProvider((caption, user) -> {
             var component = getMessageProvider().provide(caption.key(), user.getLocale());
             return PlainTextComponentSerializer.plainText().serialize(component);
         });
         var parserRegistry = manager.parserRegistry();
         parserRegistry.registerParser(ParserDescriptor.of(new NecrifyUserParser(this.getUserManager()), NecrifyUser.class));
-        parserRegistry.registerParser(ComponentParser.componentParser(MiniMessage.miniMessage(), StringParser.StringMode.GREEDY));
+        parserRegistry.registerParser(ComponentParser.componentParser(miniMessage, StringParser.StringMode.QUOTED));
         parserRegistry.registerParser(ParserDescriptor.of(new PunishmentDurationParser(getMessageProvider()), PunishmentDuration.class));
         parserRegistry.registerParser(ParserDescriptor.of(new PunishmentParser(this), Punishment.class));
+        parserRegistry.registerParser(ParserDescriptor.of(new TemplateParser(getTemplateManager()), NecrifyTemplate.class));
+        parserRegistry.registerParser(ParserDescriptor.of(new PunishmentTypeParser(), PunishmentType.class));
         var commands = new NecrifyCommand(this);
         parser.parse(commands);
     }
@@ -260,6 +273,16 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
      */
     public Cache<UUID, Punishment> getHistoricalPunishmentCache() {
         return historicalPunishmentCache;
+    }
+
+    @Override
+    public @NotNull TemplateManager getTemplateManager() {
+        return templateManager;
+    }
+
+    @Override
+    public void setTemplateManager(@NotNull TemplateManager templateManager) {
+        this.templateManager = templateManager;
     }
 
     public abstract NecrifyKick createKick(Component reason, NecrifyUser user, UUID punishmentUuid);

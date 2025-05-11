@@ -20,9 +20,9 @@ package de.jvstvshd.necrify.api.user;
 
 import de.jvstvshd.necrify.api.duration.PunishmentDuration;
 import de.jvstvshd.necrify.api.punishment.*;
-import de.jvstvshd.necrify.api.punishment.log.PunishmentLog;
+import de.jvstvshd.necrify.api.template.NecrifyTemplate;
+import de.jvstvshd.necrify.api.template.NecrifyTemplateStage;
 import net.kyori.adventure.text.Component;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -128,6 +128,17 @@ public interface NecrifyUser extends CommandSender {
     CompletableFuture<Kick> kick(@Nullable Component reason);
 
     /**
+     * Punishes the user with the given punishment. This method will automatically determine the type of punishment
+     * and use it to punish the user.
+     *
+     * @param punishment the punishment to apply
+     * @return a {@link CompletableFuture} containing the punishment if the operation completed successfully
+     * @since 1.2.3
+     */
+    @NotNull
+    CompletableFuture<Punishment> punish(@NotNull Punishment punishment);
+
+    /**
      * This method queries all punishments with the given {@link UUID} of a player and returns them in a list.
      * All punishments that are returned are still running, i.e. they are not expired or revoked.
      *
@@ -175,6 +186,7 @@ public interface NecrifyUser extends CommandSender {
      * <p>
      * The reason for the deletion is required and is used to log the deletion reason and inform listeners about the deletion
      * and its reasoning.
+     *
      * @param reason the reason for the deletion.
      * @return a {@link CompletableFuture} containing the amount of affected rows and punishments.
      */
@@ -201,4 +213,52 @@ public interface NecrifyUser extends CommandSender {
      */
     @NotNull
     Locale getLocale();
+
+    /**
+     * Gets the current template stage of the given template. If this user has no punishments applied through this template,
+     * this method will return an empty optional.
+     *
+     * @param template the template to get the current stage for
+     * @return the current stage of the template for this user or an empty optional
+     * @since 1.2.3
+     */
+    @NotNull Optional<NecrifyTemplateStage> getCurrentTemplateStage(@NotNull NecrifyTemplate template);
+
+    /**
+     * Gets the next template stage of the given template. If this user has no punishments applied through this template,
+     * this method will return the first stage of the template.
+     * <p>If the user already maxed out this template, this method may throw an error.</p>
+     *
+     * @param template the template to get the next stage for
+     * @return the next stage of the template for this user
+     * @throws IllegalStateException if the user already maxed out this template
+     * @since 1.2.3
+     */
+    @NotNull
+    NecrifyTemplateStage getNextTemplateStage(@NotNull NecrifyTemplate template);
+
+    /**
+     * Punishes the user with the given template. This method will automatically determine the next stage of the template
+     * and use it to punish the user. If the user already maxed out this template, this method may throw an error.
+     *
+     * @param template the template to use for the punishment
+     * @return the punishment object representing the punishment contained in a {@link CompletableFuture} if the operation completed successfully
+     * @throws IllegalStateException if the user already maxed out this template
+     * @see #getNextTemplateStage(NecrifyTemplate)
+     * @since 1.2.3
+     */
+    @NotNull
+    CompletableFuture<Punishment> punishModelled(@NotNull NecrifyTemplate template);
+
+    /**
+     * Amnesties this user regarding the given template meaning a reset of the user-bound stage index of this template.
+     * If {@code stageIndex == 0}, this user will receive full amnesty regarding the template. {@code stageIndex} always
+     * marks the index of a stage that this user would receive as soon as punished again through the template.
+     * @param template the template to use for the amnesty
+     * @param stageIndex the stage index that would be received by this user after amnesty
+     * @return a {@link CompletableFuture}
+     * @since 1.2.3
+     * @throws IllegalArgumentException if {@code stageIndex} is negative or greater than the maximum stage index of the given template
+     */
+    CompletableFuture<Void> amnesty(@NotNull NecrifyTemplate template, int stageIndex);
 }

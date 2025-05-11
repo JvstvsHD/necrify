@@ -20,6 +20,8 @@ package de.jvstvshd.necrify.api.punishment;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -83,6 +85,16 @@ public final class PunishmentTypeRegistry {
             throw new IllegalArgumentException("No punishment type found for ID: " + id);
         }
         return createPunishment(type, data);
+    }
+
+    /**
+     * Returns a copy of a list containing this registry's registered punishment types.
+     * @return a list containing all registered punishment types
+     * @since 1.2.2
+     */
+    @NotNull
+    public static Collection<PunishmentType> getPunishmentTypes() {
+        return new ArrayList<>(types.values());
     }
 
     private PunishmentTypeRegistry() {
