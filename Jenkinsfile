@@ -14,9 +14,8 @@ pipeline {
         }
         stage('Publish to Hangar') {
             when {
-                anyOf {
-                    branch 'master'
-                    branch 'origin/master'
+                expression {
+                    return env.GIT_BRANCH == 'origin/master'
                 }
             }
             steps {
