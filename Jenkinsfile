@@ -14,7 +14,10 @@ pipeline {
         }
         stage('Publish to Hangar') {
             when {
-                branch 'master'
+                anyOf {
+                    branch 'master'
+                    branch 'origin/master'
+                }
             }
             steps {
                 sh './gradlew publishAllPublicationsToHangar'
