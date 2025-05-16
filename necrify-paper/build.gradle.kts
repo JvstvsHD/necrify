@@ -2,7 +2,7 @@ plugins {
     java
     `java-library`
     id("com.gradleup.shadow")
-    id("net.minecrell.plugin-yml.paper") version "0.6.0"
+    id("de.eldoria.plugin-yml.paper") version "0.7.1"
     id("io.papermc.hangar-publish-plugin")
 }
 
@@ -13,6 +13,28 @@ dependencies {
     compileOnly(libs.paper.api)
     api(projects.necrifyCommon)
     api(libs.bundles.jackson)
+
+    //workaround, so that only the real dependencies are downloaded by paper and not the common module, which already
+    //is included in the JAR
+    configurations {
+        //API configuration is not resolvable, so the following code after this would fail
+        val resolvedApi by creating {
+            extendsFrom(configurations.api.get())
+            isCanBeResolved = true
+            isCanBeConsumed = true
+        }
+
+        resolvedApi.incoming.resolutionResult.allDependencies
+            .filterIsInstance<ResolvedDependencyResult>()
+            .flatMap { it.selected.dependencies }
+            .filter { it.from.id is ProjectComponentIdentifier }
+            .filter { it.requested is ModuleComponentSelector }
+            .forEach {
+                with(it.requested as ModuleComponentSelector) {
+                    library("${group}:${module}:${version}")
+                }
+            }
+    }
 }
 
 tasks {
@@ -26,34 +48,16 @@ tasks {
             //in the shadow jar. This increases the size of the jar from ~185KB to ~2.7MB.
             //https://forums.papermc.io/threads/conflicting-jackson-databind-versions-starting-in-1-21-3.1537/#post-4360
             include { it.moduleGroup.startsWith("com.fasterxml.jackson") }
-            exclude { it.moduleGroup != "com.fasterxml.jackson.core" &&
-                    (it.moduleGroup == "de.jvstvshd.necrify.common" || it.moduleGroup == "de.jvstvshd.necrify.api") }
+            exclude {
+                it.moduleGroup != "com.fasterxml.jackson.core" &&
+                        (it.moduleGroup == "de.jvstvshd.necrify.common" || it.moduleGroup == "de.jvstvshd.necrify.api")
+            }
 
         }
         relocate("com.fasterxml.jackson", "de.jvstvshd.necrify.lib.jackson")
     }
     build {
         dependsOn(shadowJar)
-    }
-    /*
-     This is a hacky workaround to exclude all those dependencies from being loaded by paper that are in this project
-     (plugin-common, api). Maybe I should be taken to the International Criminal Court for this
-     */
-    generatePaperPluginDescription {
-        val field = librariesRootComponent.get()::class.java.getDeclaredField("dependencies")
-        field.isAccessible = true
-        val set = field.get(librariesRootComponent.get()) as LinkedHashSet<DependencyResult>
-        val configuration = project(":necrify-common").configurations.getByName("runtimeClasspath")
-        val resolutionResult = configuration.incoming.resolutionResult
-        set.clear()
-        set.addAll(
-            resolutionResult.allDependencies
-                .filter { it.from.id is ProjectComponentIdentifier }
-                .filter { it.requested is ModuleComponentSelector }
-                //https://forums.papermc.io/threads/conflicting-jackson-databind-versions-starting-in-1-21-3.1537/#post-4360
-                //jackson libraries need to be included directly
-                .filterNot { it.toString().contains("com.fasterxml.jackson") },
-        )
     }
 }
 

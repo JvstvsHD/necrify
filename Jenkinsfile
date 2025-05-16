@@ -1,24 +1,46 @@
 pipeline {
     agent any
-    options {
-        disableConcurrentBuilds()
-    }
     stages {
-        stage('Checkout') {
+        stage('Build Project') {
             steps {
-                checkout changelog: true, poll: true, scm: [$class: 'GitSCM', branches: [[name: '*/1.2-dev']]]
+                sh './gradlew clean alljavadoc --stacktrace -Pbuildnumber=$BUILD_NUMBER'
             }
         }
-
-        stage('Build') {
+        stage('Publish to Hangar') {
+            when {
+                branch 'master'
+            }
             steps {
-                sh './gradlew build --stacktrace'
+                sh './gradlew publishAllPublicationsToHangar'
             }
         }
-        stage('Archive artifacts') {
+        stage('Publish via SSH') {
             steps {
-                archiveArtifacts artifacts: 'plugin/build/libs/necrify*.jar, paper-extension/build/libs/necrify-*.jar'
+                sshPublisher(
+                    publishers: [
+                        sshPublisherDesc(
+                            configName: 'my-ssh-server',   // Defined in Jenkins config
+                            transfers: [
+                                sshTransfer(
+                                    sourceFiles: 'build/docs/**',
+                                    removePrefix: 'build/docs',      // Optional, removes this path prefix
+                                    remoteDirectory: '/var/www/javadocs/myproject',
+                                    execCommand: 'echo "Deployed!"' // Optional remote command
+                                )
+                            ],
+                            usePromotionTimestamp: false,
+                            verbose: true
+                        )
+                    ]
+                )
             }
+        }
+    }
+    post {
+        success {
+            archiveArtifacts artifacts: 'necrify-velocity/build/libs/Necrify-Velocity*.jar',
+            allowEmptyArchive: true
+            archiveArtifacts artifacts: 'necrify-paper/build/libs/Necrify-Paper*.jar', allowEmptyArchive: true
         }
     }
 }
