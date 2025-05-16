@@ -1,9 +1,15 @@
 pipeline {
     agent any
     stages {
+        stage('Debug') {
+            steps {
+                echo "GIT_BRANCH: ${env.GIT_BRANCH}"
+                echo "BRANCH_NAME: ${env.BRANCH_NAME}"
+            }
+        }
         stage('Build Project') {
             steps {
-                sh './gradlew clean alljavadoc --stacktrace -Pbuildnumber=$BUILD_NUMBER'
+                sh './gradlew clean build alljavadoc --stacktrace -Pbuildnumber=$BUILD_NUMBER'
             }
         }
         stage('Publish to Hangar') {
@@ -19,13 +25,12 @@ pipeline {
                 sshPublisher(
                     publishers: [
                         sshPublisherDesc(
-                            configName: 'my-ssh-server',   // Defined in Jenkins config
+                            configName: 'server',
                             transfers: [
                                 sshTransfer(
-                                    sourceFiles: 'build/docs/**',
-                                    removePrefix: 'build/docs',      // Optional, removes this path prefix
-                                    remoteDirectory: '/var/www/javadocs/myproject',
-                                    execCommand: 'echo "Deployed!"' // Optional remote command
+                                    sourceFiles: 'build/docs/javadoc/**',
+                                    removePrefix: 'build/docs/javadoc',
+                                    remoteDirectory: '/var/www/jd/necrify'
                                 )
                             ],
                             usePromotionTimestamp: false,
