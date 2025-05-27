@@ -6,6 +6,7 @@ plugins {
     id("io.papermc.hangar-publish-plugin")
     id("dev.vankka.dependencydownload.plugin") version "1.3.1"
     id("net.kyori.blossom") version "2.1.0"
+    id("com.modrinth.minotaur") version "2.+"
 }
 
 version = rootProject.version

@@ -1,3 +1,5 @@
+import com.modrinth.minotaur.Minotaur
+import com.modrinth.minotaur.ModrinthExtension
 import io.papermc.hangarpublishplugin.model.Platforms
 import net.kyori.indra.licenser.spotless.IndraSpotlessLicenserPlugin
 import java.util.*
@@ -8,6 +10,7 @@ plugins {
     id("io.papermc.hangar-publish-plugin") version "0.1.2"
     id("com.gradleup.shadow") version "8.3.6" apply false
     id("net.kyori.indra.licenser.spotless") version "3.1.3"
+    id("com.modrinth.minotaur") version "2.+" apply false
     java
 }
 
@@ -98,6 +101,28 @@ subprojects {
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+    if (project.name == "necrify-paper" || project.name == "necrify-velocity") {
+        apply {
+            plugin<Minotaur>()
+        }
+        afterEvaluate {
+            configure<ModrinthExtension> {
+                syncBodyFrom = rootProject.file("README.md").path
+                token.set(System.getenv("MODRINTH_TOKEN"))
+                projectId.set("necrify")
+                versionNumber.set(buildVersion())
+                versionType.set(if (!rootProject.isRelease) "beta" else "release")
+                uploadFile.set(tasks.findByName("shadowJar"))
+                gameVersions.addAll(property("gameVersions").toString().split(",").map { it.trim() })
+                loaders.add(property("loader").toString())
+                if (!rootProject.isRelease) {
+                    changelog.set(changelogMessage())
+                } else {
+                    changelog.set("Changes will be provided shortly.\nComplete changelog can be found on GitHub: https://www.github.com/JvstvsHD/necrify/releases/tag/v${rootProject.version}")
                 }
             }
         }

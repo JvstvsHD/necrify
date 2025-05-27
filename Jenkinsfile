@@ -19,7 +19,7 @@ pipeline {
                 }
             }
             steps {
-                sh './gradlew publishAllPublicationsToHangar'
+                sh './gradlew publishAllPublicationsToHangar modrinth modrinthSyncBody'
             }
         }
         stage('Publish via SSH') {
