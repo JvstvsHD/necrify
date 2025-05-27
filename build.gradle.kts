@@ -111,7 +111,7 @@ subprojects {
         }
         afterEvaluate {
             configure<ModrinthExtension> {
-                syncBodyFrom = rootProject.file("README.md").path
+                syncBodyFrom = rootProject.file("README.md").readText()
                 token.set(System.getenv("MODRINTH_TOKEN"))
                 projectId.set("necrify")
                 versionNumber.set(buildVersion())

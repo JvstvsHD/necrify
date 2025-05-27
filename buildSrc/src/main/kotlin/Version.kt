@@ -9,7 +9,7 @@ fun Project.buildNumber(): String? {
     if (hasProperty("buildnumber")) {
         return property("buildnumber").toString()
     }
-    return System.getenv("GITHUB_RUN_NUMBER")
+    return System.getenv("BUILD_NUMBER") ?: System.getenv("GITHUB_RUN_NUMBER") //Jenkins and Github
 }
 
 fun Project.publishingVersion(): String {
