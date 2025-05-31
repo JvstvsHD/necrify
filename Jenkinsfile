@@ -7,6 +7,18 @@ pipeline {
                 echo "BRANCH_NAME: ${env.BRANCH_NAME}"
             }
         }
+        stage('Check Committer') {
+            steps {
+                script {
+                    def author = sh(script: "git log -1 --pretty=%an", returnStdout: true).trim()
+                    if (author == 'Renovate Bot' || author == 'renovate[bot]') {
+                        echo "Skipping pipeline: triggered by Renovate."
+                        currentBuild.result = 'SUCCESS'
+                        return
+                    }
+                }
+            }
+        }
         stage('Build Project') {
             steps {
                 sh './gradlew clean build alljavadoc --stacktrace -Pbuildnumber=$BUILD_NUMBER'
