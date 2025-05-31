@@ -2,7 +2,10 @@ import com.modrinth.minotaur.Minotaur
 import com.modrinth.minotaur.ModrinthExtension
 import io.papermc.hangarpublishplugin.model.Platforms
 import net.kyori.indra.licenser.spotless.IndraSpotlessLicenserPlugin
+import java.nio.file.Files
 import java.util.*
+import kotlin.io.path.createFile
+import kotlin.io.path.writeText
 
 plugins {
     `maven-publish`
@@ -170,9 +173,6 @@ tasks {
             "implNote:a:Implementation Note"
         )
         sjd.bottom("© 2025 JvstvsHD | <a href=\"https://docs.jvstvshd.de/necrify/\">Tutorials & further documenation</a> | <a href=\"https://github.com/JvstvsHD/necrify\">Github</a> | <a href=\"https://jd.jvstvshd.de/necrify/\">Return to version list</a>")
-        //"""e
-        //            <a href=\"https://jd.jvstvshd.de/necrify/\">Return to version list</a>
-        //            """.trimMargin()
         val projects = rootProject.allprojects
         setSource(projects.map { project -> project.sourceSets.main.get().allJava })
         classpath = files(projects.map { project -> project.sourceSets.main.get().compileClasspath })
@@ -180,15 +180,13 @@ tasks {
             file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/${rootProject.version}")
         setDestinationDir(destinationDirectory)
         doLast {
-            /*try {
-                Documentation.buildJavadocIndexFile(file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/index.html").toPath(), rootProject.version.toString())
-            } catch (e: Exception) {
-                logger.error("Failed to build Javadoc index file", e)
-            }*/
             copy {
                 from(destinationDirectory)
                 into(file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/latest"))
             }
+            //version file is used by Jenkins
+            val versionFile = kotlin.io.path.Path("${rootProject.layout.buildDirectory.get()}/docs/javadoc/version.txt").createFile()
+            versionFile.writeText(rootProject.version.toString())
         }
     }
 }
