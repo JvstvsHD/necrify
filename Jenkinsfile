@@ -35,6 +35,14 @@ pipeline {
                                     remoteDirectory: '/var/www/jd/necrify'
                                 )
                             ],
+                            execCommand: '''bash -c '
+                              dir=$(<build/docs/javadoc/version.txt)
+                              if [ -d "$dir" ]; then
+                                touch "$dir"
+                              fi
+                              touch "latest"
+                              rm version.txt
+                            ' ''',
                             usePromotionTimestamp: false,
                             verbose: true
                         )
