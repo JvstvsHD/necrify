@@ -580,7 +580,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://hangar.papermc.io/JvstvsHD/Necrify/versions/" class="md-nav__link">
+      <a href="https://hangar.papermc.io/JvstvsHD/Necrify/versions?channel=Release" class="md-nav__link">
         
   
   
@@ -615,38 +615,44 @@
 
 
 <h1 id="necrify">Necrify</h1>
-<p>Necrify is a Minecraft plugin designed for currently<a href="https://velocitypowered.com">Velocity</a> (and
+<p>Necrify is a Minecraft plugin designed for currently <a href="https://velocitypowered.com">Velocity</a> (and
 maybe <a href="https://github.com/users/JvstvsHD/projects/5">Paper + Fabric in the future</a>). It comprises many ways to manage punishments for server users such as bans and mutes
 and is currently translated for English and German. It also has capabilities for whitelist management.<br></p>
 <h2 id="why-necrify">Why Necrify?</h2>
-<p>Necrify offers many easy-to-use commands with great auto-completion. If you want to style your reasons, you can use the
-<a href="https://docs.advntr.dev/minimessage/format.html">MiniMessage</a> format (You can try this
-out <a href="https://webui.advntr.dev">here</a>):</p>
-<figure>
-<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img alt="Example for MiniMessage auto-completion preview" src="assets/images/minimessage-autocompletion.png" /></a></p>
-<figcaption>
-<p>You can preview reasons when hovering over the auto-completion</p>
-</figcaption>
-</figure>
-<p>The same applies for durations. Here, Necrify tells you when you're duration is not correct. More about that on 
-the <a href="commands/#duration">commands page</a>:</p>
-<figure>
-<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img align="left" alt="Example for Duration format preview" src="assets/images/duration-autocompletion-correct.png" /></a>
-<a class="glightbox" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img align="right" alt="Example for Duration format preview" src="assets/images/duration-autocompletion-error.png" /></a></p>
-<figcaption></figcaption>
-</figure>
-<p>Moreover, Necrify has a great API for developers to use. You can find more about that on the <a href="api-usage/">API usage page</a>.</p>
+<p>Necrify offers the following features:</p>
+<ul>
+<li><mark>bans, mutes and kicks</mark>: each punishment has a log where you can see who did what when</li>
+<li><mark>whitelist</mark>: set players on whitelist to let only your friends on your server (must be enabled in config)</li>
+<li><mark>user management</mark>: Necrify creates a user per player</li>
+<li><mark>templates of penalties with individual stages</mark>: Users start at the first stage, which has the lowest penalty. After
+  a user has broken the same rule again, the next stage is applied and so on.</li>
+<li>
+<p><mark>user-friendly auto-completion:</mark>
+  If you want to style your reasons, you can use the <a href="https://docs.advntr.dev/minimessage/format.html">MiniMessage</a> format (You can try this out <a href="https://webui.advntr.dev">here</a>):
+  You can preview reasons when hovering over the auto-completion. The same applies for durations. Here, Necrify tells you when you're duration is not correct. More about that on
+  the <a href="commands/#duration">commands page</a>:
+  <a class="glightbox" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img alt="Example for MiniMessage auto-completion preview" src="assets/images/minimessage-autocompletion.png" /></a>
+  <a class="glightbox" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img alt="Example for Duration format preview" src="assets/images/duration-autocompletion-correct.png" /></a>
+  <a class="glightbox" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img alt="Example for Duration format preview" src="assets/images/duration-autocompletion-error.png" /></a> </p>
+</li>
+<li>
+<p>Moreover, Necrify has a <mark>great API</mark> for developers to use that lets you expand the scope. 
+  You can find more about that on the <a href="api-usage/">API usage page</a>.</p>
+</li>
+</ul>
 <h2 id="plugin-installation">Plugin installation</h2>
 <ol>
-<li><a href="https://hangar.papermc.io/JvstvsHD/Necrify/versions">Download the latest version of the plugin</a> or download dev
+<li>Download the latest version of the plugin from <a href="https://hangar.papermc.io/JvstvsHD/Necrify/versions">Hangar</a>
+   or <a href="https://modrinth.com/plugin/necrify">Modrinth</a> or download dev
    builds <a href="https://ci.jvstvshd.de/job/Necrify/">here</a> (may be unstable or not working)</li>
 <li>Put the downloaded file into the <code>plugins</code> folder of your server.</li>
 <li>(Re-)Start the server.</li>
 </ol>
 <div class="admonition warning">
-<p class="admonition-title">Snapshot builds</p>
-<p>Snapshot builds are not stable and may contain bugs. They are not recommended for production use. Use them at
-your own risk and only for testing purposes.</p>
+<p class="admonition-title">Snapshot and development builds</p>
+<p>Snapshot and development builds are builds that are created during development. They are published to test new features
+in advance, but may contain unfinished and/or untested features, thus making them not stable. They are not recommended 
+for production use. Use them at your own risk and only for testing purposes, whilst keeping a backup.</p>
 </div>
 <h2 id="mutes-on-velocity">Mutes on Velocity</h2>
 <div class="admonition bug">
@@ -687,7 +693,7 @@ the <a href="https://www.minecraft.net/en-us/article/minecraft-java-edition-1-19
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 16, 2025 15:10:49 UTC">February 16, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 3, 2025 16:43:18 UTC">June 3, 2025</span>
   </span>
 
     
