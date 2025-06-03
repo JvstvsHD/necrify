@@ -7,41 +7,42 @@ description: Home page of Necrify with general information about the plugin.
 
 # Necrify
 
-Necrify is a Minecraft plugin designed for currently[Velocity](https://velocitypowered.com) (and
+Necrify is a Minecraft plugin designed for currently [Velocity](https://velocitypowered.com) (and
 maybe [Paper + Fabric in the future](https://github.com/users/JvstvsHD/projects/5)). It comprises many ways to manage punishments for server users such as bans and mutes
 and is currently translated for English and German. It also has capabilities for whitelist management.<br>
 
 ## Why Necrify?
 
-Necrify offers many easy-to-use commands with great auto-completion. If you want to style your reasons, you can use the
-[MiniMessage](https://docs.advntr.dev/minimessage/format.html) format (You can try this
-out [here](https://webui.advntr.dev)):
+Necrify offers the following features:
 
-![Example for MiniMessage auto-completion preview](assets/images/minimessage-autocompletion.png)
-///caption
-You can preview reasons when hovering over the auto-completion
-///
-
-The same applies for durations. Here, Necrify tells you when you're duration is not correct. More about that on 
-the [commands page](commands.md#duration):
-
-![Example for Duration format preview](assets/images/duration-autocompletion-correct.png){ align=left }
-![Example for Duration format preview](assets/images/duration-autocompletion-error.png){ align=right }
-///caption
-///
-
-Moreover, Necrify has a great API for developers to use. You can find more about that on the [API usage page](api-usage.md).
+- ==bans, mutes and kicks==: each punishment has a log where you can see who did what when
+- ==whitelist==: set players on whitelist to let only your friends on your server (must be enabled in config)
+- ==user management==: Necrify creates a user per player
+- ==templates of penalties with individual stages==: Users start at the first stage, which has the lowest penalty. After
+  a user has broken the same rule again, the next stage is applied and so on.
+- ==user-friendly auto-completion:==
+  If you want to style your reasons, you can use the [MiniMessage](https://docs.advntr.dev/minimessage/format.html) format (You can try this out [here](https://webui.advntr.dev)):
+  You can preview reasons when hovering over the auto-completion. The same applies for durations. Here, Necrify tells you when you're duration is not correct. More about that on
+  the [commands page](commands.md#duration):
+  ![Example for MiniMessage auto-completion preview](assets/images/minimessage-autocompletion.png)
+  ![Example for Duration format preview](assets/images/duration-autocompletion-correct.png)
+  ![Example for Duration format preview](assets/images/duration-autocompletion-error.png) 
+  
+- Moreover, Necrify has a ==great API== for developers to use that lets you expand the scope. 
+  You can find more about that on the [API usage page](api-usage.md).
 
 ## Plugin installation
 
-1. [Download the latest version of the plugin](https://hangar.papermc.io/JvstvsHD/Necrify/versions) or download dev
+1. Download the latest version of the plugin from [Hangar](https://hangar.papermc.io/JvstvsHD/Necrify/versions)
+   or [Modrinth](https://modrinth.com/plugin/necrify) or download dev
    builds [here](https://ci.jvstvshd.de/job/Necrify/) (may be unstable or not working)
 2. Put the downloaded file into the ```plugins``` folder of your server.
 3. (Re-)Start the server.
 
-!!! warning "Snapshot builds"
-    Snapshot builds are not stable and may contain bugs. They are not recommended for production use. Use them at
-    your own risk and only for testing purposes.
+!!! warning "Snapshot and development builds"
+    Snapshot and development builds are builds that are created during development. They are published to test new features
+    in advance, but may contain unfinished and/or untested features, thus making them not stable. They are not recommended 
+    for production use. Use them at your own risk and only for testing purposes, whilst keeping a backup.
 
 ## Mutes on Velocity
 !!! bug "Mutes on Velocity"

@@ -186,4 +186,30 @@ the plugin.
     - {--`/necrify whitelist on` enables the whitelist--} currently suspended
     - {--`/necrify whitelist off` disables the whitelist--} currently suspended
 
-Last version of this page: according to plugin version 1.2.2
+### createtemplate
+**Usage:** `/necrify createtemplate <template_name>`
+This command creates a new template. A template is a set of stages designed for handling recurring punishments, such as 
+cheating or chat misuse. For every new rule break, the next stage is applied, which results in more rigid punishments the
+next time (you can, of course, add a later stage with a punishment with lesser duration).
+
+??? example "Example command"
+    `/necrify createtemplate cheating`
+
+### template
+This command is used to manage and view templates and stages. The following sub-commands exist:
+
+- template <template\> ==info==: shows template stages
+- template <template\> ==delete==: deletes the template
+- !!! tip inline end "Creation of stages"
+    in a future release, this command will get replaced with a creation wizard where you can type in all needed values
+  template <template\> ==addstage== <duration\> <type\> <reason\>: adds a new stage to the template that will apply a punishment
+  of the given type (all available types will be shown) while using the given [duration](#duration)
+- template <template\> ==remove== <index\>: removes the specified stage (index is visible through the info command) from this template
+- template <template\> ==apply== <user\>: Applies the punishment of the user's current stage
+- template <template\> ==amnesty== <target\>: Amnesties the target user regarding the template. This means, the current stage this user
+  is at will be reset. Through `--to <number>`, you can specify the stage to which this should be reset, whereas 0 is a total reset
+  and, for example, 1 means, that the next stage applied is stage 2. Against this command's name, this can also be used to increase
+  the current stage of this user regarding the specified template.
+- template <template\> ==state== <target\>: Displays the stage last applied to this user and the next stage to be applied
+
+Last version of this page: according to plugin version 1.2.3

@@ -74,7 +74,7 @@ Example: <b>1d12h15m30s</b> means a duration of 1 day, 12 hours, 15 minutes and 
 
 ### Installation
 
-Replace ```{version}``` with the current version, e.g. 1.0.0. The latest version can be found [here](https://ci.jvstvshd.de/job/Necrify/lastSuccessfulBuild/).
+Replace ```{version}``` with the current version, e.g. 1.2.3. The latest version can be found [here](https://ci.jvstvshd.de/job/Necrify/lastSuccessfulBuild/).
 Note that you only want to use the string after necrify-{platform}- and without the version build number.
 
 #### Gradle (kotlin)

@@ -87,7 +87,7 @@ nav:
     - Javadocs:
         - Latest Javadoc↗: https://jd.jvstvshd.de/necrify/latest/
         - All Javadocs↗: https://jd.jvstvshd.de/necrify/
-    - Latest release ↗: https://hangar.papermc.io/JvstvsHD/Necrify/versions/
+    - Latest release ↗: https://hangar.papermc.io/JvstvsHD/Necrify/versions?channel=Release
 
 plugins:
   - tags
