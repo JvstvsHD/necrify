@@ -20,7 +20,6 @@ package de.jvstvshd.necrify.api.message;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -204,8 +203,7 @@ public interface MessageProvider {
 
     /**
      * Returns whether this message provider automatically prefixes messages. If this is true, the message provider will
-     * automatically prefix messages with the result of {@link #prefix()}. This behaviour can be bypassed by using an
-     * {@link #unprefixedProvider()}, though this will only be supported on autoPrefixed variants.
+     * automatically prefix messages with the result of {@link #prefix()}.
      *
      * @return whether this message provider automatically prefixes messages.
      */
@@ -220,19 +218,4 @@ public interface MessageProvider {
      * @since 1.2.0/1.2.2
      */
     MessageProvider autoPrefixed(boolean autoPrefixed);
-
-    /**
-     * Returns a new message provider that does not prefix messages.
-     *
-     * @return a new message provider that does not prefix messages.
-     * @throws UnsupportedOperationException if this message provider does not support changing the auto-prefixing
-     *                                       behavior (default behaviour) or does not have a fixed auto-prefix setting
-     * @deprecated since 1.2.2, MessageProvider offers possibilities to change the auto-prefixing behavior by calling
-     * {@link #autoPrefixed(boolean)}. This method is deprecated and will be removed in 1.3.0.
-     */
-    @Deprecated(forRemoval = true)
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.3.0")
-    default MessageProvider unprefixedProvider() {
-        throw new UnsupportedOperationException("This message provider does not support changing the auto-prefixing behavior.");
-    }
 }

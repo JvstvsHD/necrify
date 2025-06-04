@@ -81,12 +81,6 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
         return executorService;
     }
 
-    @Override
-    @Deprecated(forRemoval = true)
-    public @NotNull ExecutorService getService() {
-        return getExecutor();
-    }
-
     /**
      * Registers the punishment types of the plugin to the {@link PunishmentTypeRegistry}. This method should be called
      * before any user-input is processed, as the registry is used to determine the type of punishment that should be created.
@@ -143,9 +137,7 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
                 });
         manager.exceptionController()
                 .registerHandler(ArgumentParseException.class, ExceptionHandler.unwrappingHandler(TemplateParser.ParseException.class))
-                .registerHandler(TemplateParser.ParseException.class, context -> {
-                    context.context().sender().sendMessage("command.template.not-found", NamedTextColor.RED, Component.text(context.exception().getTemplate(), NamedTextColor.YELLOW));
-                });
+                .registerHandler(TemplateParser.ParseException.class, context -> context.context().sender().sendMessage("command.template.not-found", NamedTextColor.RED, Component.text(context.exception().getTemplate(), NamedTextColor.YELLOW)));
         manager.exceptionController()
                 .registerHandler(CommandExecutionException.class, ExceptionHandler.unwrappingHandler(Throwable.class))
                 .registerHandler(Throwable.class, context -> {
@@ -215,6 +207,7 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
      * @param <T>            the type of the punishment
      * @return the punishment or null if it could not be found
      */
+    @SuppressWarnings("unchecked")
     public <T extends Punishment> T getHistoricalPunishment(UUID punishmentUuid) {
         var cached = historicalPunishmentCache.getIfPresent(punishmentUuid);
         if (cached != null) {

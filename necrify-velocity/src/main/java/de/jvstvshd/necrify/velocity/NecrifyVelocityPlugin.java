@@ -58,9 +58,6 @@ import de.jvstvshd.necrify.api.event.origin.EventOrigin;
 import de.jvstvshd.necrify.api.event.user.UserLoadedEvent;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
-import de.jvstvshd.necrify.api.punishment.PunishmentManager;
-import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
-import de.jvstvshd.necrify.api.template.NecrifyTemplate;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserManager;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
@@ -75,8 +72,6 @@ import de.jvstvshd.necrify.common.user.PostgresPunishmentLogUpdater;
 import de.jvstvshd.necrify.common.user.UserLoader;
 import de.jvstvshd.necrify.common.util.Updater;
 import de.jvstvshd.necrify.common.util.Util;
-import de.jvstvshd.necrify.velocity.impl.DefaultPlayerResolver;
-import de.jvstvshd.necrify.velocity.impl.DefaultPunishmentManager;
 import de.jvstvshd.necrify.velocity.impl.VelocityKick;
 import de.jvstvshd.necrify.velocity.listener.ConnectListener;
 import de.jvstvshd.necrify.velocity.user.VelocitySystemUser;
@@ -124,9 +119,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
             If you use 1.19 or lower you will not be affected by this.""".replace("\n", " ");
     private final Path dataDirectory;
     public static final ChannelIdentifier MUTE_DATA_CHANNEL_IDENTIFIER = MinecraftChannelIdentifier.from(MuteData.MUTE_DATA_CHANNEL_IDENTIFIER);
-    private PunishmentManager punishmentManager;
     private HikariDataSource dataSource;
-    private PlayerResolver playerResolver;
     private MessageProvider messageProvider;
     private UserManager userManager;
     private final MessagingChannelCommunicator communicator;
@@ -153,7 +146,6 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         this.server = server;
         this.dataDirectory = dataDirectory;
         this.communicator = new MessagingChannelCommunicator(server, this);
-        this.playerResolver = new DefaultPlayerResolver(server);
         this.eventDispatcher = new EventDispatcher(getExecutor(), new Slf4jLogger(logger));
     }
 
@@ -194,7 +186,6 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         this.systemUser = new VelocitySystemUser(this, server.getConsoleCommandSource());
         dataSource = createDataSource();
         QueryConfiguration.setDefault(QueryConfiguration.builder(dataSource).setThrowExceptions(true).build());
-        punishmentManager = new DefaultPunishmentManager(server, dataSource, this);
         registerFactories();
         this.userManager = new VelocityUserManager(getExecutor(), server, Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build(), Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build(), this);
         if (configurationManager.getConfiguration().getDataBaseData().getSqlType().startsWith("postgres")) {
@@ -239,7 +230,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         }, builder -> builder.to(necrifyUserParser -> StringArgumentType.greedyString()).nativeSuggestions());
     }
 
-    @SuppressWarnings({"unchecked", "UnstableApiUsage", "SwitchStatementWithTooFewBranches"})
+    @SuppressWarnings({"unchecked", "SwitchStatementWithTooFewBranches"})
     private HikariDataSource createDataSource() {
         var dbData = configurationManager.getConfiguration().getDataBaseData();
         NecrifyDatabase.SQL_TYPE = dbData.sqlType().name().toLowerCase();
@@ -285,7 +276,6 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         };
     }
 
-    @SuppressWarnings("UnstableApiUsage")
     private void updateDatabase() throws IOException, SQLException {
         ThrowingConsumer<Connection, SQLException> preUpdateHook = connection -> {
             var updatedReasons = Query.query("SELECT reason, punishment_id FROM necrify_punishment WHERE reason LIKE '%§%';")
@@ -329,26 +319,6 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
                     .single(Call.of().bind(sqlVersion.patch() - 1))
                     .update();
         }
-    }
-
-    @Override
-    public PunishmentManager getPunishmentManager() {
-        return punishmentManager;
-    }
-
-    @Override
-    public void setPunishmentManager(PunishmentManager punishmentManager) {
-        this.punishmentManager = punishmentManager;
-    }
-
-    @Override
-    public PlayerResolver getPlayerResolver() {
-        return playerResolver;
-    }
-
-    @Override
-    public void setPlayerResolver(PlayerResolver playerResolver) {
-        this.playerResolver = playerResolver;
     }
 
     public ProxyServer getServer() {

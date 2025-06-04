@@ -21,11 +21,8 @@ package de.jvstvshd.necrify.api;
 import de.jvstvshd.necrify.api.event.EventDispatcher;
 import de.jvstvshd.necrify.api.message.MessageProvider;
 import de.jvstvshd.necrify.api.punishment.Punishment;
-import de.jvstvshd.necrify.api.punishment.PunishmentManager;
-import de.jvstvshd.necrify.api.punishment.util.PlayerResolver;
 import de.jvstvshd.necrify.api.template.TemplateManager;
 import de.jvstvshd.necrify.api.user.UserManager;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -60,45 +57,6 @@ import java.util.concurrent.ExecutorService;
  * @version 1.0.0
  */
 public interface Necrify {
-
-    /**
-     * @deprecated Will be removed with {@link PunishmentManager}.
-     */
-    @Deprecated(since = "1.2.0", forRemoval = true)
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.3.0")
-    PunishmentManager getPunishmentManager();
-
-    /**
-     * @deprecated Will be removed with {@link PunishmentManager}.
-     */
-    @Deprecated(since = "1.2.0", forRemoval = true)
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.3.0")
-    void setPunishmentManager(PunishmentManager punishmentManager);
-
-    /**
-     * @deprecated Will be removed with {@link PunishmentManager}.
-     */
-    @Deprecated(since = "1.2.0", forRemoval = true)
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.3.0")
-    PlayerResolver getPlayerResolver();
-
-    /**
-     * @deprecated Will be removed with {@link PunishmentManager}.
-     */
-    @Deprecated(since = "1.2.0", forRemoval = true)
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.3.0")
-    void setPlayerResolver(PlayerResolver playerResolver);
-
-    /**
-     * Returns the executor service used by the plugin.
-     *
-     * @return the executor service.
-     * @deprecated Rename in favor of {@link #getExecutor()}.
-     */
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.3.0")
-    @Deprecated(since = "1.2.0", forRemoval = true)
-    @NotNull
-    ExecutorService getService();
 
     /**
      * Returns the executor service used by the plugin. This {@link ExecutorService} is used for asynchronous operations,

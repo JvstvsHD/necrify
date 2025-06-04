@@ -27,7 +27,6 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.kyori.adventure.translation.TranslationRegistry;
 import net.kyori.adventure.translation.Translator;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -170,15 +169,5 @@ public class ResourceBundleMessageProvider implements MessageProvider {
     @Override
     public MessageProvider autoPrefixed(boolean autoPrefixed) {
         return new ResourceBundleMessageProvider(defaultLocale, autoPrefixed);
-    }
-
-    @Deprecated(forRemoval = true)
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.3.0")
-    @Override
-    public MessageProvider unprefixedProvider() {
-        if (!autoPrefixed) {
-            return this;
-        }
-        return new ResourceBundleMessageProvider(defaultLocale, false);
     }
 }
