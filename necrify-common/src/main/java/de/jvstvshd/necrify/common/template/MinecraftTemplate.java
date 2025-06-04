@@ -86,7 +86,7 @@ public class MinecraftTemplate implements NecrifyTemplate {
     @Override
     public CompletableFuture<Integer> delete() {
         return Util.executeAsync(() -> {
-            var rows = Query.query("DELETE FROM necrify_template WHERE name = ?")
+            var rows = Query.query("DELETE FROM necrify_punishment_template WHERE name = ?;")
                     .single(Call.of().bind(name))
                     .delete().rows();
             ((MinecraftTemplateManager) plugin.getTemplateManager()).removeTemplate(name);

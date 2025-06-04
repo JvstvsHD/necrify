@@ -29,6 +29,7 @@ import de.jvstvshd.necrify.api.template.TemplateManager;
 import de.jvstvshd.necrify.api.user.NecrifyUser;
 import de.jvstvshd.necrify.api.user.UserDeletionReason;
 import de.jvstvshd.necrify.common.AbstractNecrifyPlugin;
+import de.jvstvshd.necrify.common.BuildParameters;
 import de.jvstvshd.necrify.common.config.ConfigData;
 import de.jvstvshd.necrify.common.template.MinecraftTemplateStage;
 import de.jvstvshd.necrify.common.util.PunishmentHelper;
@@ -43,7 +44,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import org.checkerframework.checker.units.qual.N;
 import org.incendo.cloud.annotation.specifier.Greedy;
 import org.incendo.cloud.annotations.*;
 import org.incendo.cloud.annotations.suggestion.Suggestions;
@@ -345,6 +345,30 @@ public class NecrifyCommand {
         }
     }
 
+    @Command("necrify info")
+    public void infoCommand(NecrifyUser sender) {
+        Component version = Component.text(BuildParameters.VERSION, NamedTextColor.GOLD);
+        Component gitCommit = Component.text(BuildParameters.GIT_COMMIT, NamedTextColor.YELLOW);
+        //noinspection ConstantValue
+        if (BuildParameters.VERSION.contains("SNAPSHOT")) {
+            sender.sendMessage("command.info.version.snapshot", NamedTextColor.GRAY, version,
+                    Component.text(BuildParameters.BUILD_NUMBER, NamedTextColor.YELLOW), gitCommit);
+        } else {
+            sender.sendMessage("command.info.version.release", NamedTextColor.GRAY, version, gitCommit);
+        }
+        var hangar = Component.text("Hangar", NamedTextColor.AQUA)
+                .clickEvent(ClickEvent.openUrl("https://hangar.papermc.io/JvstvsHD/Necrify"));
+        var modrinth = Component.text("Modrinth", NamedTextColor.AQUA)
+                .clickEvent(ClickEvent.openUrl("https://modrinth.com/plugin/necrify"));
+        var jenkins = Component.text("Jenkins", NamedTextColor.AQUA)
+                .clickEvent(ClickEvent.openUrl("https://ci.jvstvshd.de/job/Necrify/"));
+        sender.sendMessage("command.info.download-updates", NamedTextColor.GRAY, hangar, modrinth, jenkins);
+        sender.sendMessage(provider.provide("command.info.view-source").color(NamedTextColor.LIGHT_PURPLE)
+                .clickEvent(ClickEvent.openUrl("https://github.com/JvstvsHD/necrify")));
+        sender.sendMessage(provider.provide("command.info.documentation").color(NamedTextColor.LIGHT_PURPLE)
+                .clickEvent(ClickEvent.openUrl("https://docs.jvstvshd.de/necrify/")));
+    }
+
     @Command("necrify whitelist [option]")
     @Permission(value = {"necrify.command.whitelist", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void whitelistCommand(
@@ -360,6 +384,7 @@ public class NecrifyCommand {
     //template management
 
     @Command("necrify createtemplate <name>")
+    @Permission(value = {"necrify.command.template.create", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void createTemplateCommand(
             NecrifyUser sender,
             @Argument(value = "name", description = "Name of the template") String name
@@ -378,6 +403,7 @@ public class NecrifyCommand {
     }
 
     @Command("necrify template <name>")
+    @Permission(value = {"necrify.command.template.manage", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void templateInfoCommand(NecrifyUser sender, @Argument(value = "name", description = "Description") NecrifyTemplate template, @Flag("page") Integer pageArgument) {
         int page = pageArgument == null ? 1 : pageArgument;
         sender.sendMessage("command.template.manage.info", NamedTextColor.GRAY, Component.text(template.name(), NamedTextColor.YELLOW),
@@ -392,6 +418,7 @@ public class NecrifyCommand {
     }
 
     @Command("necrify template <name> delete")
+    @Permission(value = {"necrify.command.template.delete", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void templateDeleteCommand(
             NecrifyUser sender,
             @Argument(value = "name", description = "Name of the template") NecrifyTemplate template
@@ -407,6 +434,7 @@ public class NecrifyCommand {
     }
 
     @Command("necrify template <name> addstage <duration> <type> <reason>")
+    @Permission(value = {"necrify.command.template.stage.add", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void templateAddStageCommand(
             NecrifyUser sender,
             @Argument(value = "name") NecrifyTemplate template,
@@ -429,6 +457,7 @@ public class NecrifyCommand {
     }
 
     @Command("necrify template <name> removestage <index>")
+    @Permission(value = {"necrify.command.template.stage.remove", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void templateRemoveStageCommand(
             NecrifyUser sender,
             @Argument(value = "name") NecrifyTemplate template,
@@ -445,6 +474,7 @@ public class NecrifyCommand {
     }
 
     @Command("necrify template <name> apply <user>")
+    @Permission(value = {"necrify.command.template.apply", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void templateApplyCommand(
             NecrifyUser sender,
             @Argument(value = "name") NecrifyTemplate template,
@@ -464,6 +494,7 @@ public class NecrifyCommand {
     }
 
     @Command("necrify template <name> amnesty <target>")
+    @Permission(value = {"necrify.command.template.amnesty", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void templateAmnestyCommand(
             NecrifyUser sender,
             @Argument(value = "name") NecrifyTemplate template,
@@ -477,6 +508,7 @@ public class NecrifyCommand {
     }
 
     @Command("necrify template <name> state <target>")
+    @Permission(value = {"necrify.command.template.state", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void templateStateCommand(
             NecrifyUser sender,
             @Argument(value = "name") NecrifyTemplate template,
@@ -564,15 +596,13 @@ public class NecrifyCommand {
     public void infinitePunishmentCommand(NecrifyUser sender, NecrifyUser target, String templateOrReasonString,
                                           Function<Component, CompletableFuture<? extends Punishment>> reasonExecution,
                                           String successString, StandardPunishmentType defaultReasonType) {
-        var templateOrReason = ComponentOrTemplate.fromString(templateOrReasonString, templateManager);
+        var templateOrReason = StringOrTemplate.fromString(templateOrReasonString, templateManager);
         CompletableFuture<? extends Punishment> punishmentFuture;
         if (templateOrReason.template().isPresent()) {
             punishmentFuture = target.punishModelled(templateOrReason.template().get());
-        } else if (templateOrReason.component().isPresent()) {
-            var finalReason = reasonOrDefaultTo(templateOrReason.component().get(), defaultReasonType);
-            punishmentFuture = reasonExecution.apply(finalReason);
         } else {
-            throw new IllegalArgumentException("No reason or template provided");
+            var finalReason = reasonOrDefaultTo(templateOrReason.component().orElse(plugin.getDefaultReason(defaultReasonType)), defaultReasonType);
+            punishmentFuture = reasonExecution.apply(finalReason);
         }
         punishmentFuture.whenComplete((punishment, throwable) -> {
             if (throwable != null) {

@@ -23,13 +23,16 @@ import de.jvstvshd.necrify.api.template.TemplateManager;
 
 import java.util.Optional;
 
-public record ComponentOrTemplate(Optional<String > component, Optional<NecrifyTemplate> template) {
+public record StringOrTemplate(Optional<String > component, Optional<NecrifyTemplate> template) {
 
-    public static ComponentOrTemplate fromString(String string, TemplateManager templateManager) {
+    public static StringOrTemplate fromString(String string, TemplateManager templateManager) {
+        if (string == null) {
+            return new StringOrTemplate(Optional.empty(), Optional.empty());
+        }
         var template = templateManager.getTemplate(string);
         if (template.isPresent()) {
-            return new ComponentOrTemplate(Optional.empty(), template);
+            return new StringOrTemplate(Optional.empty(), template);
         }
-        return new ComponentOrTemplate(Optional.of(string), Optional.empty());
+        return new StringOrTemplate(Optional.of(string), Optional.empty());
     }
 }
