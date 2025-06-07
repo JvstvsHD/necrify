@@ -9,7 +9,7 @@ repositories {
 
 dependencies {
     implementation("org.jsoup:jsoup:1.18.3")
-    testImplementation(platform("org.junit:junit-bom:5.11.4"))
+    testImplementation(platform("org.junit:junit-bom:5.13.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
