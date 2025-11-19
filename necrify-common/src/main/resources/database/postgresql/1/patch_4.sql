@@ -1,0 +1,3 @@
+ALTER TABLE IF EXISTS necrify_schema.necrify_template RENAME TO necrify_punishment_template;
+ALTER TABLE IF EXISTS necrify_schema.necrify_template_stage RENAME TO necrify_punishment_template_stage;
+ALTER TABLE IF EXISTS necrify_schema.necrify_template_user_stage RENAME TO necrify_punishment_template_user_stage;

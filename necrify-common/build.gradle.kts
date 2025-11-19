@@ -39,9 +39,10 @@ dependencies {
     compileOnly(libs.slf4j.api)
     compileOnly("com.google.code.gson:gson:2.12.1")
     compileOnly(libs.bundles.adventure)
-    api(libs.adventure.text.feature.pagination) {
+    /*api(libs.adventure.text.feature.pagination) {
         exclude(group = "net.kyori")
-    }
+    }*/
+    api("com.github.KyoriPowered:adventure-text-feature-pagination:aba64e17e4")
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)
 }
