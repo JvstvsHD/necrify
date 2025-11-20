@@ -21,7 +21,7 @@ eventbus = "3.3.1"
 jetbrains-annotations = "26.0.2"
 slf4j = "2.0.17"
 minecraftdependencydownload = "1.0.0"
-caffeine = "3.2.0"
+caffeine = "3.2.3"
 
 [libraries]
 
