@@ -60,7 +60,8 @@ subprojects {
                 repositories {
                     maven(
                         if (project.publishingVersion().endsWith("-SNAPSHOT"))
-                            "https://s01.oss.sonatype.org/content/repositories/snapshots/" else "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+                            "https://central.sonatype.com/repository/maven-snapshots/"
+                        else "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
                     ) {
                         name = "ossrh"
                         credentials {
@@ -186,7 +187,8 @@ tasks {
                 into(file("${rootProject.layout.buildDirectory.get()}/docs/javadoc/latest"))
             }
             //version file is used by Jenkins
-            val versionFile = kotlin.io.path.Path("${rootProject.layout.buildDirectory.get()}/docs/javadoc/version.txt").createFile()
+            val versionFile =
+                kotlin.io.path.Path("${rootProject.layout.buildDirectory.get()}/docs/javadoc/version.txt").createFile()
             versionFile.writeText(rootProject.version.toString())
         }
     }
