@@ -43,6 +43,36 @@ subprojects {
         maven("https://jitpack.io")
     }
     tasks {
+        mavenPublishing {
+            publishToMavenCentral(automaticRelease = true)
+            signAllPublications()
+
+            coordinates(rootProject.group.toString().lowercase(Locale.getDefault()), project.name, project.publishingVersion())
+            pom {
+                name.set(project.name)
+                description.set(project.description)
+                url.set("https://github.com/JvstvsHD/necrify")
+
+                developers {
+                    developer {
+                        name.set("JvstvsHD")
+                    }
+                }
+
+                licenses {
+                    license {
+                        name.set("GNU General Public License v3.0")
+                        url.set("https://www.gnu.org/licenses/gpl-3.0.en.html")
+                    }
+                }
+
+                scm {
+                    connection.set("scm:git:git://github.com/JvstvsHD/necrify.git")
+                    url.set("https://github.com/JvstvsHD/necrify/tree/main")
+                }
+            }
+        }
+
         gradle.projectsEvaluated {
             javadoc {
                 (options as StandardJavadocDocletOptions).tags(
@@ -59,37 +89,6 @@ subprojects {
                 }
                 sign(publishing.publications)
             }
-
-            mavenPublishing {
-                publishToMavenCentral(automaticRelease = true)
-                signAllPublications()
-
-                coordinates(rootProject.group.toString().lowercase(Locale.getDefault()), project.name, project.publishingVersion())
-                pom {
-                    name.set(project.name)
-                    description.set(project.description)
-                    url.set("https://github.com/JvstvsHD/necrify")
-
-                    developers {
-                        developer {
-                            name.set("JvstvsHD")
-                        }
-                    }
-
-                    licenses {
-                        license {
-                            name.set("GNU General Public License v3.0")
-                            url.set("https://www.gnu.org/licenses/gpl-3.0.en.html")
-                        }
-                    }
-
-                    scm {
-                        connection.set("scm:git:git://github.com/JvstvsHD/necrify.git")
-                        url.set("https://github.com/JvstvsHD/necrify/tree/main")
-                    }
-                }
-            }
-
             publishing {
                 repositories {
                     maven(
