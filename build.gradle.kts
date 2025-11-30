@@ -73,6 +73,10 @@ subprojects {
             }
         }
 
+        withType<org.gradle.api.publish.tasks.GenerateModuleMetadata>().configureEach {
+            dependsOn("plainJavadocJar")
+        }
+
         gradle.projectsEvaluated {
             javadoc {
                 (options as StandardJavadocDocletOptions).tags(
