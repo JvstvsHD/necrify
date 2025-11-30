@@ -1,5 +1,7 @@
 import com.modrinth.minotaur.Minotaur
 import com.modrinth.minotaur.ModrinthExtension
+import com.vanniktech.maven.publish.JavaLibrary
+import com.vanniktech.maven.publish.JavadocJar
 import io.papermc.hangarpublishplugin.model.Platforms
 import net.kyori.indra.licenser.spotless.IndraSpotlessLicenserPlugin
 import java.nio.file.Files
@@ -14,6 +16,7 @@ plugins {
     id("com.gradleup.shadow") version "8.3.6" apply false
     id("net.kyori.indra.licenser.spotless") version "3.1.3"
     id("com.modrinth.minotaur") version "2.+" apply false
+    id("com.vanniktech.maven.publish") version "0.35.0"
     java
 }
 
@@ -26,6 +29,7 @@ subprojects {
         plugin<SigningPlugin>()
         plugin("java")
         plugin<IndraSpotlessLicenserPlugin>()
+        plugin<com.vanniktech.maven.publish.MavenPublishPlugin>()
     }
     indraSpotlessLicenser {
         newLine(true)
@@ -54,6 +58,36 @@ subprojects {
                     useInMemoryPgpKeys(signingKey, signingPassword)
                 }
                 sign(publishing.publications)
+            }
+
+            mavenPublishing {
+                publishToMavenCentral(automaticRelease = true)
+                signAllPublications()
+
+                coordinates(rootProject.group.toString().lowercase(Locale.getDefault()), project.name, project.publishingVersion())
+                pom {
+                    name.set(project.name)
+                    description.set(project.description)
+                    url.set("https://github.com/JvstvsHD/necrify")
+
+                    developers {
+                        developer {
+                            name.set("JvstvsHD")
+                        }
+                    }
+
+                    licenses {
+                        license {
+                            name.set("GNU General Public License v3.0")
+                            url.set("https://www.gnu.org/licenses/gpl-3.0.en.html")
+                        }
+                    }
+
+                    scm {
+                        connection.set("scm:git:git://github.com/JvstvsHD/necrify.git")
+                        url.set("https://github.com/JvstvsHD/necrify/tree/main")
+                    }
+                }
             }
 
             publishing {
