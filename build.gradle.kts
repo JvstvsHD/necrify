@@ -10,8 +10,8 @@ import kotlin.io.path.createFile
 import kotlin.io.path.writeText
 
 plugins {
-    `maven-publish`
-    signing
+    /*`maven-publish`
+    signing*/
     id("io.papermc.hangar-publish-plugin") version "0.1.2"
     id("com.gradleup.shadow") version "8.3.6" apply false
     id("net.kyori.indra.licenser.spotless") version "3.1.3"
@@ -25,8 +25,8 @@ version = Version.PROJECT_VERSION
 
 subprojects {
     apply {
-        plugin<MavenPublishPlugin>()
-        plugin<SigningPlugin>()
+        /*plugin<MavenPublishPlugin>()
+        plugin<SigningPlugin>()*/
         plugin("java")
         plugin<IndraSpotlessLicenserPlugin>()
         plugin<com.vanniktech.maven.publish.MavenPublishPlugin>()
