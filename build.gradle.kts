@@ -73,7 +73,7 @@ subprojects {
             }
         }
 
-        withType<org.gradle.api.publish.tasks.GenerateModuleMetadata>().configureEach {
+        withType<GenerateModuleMetadata>().configureEach {
             dependsOn("plainJavadocJar")
         }
 
@@ -85,15 +85,15 @@ subprojects {
                     "implNote:a:Implementation Note"
                 )
             }
-            signing {
+            /*signing {
                 val signingKey = findProperty("signingKey")?.toString() ?: System.getenv("SIGNING_KEY")
                 val signingPassword = findProperty("signingPassword")?.toString() ?: System.getenv("SIGNING_PASSWORD")
                 if (signingKey != null && signingPassword != null) {
                     useInMemoryPgpKeys(signingKey, signingPassword)
                 }
                 sign(publishing.publications)
-            }
-            publishing {
+            }*/
+            /*publishing {
                 repositories {
                     maven(
                         if (project.publishingVersion().endsWith("-SNAPSHOT"))
@@ -144,7 +144,7 @@ subprojects {
                         }
                     }
                 }
-            }
+            }*/
         }
     }
     if (project.name == "necrify-paper" || project.name == "necrify-velocity") {
