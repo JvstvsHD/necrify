@@ -66,11 +66,6 @@ tasks {
     }
 }
 
-java {
-    withSourcesJar()
-    withJavadocJar()
-}
-
 tasks.getByName<Test>("test") {
     useJUnitPlatform()
 }

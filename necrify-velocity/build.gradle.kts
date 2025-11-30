@@ -105,8 +105,3 @@ tasks {
         dependsOn(shadowJar)
     }
 }
-
-java {
-    withSourcesJar()
-    withJavadocJar()
-}

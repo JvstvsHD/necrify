@@ -73,9 +73,9 @@ subprojects {
             }
         }
 
-        withType<GenerateModuleMetadata>().configureEach {
+        /*withType<GenerateModuleMetadata>().configureEach {
             dependsOn("plainJavadocJar")
-        }
+        }*/
 
         gradle.projectsEvaluated {
             javadoc {
