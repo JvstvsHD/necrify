@@ -1,10 +1,7 @@
 import com.modrinth.minotaur.Minotaur
 import com.modrinth.minotaur.ModrinthExtension
-import com.vanniktech.maven.publish.JavaLibrary
-import com.vanniktech.maven.publish.JavadocJar
 import io.papermc.hangarpublishplugin.model.Platforms
 import net.kyori.indra.licenser.spotless.IndraSpotlessLicenserPlugin
-import java.nio.file.Files
 import java.util.*
 import kotlin.io.path.createFile
 import kotlin.io.path.writeText
@@ -42,12 +39,17 @@ subprojects {
         maven("https://repo.papermc.io/repository/maven-public/")
         maven("https://jitpack.io")
     }
+
     tasks {
         mavenPublishing {
             publishToMavenCentral(automaticRelease = true)
             signAllPublications()
 
-            coordinates(rootProject.group.toString().lowercase(Locale.getDefault()), project.name, project.publishingVersion())
+            coordinates(
+                rootProject.group.toString().lowercase(Locale.getDefault()),
+                project.name,
+                project.publishingVersion()
+            )
             pom {
                 name.set(project.name)
                 description.set(project.description)
@@ -227,6 +229,20 @@ tasks {
             val versionFile =
                 kotlin.io.path.Path("${rootProject.layout.buildDirectory.get()}/docs/javadoc/version.txt").createFile()
             versionFile.writeText(rootProject.version.toString())
+        }
+    }
+
+    register<Task>("printSnapshotVersions") {
+        doLast {
+            subprojects.flatMap { subproject -> subproject.configurations.matching { it.isCanBeResolved } }
+                .flatMap { it.resolvedConfiguration.resolvedArtifacts }
+                .toSet()
+                .forEach { artifact ->
+                    val id = artifact.moduleVersion.id
+                    if (id.version.endsWith("-SNAPSHOT") || id.version.contains("SNAPSHOT")) {
+                        println("${id.group}:${id.name}:${id.version}")
+                    }
+                }
         }
     }
 }
