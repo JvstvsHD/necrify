@@ -15,7 +15,7 @@ fun Project.buildNumber(): String? {
 fun Project.publishingVersion(): String {
     val branch = git.currentBranch()
     return if (branch == "master" || branch.startsWith("dev")) {
-        version.toString()
+        rootProject.version.toString()
     } else "${branch.replace('/', '-')}-SNAPSHOT"
 }
 
