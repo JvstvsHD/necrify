@@ -105,3 +105,16 @@ tasks {
         dependsOn(shadowJar)
     }
 }
+
+//otherwise, the generated runtimeDownload.txt will contain only the relocations defined above and NOT the downloads
+//below, which will fail the plugin initiation on Velocity
+gradle.beforeProject {
+    tasks {
+        generateRuntimeDownloadResourceForRuntimeDownload {
+            val prefix: (String) -> String = { "de.jvstvshd.necrify.lib.$it" }
+            relocate("com.mysql", prefix("mysql"))
+            relocate("org.mariadb", prefix("mariadb"))
+            relocate("org.postgresql", prefix("postgresql"))
+        }
+    }
+}
