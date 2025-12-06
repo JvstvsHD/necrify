@@ -22,8 +22,6 @@ version = Version.PROJECT_VERSION
 
 subprojects {
     apply {
-        /*plugin<MavenPublishPlugin>()
-        plugin<SigningPlugin>()*/
         plugin("java")
         plugin<IndraSpotlessLicenserPlugin>()
         plugin<com.vanniktech.maven.publish.MavenPublishPlugin>()
@@ -38,6 +36,8 @@ subprojects {
         mavenCentral()
         maven("https://repo.papermc.io/repository/maven-public/")
         maven("https://jitpack.io")
+        maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+        maven("https://central.sonatype.com/repository/maven-snapshots/")
     }
 
     tasks {
@@ -75,10 +75,6 @@ subprojects {
             }
         }
 
-        /*withType<GenerateModuleMetadata>().configureEach {
-            dependsOn("plainJavadocJar")
-        }*/
-
         gradle.projectsEvaluated {
             javadoc {
                 (options as StandardJavadocDocletOptions).tags(
@@ -87,66 +83,6 @@ subprojects {
                     "implNote:a:Implementation Note"
                 )
             }
-            /*signing {
-                val signingKey = findProperty("signingKey")?.toString() ?: System.getenv("SIGNING_KEY")
-                val signingPassword = findProperty("signingPassword")?.toString() ?: System.getenv("SIGNING_PASSWORD")
-                if (signingKey != null && signingPassword != null) {
-                    useInMemoryPgpKeys(signingKey, signingPassword)
-                }
-                sign(publishing.publications)
-            }*/
-            /*publishing {
-                repositories {
-                    maven(
-                        if (project.publishingVersion().endsWith("-SNAPSHOT"))
-                            "https://central.sonatype.com/repository/maven-snapshots/"
-                        else "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
-                    ) {
-                        name = "ossrh"
-                        credentials {
-                            username =
-                                project.findProperty("sonatypeUsername") as String?
-                                    ?: System.getenv("SONATYPE_USERNAME")
-                            password =
-                                project.findProperty("sonatypePassword") as String?
-                                    ?: System.getenv("SONATYPE_PASSWORD")
-                        }
-                    }
-                }
-                publications {
-                    create<MavenPublication>(rootProject.name) {
-                        from(this@subprojects.components["java"])
-                        groupId = rootProject.group.toString().lowercase(Locale.getDefault())
-                        artifactId = project.name
-                        version = project.publishingVersion()
-
-                        pom {
-                            name.set(project.name)
-                            description.set(project.description)
-                            url.set("https://github.com/JvstvsHD/necrify")
-                            packaging = "jar"
-
-                            developers {
-                                developer {
-                                    name.set("JvstvsHD")
-                                }
-                            }
-
-                            licenses {
-                                license {
-                                    name.set("GNU General Public License v3.0")
-                                    url.set("https://www.gnu.org/licenses/gpl-3.0.en.html")
-                                }
-                            }
-
-                            scm {
-                                connection.set("scm:git:git://github.com/JvstvsHD/necrify.git")
-                                url.set("https://github.com/JvstvsHD/necrify/tree/main")
-                            }
-                        }
-                    }
-                }
-            }*/
         }
     }
     if (project.name == "necrify-paper" || project.name == "necrify-velocity") {
