@@ -11,7 +11,7 @@ pipeline {
             steps {
                 script {
                     def author = sh(script: "git log -1 --pretty=%an", returnStdout: true).trim()
-                    if (author == 'Renovate Bot' || author == 'renovate[bot]') {
+                    if (author == 'Renovate Bot' || author == 'renovate[bot]' || author == 'renovate') {
                         echo "Skipping pipeline: triggered by Renovate."
                         currentBuild.result = 'SUCCESS'
                         return
