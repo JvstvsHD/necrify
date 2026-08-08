@@ -2,7 +2,7 @@ plugins {
     java
     `java-library`
     id("com.gradleup.shadow")
-    id("de.eldoria.plugin-yml.paper") version "0.8.0"
+    id("de.eldoria.plugin-yml.paper") version "0.9.0"
     id("io.papermc.hangar-publish-plugin")
 }
 
