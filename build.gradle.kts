@@ -13,7 +13,7 @@ plugins {
     id("com.gradleup.shadow") version "8.3.6" apply false
     id("net.kyori.indra.licenser.spotless") version "3.1.3"
     id("com.modrinth.minotaur") version "2.+" apply false
-    id("com.vanniktech.maven.publish") version "0.35.0"
+    id("com.vanniktech.maven.publish") version "0.37.0"
     java
 }
 
