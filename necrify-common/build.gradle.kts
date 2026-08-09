@@ -1,7 +1,7 @@
 plugins {
     java
     `java-library`
-    id("net.kyori.blossom") version "2.1.0"
+    id("net.kyori.blossom") version "2.2.0"
 }
 
 version = rootProject.version

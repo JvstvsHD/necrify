@@ -5,7 +5,7 @@ plugins {
     id("xyz.jpenilla.run-velocity") version "2.3.1"
     id("io.papermc.hangar-publish-plugin")
     id("dev.vankka.dependencydownload.plugin") version "1.3.1"
-    id("net.kyori.blossom") version "2.1.0"
+    id("net.kyori.blossom") version "2.2.0"
     id("com.modrinth.minotaur") version "2.+"
 }
 
