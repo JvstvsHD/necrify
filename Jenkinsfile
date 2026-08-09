@@ -1,11 +1,11 @@
 pipeline {
     agent any
-    stage('Checkout') {
-        steps {
-            scmSkip(deleteBuild: true, skipPattern:'.*\\[ci skip\\].*')
-        }
-    }
     stages {
+        stage('Checkout') {
+            steps {
+                scmSkip(deleteBuild: true, skipPattern:'.*\\[ci skip\\].*')
+            }
+        }
         stage('Debug') {
             steps {
                 echo "GIT_BRANCH: ${env.GIT_BRANCH}"
