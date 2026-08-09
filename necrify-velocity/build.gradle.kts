@@ -2,7 +2,7 @@ plugins {
     java
     `java-library`
     id("com.gradleup.shadow")
-    id("xyz.jpenilla.run-velocity") version "2.3.1"
+    id("xyz.jpenilla.run-velocity") version "3.1.0"
     id("io.papermc.hangar-publish-plugin")
     id("dev.vankka.dependencydownload.plugin") version "1.3.1"
     id("net.kyori.blossom") version "2.2.0"
