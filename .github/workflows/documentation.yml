@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Echo GitHub actor
-        run: echo "GitHub actor: ${{ github.actor }}"
+        run: echo "::debug::GitHub actor: ${{ github.actor }}"
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
