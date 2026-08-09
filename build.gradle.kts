@@ -11,7 +11,7 @@ plugins {
     signing*/
     id("io.papermc.hangar-publish-plugin") version "0.1.2"
     id("com.gradleup.shadow") version "8.3.6" apply false
-    id("net.kyori.indra.licenser.spotless") version "3.1.3"
+    id("net.kyori.indra.licenser.spotless") version "3.2.0"
     id("com.modrinth.minotaur") version "2.+" apply false
     id("com.vanniktech.maven.publish") version "0.35.0"
     java
