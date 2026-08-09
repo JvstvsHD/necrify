@@ -11,6 +11,8 @@ jobs:
     if: ${{ github.actor != 'renovate[bot]' }}
     runs-on: ubuntu-latest
     steps:
+      - name: Echo GitHub actor
+        run: echo "GitHub actor: ${{ github.actor }}"
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
