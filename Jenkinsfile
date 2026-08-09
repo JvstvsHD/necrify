@@ -1,5 +1,10 @@
 pipeline {
     agent any
+    stage('Checkout') {
+        steps {
+            scmSkip(deleteBuild: true, skipPattern:'.*\\[ci skip\\].*')
+        }
+    }
     stages {
         stage('Debug') {
             steps {
