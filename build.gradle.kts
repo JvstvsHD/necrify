@@ -9,7 +9,7 @@ import kotlin.io.path.writeText
 plugins {
     /*`maven-publish`
     signing*/
-    id("io.papermc.hangar-publish-plugin") version "0.1.2"
+    id("io.papermc.hangar-publish-plugin") version "0.1.4"
     id("com.gradleup.shadow") version "9.6.1" apply false
     id("net.kyori.indra.licenser.spotless") version "4.1.0"
     id("com.modrinth.minotaur") version "2.+" apply false
