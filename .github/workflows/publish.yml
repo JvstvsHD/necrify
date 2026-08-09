@@ -6,11 +6,8 @@ on:
       - '!renovate**'
 jobs:
   publish:
-    if: ${{ github.actor != 'renovate[bot]' && github.actor != 'renovate' }}
     runs-on: ubuntu-latest
     steps:
-     - name: Echo GitHub actor
-       run: echo "::debug::GitHub actor: ${{ github.actor }}"
      - uses: actions/checkout@v4
      - name: Set up Java
        uses: actions/setup-java@v4
