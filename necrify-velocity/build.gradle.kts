@@ -35,9 +35,9 @@ tasks.getByName<Test>("test") {
 }
 
 tasks {
-    javadoc {
+    /*javadoc {
         dependsOn(generateRuntimeDownloadResourceForRuntimeDownload)
-    }
+    }*/
     compileJava {
         options.encoding = "UTF-8"
     }
@@ -49,7 +49,7 @@ tasks {
         downloadPlugins {
             modrinth("luckperms", "v5.5.17-velocity")
         }
-        velocityVersion("3.4.0-SNAPSHOT")
+        velocityVersion("4.1.0-SNAPSHOT")
     }
 
     sourceSets {
@@ -66,8 +66,6 @@ tasks {
 
     jar {
         archiveFileName.set("Necrify-Velocity-${project.buildVersion()}.jar")
-        dependsOn(generateRuntimeDownloadResourceForRuntimeDownload)
-        finalizedBy(shadowJar)
     }
 
     shadowJar {
@@ -79,38 +77,44 @@ tasks {
                         it.moduleName.startsWith("adventure") &&
                         it.moduleName != "adventure-text-feature-pagination"
             }
-            val prefix: (String) -> String = { "de.jvstvshd.necrify.lib.$it" }
-            relocate("com.github.benmanes.caffeine", prefix("caffeine"))
-            relocate("com.fasterxml.jackson", prefix("jackson"))
-            relocate("com.google.errorprone", prefix("google.errorprone"))
-            relocate("com.google.protobuf", prefix("google.protobuf"))
-            relocate("com.mysql", prefix("mysql"))
-            relocate("com.sun.jna", "sun.jna")
-            relocate("com.zaxxer.hikari", prefix("hikari"))
-            relocate("de.chojo.sadu", prefix("sadu"))
-            relocate("dev.vankka", prefix("vankka"))
-            relocate("google", prefix("google"))
-            relocate("io.leangen.geantyref", prefix("geantyref"))
-            relocate("me.lucko.jarrelocator", prefix("lucko.jarrelocator"))
-            relocate("net.kyori.adventure.text.feature.pagination", prefix("kyori.adventure.pagination"))
-            relocate("net.kyori.examination", prefix("kyori.examination"))
-            relocate("org.objectweb.asm", prefix("objectweb.asm"))
-            relocate("org.apache.commons", prefix("commons"))
-            relocate("org.checkerframework", prefix("checkerframework"))
-            relocate("org.greenrobot.eventbus", prefix("greenrobot.eventbus"))
-            relocate("org.incendo.cloud", prefix("cloud"))
-            relocate("org.intellij.lang.annotations", prefix("intellij.lang.annotations"))
-            relocate("org.jetbrains.annotations", prefix("jetbrains.annotations"))
-            relocate("org.jspecify", prefix("jspecify"))
-            relocate("org.mariadb", prefix("mariadb"))
-            relocate("org.postgresql", prefix("postgresql"))
-            relocate("org.yaml.snakeyaml", prefix("snakeyaml"))
-            relocate("sun.jna", prefix("sun.jna"))
-            relocate("waffle", prefix("waffle"))
         }
+
+        relocate("com.github.benmanes.caffeine", prefix("caffeine"))
+        relocate("com.fasterxml.jackson", prefix("jackson"))
+        relocate("com.google.errorprone", prefix("google.errorprone"))
+        relocate("com.google.protobuf", prefix("google.protobuf"))
+        relocate("com.mysql", prefix("mysql"))
+        relocate("com.sun.jna", "sun.jna")
+        relocate("com.zaxxer.hikari", prefix("hikari"))
+        relocate("de.chojo.sadu", prefix("sadu"))
+        relocate("dev.vankka", prefix("vankka"))
+        relocate("google", prefix("google"))
+        relocate("io.leangen.geantyref", prefix("geantyref"))
+        relocate("me.lucko.jarrelocator", prefix("lucko.jarrelocator"))
+        relocate("net.kyori.adventure.text.feature.pagination", prefix("kyori.adventure.pagination"))
+        relocate("net.kyori.examination", prefix("kyori.examination"))
+        relocate("org.objectweb.asm", prefix("objectweb.asm"))
+        relocate("org.apache.commons", prefix("commons"))
+        relocate("org.checkerframework", prefix("checkerframework"))
+        relocate("org.greenrobot.eventbus", prefix("greenrobot.eventbus"))
+        relocate("org.incendo.cloud", prefix("cloud"))
+        relocate("org.intellij.lang.annotations", prefix("intellij.lang.annotations"))
+        relocate("org.jetbrains.annotations", prefix("jetbrains.annotations"))
+        relocate("org.jspecify", prefix("jspecify"))
+        relocate("org.mariadb", prefix("mariadb"))
+        relocate("org.postgresql", prefix("postgresql"))
+        relocate("org.yaml.snakeyaml", prefix("snakeyaml"))
+        relocate("sun.jna", prefix("sun.jna"))
+        relocate("waffle", prefix("waffle"))
     }
 
-    build {
-        dependsOn(shadowJar)
+    generateRuntimeDownloadResourceForRuntimeDownload {
+        includeShadowJarRelocations.set(false)
+        relocate("com.mysql", prefix("mysql"))
+        relocate("org.mariadb.jdbc", prefix("mariadb"))
+        relocate("org.postgresql", prefix("postgresql"))
+        relocate("com.zaxxer.hikari", prefix("hikari"))
     }
 }
+
+fun prefix (input: String) = "de.jvstvshd.necrify.lib.$input"

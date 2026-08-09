@@ -34,7 +34,6 @@ import de.jvstvshd.necrify.common.io.Adapters;
 import de.jvstvshd.necrify.common.punishment.PunishmentBuilder;
 import de.jvstvshd.necrify.common.util.Util;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.audience.MessageType;
 import net.kyori.adventure.identity.Identified;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
@@ -301,10 +300,10 @@ public abstract class AbstractNecrifyUser implements NecrifyUser {
                             plugin.getLogger().warn("Template stage {} not found in template {} for user {}", row.getInt(2), template.get().name(), uuid);
                             return null;
                         }
-                    }).all().forEach(pair -> {
+                    }).all().forEach((pair -> {
                         if (pair == null) return;
                         templateStages.put(pair.first(), pair.second());
-                    });
+                    }));
             return null;
         }, executor);
     }
@@ -324,15 +323,5 @@ public abstract class AbstractNecrifyUser implements NecrifyUser {
     @Override
     public void sendMessage(@NotNull Component message) {
         executeOnAudience(audience -> audience.sendMessage(message));
-    }
-
-    @Override
-    public void sendMessage(@NotNull Identified source, @NotNull Component message) {
-        executeOnAudience(audience -> audience.sendMessage(source, message));
-    }
-
-    @Override
-    public void sendMessage(@NotNull Identity source, @NotNull ComponentLike message, @NotNull MessageType type) {
-        executeOnAudience(audience -> audience.sendMessage(source, message, type));
     }
 }

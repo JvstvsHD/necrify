@@ -1,10 +1,10 @@
-CREATE TABLE IF NOT EXISTS necrify_schema.necrify_punishment_template
+CREATE TABLE IF NOT EXISTS necrify_schema.necrify_template
 (
     id   INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     name VARCHAR(255) NOT NULL UNIQUE
 );
 
-CREATE TABLE IF NOT EXISTS necrify_schema.necrify_punishment_template_stage
+CREATE TABLE IF NOT EXISTS necrify_schema.necrify_template_stage
 (
     id          INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     template_id INTEGER REFERENCES necrify_schema.necrify_template (id) ON DELETE CASCADE,

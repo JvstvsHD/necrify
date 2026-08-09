@@ -25,7 +25,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.translation.GlobalTranslator;
-import net.kyori.adventure.translation.TranslationRegistry;
+import net.kyori.adventure.translation.TranslationStore;
 import net.kyori.adventure.translation.Translator;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -48,7 +49,7 @@ public class ResourceBundleMessageProvider implements MessageProvider {
     private static final Component PREFIX = MiniMessage.miniMessage().deserialize("<grey>[<gradient:#ff1c08:#ff3f2e>Necrify</gradient>]</grey> ");
 
     static {
-        var registry = TranslationRegistry.create(Key.key("necrify"));
+        var registry = TranslationStore.messageFormat(Key.key("necrify"));
         registry.defaultLocale(Locale.ENGLISH);
         Path baseDir = null;
         try {
@@ -99,7 +100,7 @@ public class ResourceBundleMessageProvider implements MessageProvider {
         }
     }
 
-    private static void registerFrom(Stream<Path> paths, TranslationRegistry registry) {
+    private static void registerFrom(Stream<Path> paths, TranslationStore.StringBased<MessageFormat> registry) {
         paths.filter(path -> path.getFileName().toString().endsWith(".properties")).forEach(path -> {
             PropertyResourceBundle resource;
             try {
