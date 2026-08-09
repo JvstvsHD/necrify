@@ -1,7 +1,7 @@
 # Generate from settings.gradle.kts
 
 [versions]
-velocity-api = "3.5.0-SNAPSHOT"
+velocity-api = "4.1.0-SNAPSHOT"
 luckperms-api = "5.4"
 jackson-databind = "2.18.2"
 jackson-datatype-jsr310 = "2.18.2"

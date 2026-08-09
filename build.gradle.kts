@@ -30,7 +30,7 @@ subprojects {
         newLine(true)
     }
     java {
-        toolchain.languageVersion = JavaLanguageVersion.of(21)
+        toolchain.languageVersion = JavaLanguageVersion.of(25)
     }
     repositories {
         mavenCentral()

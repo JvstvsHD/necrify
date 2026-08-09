@@ -22,13 +22,9 @@ class Git(private val project: Project) {
 }
 
 fun Project.git(vararg command: String): String {
-    val byteOut = ByteArrayOutputStream()
-    project.exec {
+    return providers.exec {
         commandLine = listOf("git", *command)
-        standardOutput = byteOut
-        errorOutput = System.err
-    }
-    return byteOut.toString(Charsets.UTF_8.name()).trim()
+    }.standardOutput.asText.get().trim()
 }
 
 val Project.git: Git
