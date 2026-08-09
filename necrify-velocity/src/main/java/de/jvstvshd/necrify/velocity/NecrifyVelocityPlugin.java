@@ -170,6 +170,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
             }));
             Executor executor = Executors.newCachedThreadPool();
             if (!manager.getAllPaths(true).stream().allMatch(Files::exists)) {
+                getLogger().info("Downloading all dependencies...");
                 manager.downloadAll(executor, Collections.singletonList(new StandardRepository("https://repo1.maven.org/maven2"))).join();
                 getLogger().info("Relocating all dependencies...");
                 long relocateStart = System.currentTimeMillis();
@@ -435,7 +436,7 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         if (cachedUser.isPresent()) {
             return cachedUser.get();
         }
-        var user = new VelocityUser(userId, "unknown", false, this);
+        var user = new VelocityUser(userId, "unknown (NVP_createUser)", false, this);
         Runnable loadPunishments = () -> {
             var loader = new UserLoader(user);
             Query.query("SELECT type, expiration, reason, punishment_id, successor, issued_at FROM necrify_punishment WHERE uuid = ?;")
@@ -443,7 +444,13 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
                     .map(loader::addDataFromRow)
                     .all();
             ((VelocityUserManager) userManager).loadPunishmentsToUser(loader);
-            getEventDispatcher().dispatch(new UserLoadedEvent(user).setOrigin(EventOrigin.ofClass(getClass())));
+            /* Caching this user instance leads to a whitelist bug!
+            When a user joins, a user instance is constructed via this method. Since this method does not load user information
+            data is not accessible. If this user then gets
+            cached, it may get returned when the ConnectListener checks the whitelist status. As sometimes no data has been loaded,
+            the entry to the server is blocked due to not being whitelisted.
+            Calling the UserLoadedEvent will cache the user and leads to the same result!
+             */
         };
         if (loadPunishmentsDirectly) {
             loadPunishments.run();
