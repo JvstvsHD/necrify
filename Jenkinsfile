@@ -1,11 +1,12 @@
 pipeline {
     agent any
     environment {
-        GRADLE_OPTS = "-Dorg.gradle.java.installations.paths=${JAVA_HOME}"
+        GRADLE_OPTS = "-Dorg.gradle.java.installations.paths=${env.JAVA_HOME}"
     }
     stages {
         stage('Checkout') {
             steps {
+                echo "JAVA_HOME: ${env.JAVA_HOME}"
                 scmSkip(deleteBuild: true, skipPattern:'.*\\[ci skip\\].*')
             }
         }
