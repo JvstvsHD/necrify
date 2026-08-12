@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    environment {
+        GRADLE_OPTS = "-Dorg.gradle.java.installations.paths=${JAVA_HOME}"
+    }
     stages {
         stage('Checkout') {
             steps {
