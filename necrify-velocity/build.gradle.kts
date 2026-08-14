@@ -35,9 +35,9 @@ tasks.getByName<Test>("test") {
 }
 
 tasks {
-    /*javadoc {
+    javadoc {
         dependsOn(generateRuntimeDownloadResourceForRuntimeDownload)
-    }*/
+    }
     compileJava {
         options.encoding = "UTF-8"
     }

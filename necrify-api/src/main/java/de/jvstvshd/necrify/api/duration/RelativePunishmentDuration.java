@@ -58,7 +58,7 @@ public class RelativePunishmentDuration implements PunishmentDuration {
 
     @Override
     public AbsolutePunishmentDuration absolute() {
-        return new AbsolutePunishmentDuration(expiration());
+        return new AbsolutePunishmentDuration(expiration(), expiration().minus(duration));
     }
 
     @Override
@@ -110,6 +110,11 @@ public class RelativePunishmentDuration implements PunishmentDuration {
     @Override
     public int compareTo(@NotNull PunishmentDuration other) {
         return duration.compareTo(other.relative().javaDuration());
+    }
+
+    @Override
+    public PunishmentDuration initialDuration() {
+        return this;
     }
 
     private String representDuration(Duration duration, StringRepresentation mode) {

@@ -35,7 +35,7 @@ public class PermanentPunishmentDuration extends AbsolutePunishmentDuration impl
     public static final PermanentPunishmentDuration PERMANENT = new PermanentPunishmentDuration();
 
     private PermanentPunishmentDuration() {
-        super(MAX);
+        super(MAX, LocalDateTime.of(0, 1, 1, 0, 0, 0));
     }
 
     @Override
@@ -56,6 +56,11 @@ public class PermanentPunishmentDuration extends AbsolutePunishmentDuration impl
     @Override
     public String remainingDuration() {
         return "Permanent";
+    }
+
+    @Override
+    public PunishmentDuration initialDuration() {
+        return this;
     }
 
     /**

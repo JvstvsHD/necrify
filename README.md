@@ -16,6 +16,8 @@ maybe [Paper/BungeeCord in the future](https://github.com/users/JvstvsHD/project
 
 ## Plugin installation
 
+Your server must be running on Java 25 or higher.
+
 1. [Download the latest version of the plugin](https://hangar.papermc.io/JvstvsHD/Necrify) or download dev
    builds [here](https://ci.jvstvshd.de/job/Necrify/) (may be unstable or not working)
 2. Put the downloaded file into the ```plugins``` folder of your server.

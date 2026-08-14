@@ -185,6 +185,15 @@ public interface PunishmentDuration extends Comparable<PunishmentDuration> {
     String expirationAsString();
 
     /**
+     * Whether this duration has expired.
+     * @return true if the duration has expired, false otherwise
+     * @since 1.2.6
+     */
+    default boolean expired() {
+        return expiration().isBefore(LocalDateTime.now());
+    }
+
+    /**
      * Formats the remaining duration in the same format as parsed by {@link Parser}, unless specified otherwise.
      * This method uses {@link StringRepresentation#LONG}.
      *
@@ -207,15 +216,15 @@ public interface PunishmentDuration extends Comparable<PunishmentDuration> {
     String remainingDuration(StringRepresentation mode);
 
     /**
-     * The initial duration (before any changes to the punishment this duration was created for).
-     *
+     * The initial duration when this punishment started. This method does NOT account for changes made to the duration after
+     * initial creation.
      * @return the initial duration
-     * @throws UnsupportedOperationException default; if this method is not implemented by its underlying implementation
-     * @since 1.0.1
+     * @throws UnsupportedOperationException if not implemented for this duration; implemented in {@link RelativePunishmentDuration} and {@link AbsolutePunishmentDuration}
+     * @since 1.0.1 (implemented since 1.2.6)
      */
-    //TODO support this since there is Punishment#creationTime and #totalDuration
     default PunishmentDuration initialDuration() {
-        throw new UnsupportedOperationException("Initial durations are not stored.");
+        throw new UnsupportedOperationException("Initial duration is not supported for this duration.");
+        //return PunishmentDuration.fromDuration(Duration.between(, LocalDateTime.now()));
     }
 
     /**

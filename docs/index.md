@@ -33,6 +33,8 @@ Necrify offers the following features:
 
 ## Plugin installation
 
+Necrify requires at least Java 25.
+
 1. Download the latest version of the plugin from [Hangar](https://hangar.papermc.io/JvstvsHD/Necrify/versions)
    or [Modrinth](https://modrinth.com/plugin/necrify) or download dev
    builds [here](https://ci.jvstvshd.de/job/Necrify/) (may be unstable or not working)

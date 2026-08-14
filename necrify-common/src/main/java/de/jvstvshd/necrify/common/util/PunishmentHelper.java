@@ -107,14 +107,15 @@ public class PunishmentHelper {
                             Component.text("PERMANENT").color(NamedTextColor.RED))
                     .build();
         }
+        var duration = punishment.getDuration();
         return Component.text()
                 .append(linePrefix,
                         provider.provide("helper.temporal.duration").color(NamedTextColor.AQUA),
-                        Component.text(punishment.getDuration().remainingDuration()).color(NamedTextColor.YELLOW),
+                        Component.text(duration.expired() ? duration.initialDuration().remainingDuration() : duration.remainingDuration()).color(NamedTextColor.YELLOW),
                         Component.newline(),
                         linePrefix,
                         provider.provide("helper.temporal.end").color(NamedTextColor.AQUA),
-                        Component.text(punishment.getDuration().expirationAsString()).color(NamedTextColor.YELLOW))
+                        Component.text(duration.expirationAsString()).color(NamedTextColor.YELLOW))
                 .build();
     }
 

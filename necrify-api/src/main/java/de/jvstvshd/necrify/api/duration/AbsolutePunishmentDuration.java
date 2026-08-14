@@ -18,6 +18,7 @@
 
 package de.jvstvshd.necrify.api.duration;
 
+import de.jvstvshd.necrify.api.punishment.Punishment;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Timestamp;
@@ -42,21 +43,34 @@ public class AbsolutePunishmentDuration implements PunishmentDuration {
      */
     public static final Timestamp MAX_TIMESTAMP = Timestamp.valueOf(MAX);
     private final LocalDateTime expiration;
+    private final LocalDateTime start;
 
-    AbsolutePunishmentDuration(LocalDateTime expiration) {
+    AbsolutePunishmentDuration(LocalDateTime expiration, LocalDateTime start) {
         this.expiration = expiration;
+        this.start = start;
     }
 
     /**
-     * Creates a new {@code AbsolutePunishmentDuration} instance from the given {@code LocalDateTime}. The returned
+     * Creates a new {@code AbsolutePunishmentDuration} instance from the given {@code LocalDateTime}, starting at the time of the method call. The returned
      * duration expires at the given date and time.
      * @param ldt the expiration date and time
      * @return a new {@code AbsolutePunishmentDuration} instance
      */
     public static PunishmentDuration from(LocalDateTime ldt) {
-        if (!ldt.isBefore(MAX))
+        return from(ldt, LocalDateTime.now());
+    }
+
+    /**
+     * Creates a new {@code AbsolutePunishmentDuration} instance starting at {@code start} and ending at {@code expiration}.
+     * @param expiration the expiration date and time
+     * @param start the start date and time
+     * @return a new {@code AbsolutePunishmentDuration} instance
+     */
+    public static PunishmentDuration from(LocalDateTime expiration, LocalDateTime start) {
+        if (expiration.isBefore(start)) throw new IllegalArgumentException("Expiration date must be after start date.");
+        if (!expiration.isBefore(MAX))
             return PermanentPunishmentDuration.PERMANENT;
-        return new AbsolutePunishmentDuration(ldt);
+        return new AbsolutePunishmentDuration(expiration, start);
     }
 
     @Override
@@ -92,6 +106,11 @@ public class AbsolutePunishmentDuration implements PunishmentDuration {
     @Override
     public String remainingDuration(StringRepresentation mode) {
         return relative().remainingDuration(mode);
+    }
+
+    @Override
+    public PunishmentDuration initialDuration() {
+        return PunishmentDuration.fromDuration(Duration.between(start, expiration));
     }
 
     @Override

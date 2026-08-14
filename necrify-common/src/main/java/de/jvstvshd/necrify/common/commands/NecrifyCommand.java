@@ -274,8 +274,8 @@ public class NecrifyCommand {
                 var punishments = target.getPunishments();
                 sender.sendMessage(whitelistStatus(target));
                 sender.sendMessage(provider.provide("command.user.overview",
-                        Util.copyComponent(Objects.requireNonNullElse(target.getUsername(), "null"), provider).color(NamedTextColor.YELLOW),
-                        Util.copyComponent(target.getUuid().toString(), provider).color(NamedTextColor.YELLOW),
+                        copyComponent(Objects.requireNonNullElse(target.getUsername(), "null")).color(NamedTextColor.YELLOW),
+                        copyComponent(target.getUuid().toString()).color(NamedTextColor.YELLOW),
                         Component.text(punishments.size())).color(NamedTextColor.GRAY));
                 for (Punishment punishment : punishments) {
                     if (punishment.getPredecessor() != null) {
@@ -378,7 +378,7 @@ public class NecrifyCommand {
         var whitelist = plugin.isWhitelistActive();
         var activeState = whitelist ? "active" : "inactive";
         sender.sendMessage(provider.provide("command.whitelist." + activeState).color(NamedTextColor.GRAY));
-        sender.sendMessage(provider.provide("whitelist.change-in-config"));
+        sender.sendMessage(provider.provide("whitelist.change-in-config").color(NamedTextColor.GRAY));
     }
 
     //template management
@@ -713,7 +713,7 @@ public class NecrifyCommand {
         return Component.text(text).clickEvent(ClickEvent.suggestCommand(text))
                 .hoverEvent((HoverEventSource<Component>) op -> HoverEvent.showText(plugin
                         .getMessageProvider()
-                        .provide("commands.general.copy")
+                        .provide("commands.general.copy", false)
                         .color(NamedTextColor.GREEN)));
     }
 
