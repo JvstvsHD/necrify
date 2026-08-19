@@ -10,6 +10,8 @@ Necrify offers commands for all of its actions. This page provides detailed info
 Per default, all commands are registered with the prefix `/necrify`. Moreover, it is possible to register top-level commands too by
 setting `allow-top-level-commands` to true (which is the default). This does not apply to the commands /necrify user and /necrify punishment.
 
+You can always use `/necrifyhelp` ingame for an overview of all commands and their usage.
+
 ## Legend
 ### Arguments
 - `<arg>` denotes a required argument

@@ -94,6 +94,7 @@ import org.incendo.cloud.brigadier.suggestion.TooltipSuggestion;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.minecraft.extras.parser.ComponentParser;
 import org.incendo.cloud.minecraft.extras.suggestion.ComponentTooltipSuggestion;
+import org.incendo.cloud.translations.velocity.VelocityTranslationBundle;
 import org.incendo.cloud.type.tuple.Pair;
 import org.incendo.cloud.velocity.CloudInjectionModule;
 import org.incendo.cloud.velocity.VelocityCommandManager;
@@ -197,7 +198,8 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         QueryConfiguration.setDefault(QueryConfiguration.builder(dataSource).setThrowExceptions(true).build());
         punishmentManager = new DefaultPunishmentManager(server, dataSource, this);
         registerFactories();
-        this.userManager = new VelocityUserManager(getExecutor(), server, Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build(), Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build(), this);
+        this.userManager = new VelocityUserManager(getExecutor(), server, Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build(),
+                Caffeine.newBuilder().maximumSize(100).expireAfterWrite(Duration.ofMinutes(10)).build(), this);
         if (configurationManager.getConfiguration().getDataBaseData().getSqlType().startsWith("postgres")) {
             getExecutor().submit(new PostgresPunishmentLogUpdater(userManager, dataSource, this));
         }
@@ -235,9 +237,10 @@ public class NecrifyVelocityPlugin extends AbstractNecrifyPlugin {
         });
         var brigadierManager = cManager.brigadierManager();
         brigadierManager.setNativeNumberSuggestions(true);
+        cManager.captionRegistry().registerProvider(VelocityTranslationBundle.velocity(NecrifyUser::getLocale));
         registerCommands(cManager, getConfig().getConfiguration().isAllowTopLevelCommands());
         brigadierManager.registerMapping(new TypeToken<ComponentParser<NecrifyUser>>() {
-        }, builder -> builder.to(necrifyUserParser -> StringArgumentType.greedyString()).nativeSuggestions());
+        }, builder -> builder.to(_ -> StringArgumentType.greedyString()).nativeSuggestions());
     }
 
     @SuppressWarnings({"unchecked", "UnstableApiUsage", "SwitchStatementWithTooFewBranches"})

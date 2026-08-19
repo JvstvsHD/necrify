@@ -51,12 +51,12 @@ public final class UserLoader {
     public Void addDataFromRow(Row row) {
         try {
             final StandardPunishmentType type = PunishmentTypeRegistry.getType(row.getInt(1)).standard();
-            final Timestamp timestamp = row.getTimestamp(2);
-            final PunishmentDuration duration = PunishmentDuration.fromTimestamp(timestamp);
+            final LocalDateTime timestamp = row.getTimestamp(2).toLocalDateTime();
+            final LocalDateTime issuedAt = row.getTimestamp(6).toLocalDateTime();
+            final PunishmentDuration duration = PunishmentDuration.from(timestamp, issuedAt);
             final Component reason = MiniMessage.miniMessage().deserialize(row.getString(3));
             final UUID punishmentUuid = Util.getUuid(row, 4);
             final UUID successorId = Util.getUuid(row, 5);
-            final LocalDateTime issuedAt = row.getTimestamp(6).toLocalDateTime();
             if (duration.expiration().isBefore(LocalDateTime.now())) {
                 invalidPunishments.add(punishmentUuid);
             }

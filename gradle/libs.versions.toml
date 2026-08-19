@@ -1,7 +1,7 @@
 # Generate from settings.gradle.kts
 
 [versions]
-velocity-api = "4.1.0-SNAPSHOT"
+velocity-api = "4.1.0-20260814.105711-13"
 luckperms-api = "5.5"
 jackson-databind = "2.22.1"
 jackson-datatype-jsr310 = "2.22.1"
@@ -17,6 +17,7 @@ mysql = "26.7.0"
 adventure = "5.2.0"
 cloud = "2.1.0"
 cloud-minecraft = "2.0.0"
+cloud-translations = "1.0.0-beta.2"
 eventbus = "3.3.1"
 jetbrains-annotations = "26.1.0"
 slf4j = "2.0.18"
@@ -57,6 +58,9 @@ cloud-annotations = { group = "org.incendo", name = "cloud-annotations", version
 cloud-velocity = { group = "org.incendo", name = "cloud-velocity", version.ref = "cloud-minecraft" }
 cloud-minecraft-extras = { group = "org.incendo", name = "cloud-minecraft-extras", version.ref = "cloud-minecraft" }
 cloud-brigadier = { group = "org.incendo", name = "cloud-brigadier", version.ref = "cloud-minecraft" }
+cloud-translation-core = { group = "org.incendo", name = "cloud-translations-core", version.ref = "cloud-translations" }
+cloud-translation-bukkit = { group = "org.incendo", name = "cloud-translations-bukkit", version.ref = "cloud-translations" }
+cloud-translation-velocity = { group = "org.incendo", name = "cloud-translations-velocity", version.ref = "cloud-translations" }
 
 # Testing
 junit-jupiter-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit" }
@@ -74,4 +78,4 @@ database-helper = ["sadu-core", "sadu-queries", "hikari"]
 database-drivers = ["postgresql", "hikari", "mariadb", "mysql"]
 jackson = ["jackson-databind", "jackson-yaml", "jackson-datatype-jsr310"]
 adventure = ["adventure-api", "adventure-text-minimessage", "adventure-text-serializer-plain"]
-cloud = ["cloud-core", "cloud-annotations", "cloud-minecraft-extras"]
+cloud = ["cloud-core", "cloud-annotations", "cloud-minecraft-extras", "cloud-translation-core"]

@@ -39,6 +39,11 @@ public class AbsolutePunishmentDuration implements PunishmentDuration {
     public static final LocalDateTime MAX = LocalDateTime.of(9999, 12, 31, 23, 59, 59);
 
     /**
+     * The minimum supported {@code LocalDateTime} value (1970-01-01T00:00:00).
+     */
+    protected static final LocalDateTime MIN = LocalDateTime.of(1970, 1, 1, 0, 0, 0);
+
+    /**
      * The maximum supported {@code Timestamp} value (9999-12-31T23:59:59).
      */
     public static final Timestamp MAX_TIMESTAMP = Timestamp.valueOf(MAX);
@@ -57,7 +62,7 @@ public class AbsolutePunishmentDuration implements PunishmentDuration {
      * @return a new {@code AbsolutePunishmentDuration} instance
      */
     public static PunishmentDuration from(LocalDateTime ldt) {
-        return from(ldt, LocalDateTime.now());
+        return from(ldt, MIN);
     }
 
     /**

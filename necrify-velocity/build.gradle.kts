@@ -21,6 +21,7 @@ dependencies {
     }
     api(libs.cloud.velocity)
     api(libs.minecraftdependencydownload.velocity)
+    api(libs.cloud.translation.velocity)
     runtimeDownload(libs.bundles.database.drivers)
     compileOnly(libs.cloud.brigadier)
     annotationProcessor(libs.velocity.api)

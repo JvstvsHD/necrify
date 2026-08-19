@@ -83,45 +83,49 @@ public class NecrifyCommand {
 
     @Command("necrify ban <target> [reason]")
     @Command("ban <target> [reason]")
+    @CommandDescription("command.ban.description")
     @Permission(value = {"necrify.command.ban", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void banCommand(
             NecrifyUser sender,
-            @Argument(value = "target", description = "Player to ban", suggestions = "suggestOnlinePlayers") NecrifyUser target,
-            @Argument(value = "reason", description = "Reason the user should be banned for", suggestions = "suggestMiniMessageAndTemplate") @Greedy String templateOrReason
+            @Argument(value = "target", description = "commands.general.description.target", suggestions = "suggestOnlinePlayers") NecrifyUser target,
+            @Argument(value = "reason", description = "commands.general.description.reason", suggestions = "suggestMiniMessageAndTemplate") @Greedy String templateOrReason
     ) {
         infinitePunishmentCommand(sender, target, templateOrReason, target::banPermanent, "command.ban.success", StandardPunishmentType.PERMANENT_BAN);
     }
 
     @Command("necrify mute <target> [reason]")
     @Command("mute <target> [reason]")
+    @CommandDescription("command.mute.description")
     @Permission(value = {"necrify.command.mute", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void muteCommand(
             NecrifyUser sender,
-            @Argument(value = "target", description = "Player to mute", suggestions = "suggestOnlinePlayers") NecrifyUser target,
-            @Argument(value = "reason", description = "Reason the user should be muted for", suggestions = "suggestMiniMessage") @Greedy String templateOrReason
+            @Argument(value = "target", description = "commands.general.description.target", suggestions = "suggestOnlinePlayers") NecrifyUser target,
+            @Argument(value = "reason", description = "commands.general.description.reason", suggestions = "suggestMiniMessage") @Greedy String templateOrReason
     ) {
         infinitePunishmentCommand(sender, target, templateOrReason, target::mutePermanent, "command.mute.success", StandardPunishmentType.PERMANENT_MUTE);
     }
 
     @Command("necrify kick <target> [reason]")
     @Command("kick <target> [reason]")
+    @CommandDescription("command.kick.description")
     @Permission(value = {"necrify.command.kick", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void kickCommand(
             NecrifyUser sender,
-            @Argument(value = "target", description = "Player to kick", suggestions = "suggestOnlinePlayers") NecrifyUser target,
-            @Argument(value = "reason", description = "Reason the user should be kicked for", suggestions = "suggestMiniMessage") @Greedy String templateOrReason
+            @Argument(value = "target", description = "commands.general.description.target", suggestions = "suggestOnlinePlayers") NecrifyUser target,
+            @Argument(value = "reason", description = "commands.general.description.reason", suggestions = "suggestMiniMessage") @Greedy String templateOrReason
     ) {
         infinitePunishmentCommand(sender, target, templateOrReason, target::kick, "command.kick.success", StandardPunishmentType.KICK);
     }
 
     @Command("necrify tempban <target> <duration> [reason]")
     @Command("tempban <target> <duration> [reason]")
+    @CommandDescription("command.tempban.description")
     @Permission(value = {"necrify.command.tempban", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void tempbanCommand(
             NecrifyUser sender,
-            @Argument(value = "target", description = "Player to tempban", suggestions = "suggestOnlinePlayers") NecrifyUser target,
-            @Argument(value = "duration", description = "Duration the user should be banned for") PunishmentDuration duration,
-            @Argument(value = "reason", description = "Reason the user should be banned for", suggestions = "suggestMiniMessage") @Greedy String reason
+            @Argument(value = "target", description = "commands.general.description.target", suggestions = "suggestOnlinePlayers") NecrifyUser target,
+            @Argument(value = "duration", description = "commands.general.description.duration") PunishmentDuration duration,
+            @Argument(value = "reason", description = "commands.general.description.reason", suggestions = "suggestMiniMessage") @Greedy String reason
     ) {
         var finalReason = reasonOrDefaultTo(reason, StandardPunishmentType.TEMPORARY_BAN);
         target.ban(finalReason, duration).whenComplete((ban, throwable) -> {
@@ -141,12 +145,13 @@ public class NecrifyCommand {
 
     @Command("necrify tempmute <target> <duration> [reason]")
     @Command("tempmute <target> <duration> [reason]")
+    @CommandDescription("command.tempmute.description")
     @Permission(value = {"necrify.command.tempmute", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void tempmuteCommand(
             NecrifyUser sender,
-            @Argument(value = "target", description = "Player to tempmute", suggestions = "suggestOnlinePlayers") NecrifyUser target,
-            @Argument(value = "duration", description = "Duration the user should be muted for") PunishmentDuration duration,
-            @Argument(value = "reason", description = "Reason the user should be muted for", suggestions = "suggestMiniMessage") @Greedy String reason
+            @Argument(value = "target", description = "commands.general.description.target", suggestions = "suggestOnlinePlayers") NecrifyUser target,
+            @Argument(value = "duration", description = "commands.general.description.duration") PunishmentDuration duration,
+            @Argument(value = "reason", description = "commands.general.description.reason", suggestions = "suggestMiniMessage") @Greedy String reason
     ) {
         var finalReason = reasonOrDefaultTo(reason, StandardPunishmentType.TEMPORARY_MUTE);
         target.mute(finalReason, duration).whenComplete((mute, throwable) -> {
@@ -168,10 +173,11 @@ public class NecrifyCommand {
 
     @Command("necrify unban <target>")
     @Command("unban <target>")
+    @CommandDescription("command.unban.description")
     @Permission(value = {"necrify.command.unban", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void unbanCommand(
             NecrifyUser sender,
-            @Argument(value = "target", description = "Player to unban") NecrifyUser target
+            @Argument(value = "target", description = "commands.general.description.target") NecrifyUser target
     ) {
         var punishments = target.getPunishments(StandardPunishmentType.TEMPORARY_BAN, StandardPunishmentType.PERMANENT_BAN);
         try {
@@ -183,10 +189,11 @@ public class NecrifyCommand {
 
     @Command("necrify unmute <target>")
     @Command("unmute <target>")
+    @CommandDescription("command.unmute.description")
     @Permission(value = {"necrify.command.unmute", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void unmuteCommand(
             NecrifyUser sender,
-            @Argument(value = "target", description = "Player to unmute", suggestions = "suggestOnlinePlayers") NecrifyUser target
+            @Argument(value = "target", description = "commands.general.description.target", suggestions = "suggestOnlinePlayers") NecrifyUser target
     ) {
         var punishments = target.getPunishments(StandardPunishmentType.TEMPORARY_MUTE, StandardPunishmentType.PERMANENT_MUTE);
         removePunishments(sender, punishments, "unmute", "mute", "muted");
@@ -194,17 +201,19 @@ public class NecrifyCommand {
 
     //Informational/other
 
+    //TODO split into multiple commands
     @Command("necrify punishment <punishmentId> [option]")
+    @CommandDescription("command.punishment.description")
     @Permission(value = {"necrify.command.punishment", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void punishmentCommand(
             NecrifyUser sender,
-            @Argument(value = "punishmentId", description = "Punishment to manage") Punishment punishmentParsed,
-            @Argument(value = "option", description = "Option to manage the punishment", suggestions = "suggestPunishmentCommandOptions") @Default(value = "info") String option,
-            @Flag(value = "chain", description = "Another punishment to chain") Punishment otherPunishment,
-            @Flag(value = "page", description = "Page to display") Integer pageArgument
+            @Argument(value = "punishmentId", description = "command.punishment.argument.punishment-id") Punishment punishmentParsed,
+            @Argument(value = "option", description = "command.punishment.description.option", suggestions = "suggestPunishmentCommandOptions") @Default(value = "info") String option,
+            @Flag(value = "chain", description = "command.punishment.description.chain") Punishment otherPunishment,
+            @Flag(value = "page", description = "@comma") Integer pageArgument
     ) {
         switch (option) {
-            case "info" -> //TODO paginate punishments
+            case "info" ->
                     sender.sendMessage(buildComponent(PunishmentHelper.buildPunishmentData(punishmentParsed, plugin.getMessageProvider())));
             case "cancel", "remove" -> {
                 try {
@@ -263,14 +272,15 @@ public class NecrifyCommand {
     }
 
     @Command("necrify user <target> [option]")
+    @CommandDescription("command.user.description")
     @Permission(value = {"necrify.command.user", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void userCommand(
             NecrifyUser sender,
-            @Argument(value = "target", description = "Player to manage", suggestions = "suggestOnlinePlayers") NecrifyUser target,
-            @Argument(value = "option", description = "Option to manage the player", suggestions = "suggestUserCommandOptions") @Default("info") String option
+            @Argument(value = "target", description = "commands.general.description.target", suggestions = "suggestOnlinePlayers") NecrifyUser target,
+            @Argument(value = "option", description = "command.user.description.option", suggestions = "suggestUserCommandOptions") @Default("info") String option
     ) {
         switch (option) {
-            case "info" -> {
+            case "info" -> {//TODO paginate punishments (page flag above!)
                 var punishments = target.getPunishments();
                 sender.sendMessage(whitelistStatus(target));
                 sender.sendMessage(provider.provide("command.user.overview",
@@ -309,6 +319,7 @@ public class NecrifyCommand {
     }
 
     @Command("necrify reload")
+    @CommandDescription("command.reload.description")
     @Permission(value = {"necrify.command.reload", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void reloadCommand(NecrifyUser sender) {
         try {
@@ -346,6 +357,7 @@ public class NecrifyCommand {
     }
 
     @Command("necrify info")
+    @CommandDescription("command.info.description")
     public void infoCommand(NecrifyUser sender) {
         Component version = Component.text(BuildParameters.VERSION, NamedTextColor.GOLD);
         Component gitCommit = Component.text(BuildParameters.GIT_COMMIT, NamedTextColor.YELLOW);
@@ -370,6 +382,7 @@ public class NecrifyCommand {
     }
 
     @Command("necrify whitelist [option]")
+    @CommandDescription("command.whitelist.description")
     @Permission(value = {"necrify.command.whitelist", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void whitelistCommand(
             NecrifyUser sender,
@@ -384,10 +397,11 @@ public class NecrifyCommand {
     //template management
 
     @Command("necrify createtemplate <name>")
+    @CommandDescription("command.template.create.description")
     @Permission(value = {"necrify.command.template.create", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void createTemplateCommand(
             NecrifyUser sender,
-            @Argument(value = "name", description = "Name of the template") String name
+            @Argument(value = "name") String name
     ) {
         if (templateManager.getTemplate(name).isPresent()) {
             sender.sendMessage("command.template.create.already-exists", NamedTextColor.RED);
@@ -403,8 +417,9 @@ public class NecrifyCommand {
     }
 
     @Command("necrify template <name>")
+    @CommandDescription("command.template.description")
     @Permission(value = {"necrify.command.template.manage", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
-    public void templateInfoCommand(NecrifyUser sender, @Argument(value = "name", description = "Description") NecrifyTemplate template, @Flag("page") Integer pageArgument) {
+    public void templateInfoCommand(NecrifyUser sender, @Argument(value = "name") NecrifyTemplate template, @Flag("page") Integer pageArgument) {
         int page = pageArgument == null ? 1 : pageArgument;
         sender.sendMessage("command.template.manage.info", NamedTextColor.GRAY, Component.text(template.name(), NamedTextColor.YELLOW),
                 Component.text(template.stages().size(), NamedTextColor.YELLOW));
@@ -418,10 +433,11 @@ public class NecrifyCommand {
     }
 
     @Command("necrify template <name> delete")
+    @CommandDescription("command.template.delete.description")
     @Permission(value = {"necrify.command.template.delete", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void templateDeleteCommand(
             NecrifyUser sender,
-            @Argument(value = "name", description = "Name of the template") NecrifyTemplate template
+            @Argument(value = "name") NecrifyTemplate template
     ) {
         //TODO add confirmation
         template.delete().whenComplete((integer, throwable) -> {
@@ -434,13 +450,14 @@ public class NecrifyCommand {
     }
 
     @Command("necrify template <name> addstage <duration> <type> <reason>")
+    @CommandDescription("command.template.stage.add.description")
     @Permission(value = {"necrify.command.template.stage.add", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void templateAddStageCommand(
             NecrifyUser sender,
             @Argument(value = "name") NecrifyTemplate template,
-            @Argument(value = "duration") PunishmentDuration duration,
-            @Argument(value = "type") PunishmentType punishmentType,
-            @Argument(value = "reason", suggestions = "suggestMiniMessage") @Greedy String reasonString
+            @Argument(value = "duration", description = "commands.general.description.duration") PunishmentDuration duration,
+            @Argument(value = "type", description = "command.template.stage.add.description.type") PunishmentType punishmentType,
+            @Argument(value = "reason", description = "commands.general.description.reason", suggestions = "suggestMiniMessage") @Greedy String reasonString
     ) {
         Component reason = miniMessage(reasonString);
         //TODO add creation wizard, duration optional (omit if permanent punishment)
@@ -457,11 +474,12 @@ public class NecrifyCommand {
     }
 
     @Command("necrify template <name> removestage <index>")
+    @CommandDescription("command.template.stage.remove.description")
     @Permission(value = {"necrify.command.template.stage.remove", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void templateRemoveStageCommand(
             NecrifyUser sender,
             @Argument(value = "name") NecrifyTemplate template,
-            @Argument(value = "index") int index
+            @Argument(value = "index", description = "command.template.stage.remove.description.index") int index
     ) {
         //TODO add confirmation
         template.getStage(index - 1).delete().whenCompleteAsync((integer, throwable) -> {
@@ -474,11 +492,12 @@ public class NecrifyCommand {
     }
 
     @Command("necrify template <name> apply <user>")
+    @CommandDescription("command.template.apply.description")
     @Permission(value = {"necrify.command.template.apply", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void templateApplyCommand(
             NecrifyUser sender,
             @Argument(value = "name") NecrifyTemplate template,
-            @Argument(value = "user", suggestions = "suggestOnlinePlayers") NecrifyUser user
+            @Argument(value = "user", description = "commands.general.description.target", suggestions = "suggestOnlinePlayers") NecrifyUser user
     ) {
         user.punishModelled(template).whenComplete((punishment, throwable) -> {
             if (throwable != null) {
@@ -494,25 +513,27 @@ public class NecrifyCommand {
     }
 
     @Command("necrify template <name> amnesty <target>")
+    @CommandDescription("command.template.amnesty.description")
     @Permission(value = {"necrify.command.template.amnesty", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void templateAmnestyCommand(
             NecrifyUser sender,
             @Argument(value = "name") NecrifyTemplate template,
-            @Argument(value = "target", suggestions = "suggestOnlinePlayers") NecrifyUser target,
+            @Argument(value = "target", description = "commands.general.description.target", suggestions = "suggestOnlinePlayers") NecrifyUser target,
             @Flag("to") @Default("0") Integer toStage
     ) {
-        int stageIndex = toStage == null ? 0 : Math.min(Math.max(toStage, 1), template.stages().size()) - 1;
-        target.amnesty(template, stageIndex).whenComplete((unused, throwable) -> {
+        int stageIndex = toStage == null ? 0 : Math.clamp(toStage, 1, template.stages().size()) - 1;
+        target.amnesty(template, stageIndex).whenComplete((_, _) -> {
             sender.sendMessage("command.template.amnesty.success", NamedTextColor.GREEN);
         });
     }
 
     @Command("necrify template <name> state <target>")
+    @CommandDescription("command.template.state.description")
     @Permission(value = {"necrify.command.template.state", "necrify.admin"}, mode = Permission.Mode.ANY_OF)
     public void templateStateCommand(
             NecrifyUser sender,
             @Argument(value = "name") NecrifyTemplate template,
-            @Argument(value = "target", suggestions = "suggestOnlinePlayers") NecrifyUser target
+            @Argument(value = "target", description = "commands.general.description.target", suggestions = "suggestOnlinePlayers") NecrifyUser target
     ) {
         var stageOptional = target.getCurrentTemplateStage(template);
         if (stageOptional.isEmpty()) {

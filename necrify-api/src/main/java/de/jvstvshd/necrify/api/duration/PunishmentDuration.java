@@ -84,12 +84,18 @@ public interface PunishmentDuration extends Comparable<PunishmentDuration> {
         return AbsolutePunishmentDuration.from(ldt);
     }
 
+    static PunishmentDuration from(LocalDateTime expiration, LocalDateTime start) {
+        return AbsolutePunishmentDuration.from(expiration, start);
+    }
+
     /**
      * Converts the given {@link Timestamp} into a {@link PunishmentDuration}. The duration is absolute because it already was before.
      *
      * @param timestamp the timestamp which should be converted
+     * @deprecated in favour of {@link #from(LocalDateTime)} and {@link #from(LocalDateTime, LocalDateTime)}
      * @return the converted duration
      */
+    @Deprecated(forRemoval = true, since = "1.2.6")
     static PunishmentDuration fromTimestamp(Timestamp timestamp) {
         return from(timestamp.toLocalDateTime());
     }

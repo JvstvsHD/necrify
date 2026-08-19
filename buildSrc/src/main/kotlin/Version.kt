@@ -1,7 +1,7 @@
 import org.gradle.api.Project
 
 object Version {
-    const val PROJECT_VERSION = "1.2.6-SNAPSHOT"
+    const val PROJECT_VERSION = "1.2.6"
     const val PROJECT_GROUP = "de.jvstvshd.necrify"
 }
 

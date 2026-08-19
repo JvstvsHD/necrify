@@ -54,7 +54,7 @@ public final class MinecraftTemplateStage implements NecrifyTemplateStage {
     @Override
     public @NotNull CompletableFuture<Void> changeDuration(PunishmentDuration duration) {
         return Util.executeAsync(() -> {
-            Query.query("UPDATE necrify_template_stage SET duration = ? WHERE template_id = (SELECT id FROM necrify_template WHERE name = ?) AND index = ?")
+            Query.query("UPDATE necrify_punishment_template_stage SET duration = ? WHERE template_id = (SELECT id FROM necrify_punishment_template WHERE name = ?) AND index = ?")
                     .single(Call.of().bind(duration.javaDuration().toMillis()).bind(template.name()).bind(index))
                     .update();
             return null;
@@ -64,7 +64,7 @@ public final class MinecraftTemplateStage implements NecrifyTemplateStage {
     @Override
     public @NotNull CompletableFuture<Void> delete() {
         return Util.executeAsync(() -> {
-            Query.query("DELETE FROM necrify_template_stage WHERE template_id = (SELECT id FROM necrify_template WHERE name = ?) AND index = ?")
+            Query.query("DELETE FROM necrify_punishment_template_stage WHERE template_id = (SELECT id FROM necrify_punishment_template WHERE name = ?) AND index = ?")
                     .single(Call.of().bind(template.name()).bind(index))
                     .delete();
             template.removeStage(index);

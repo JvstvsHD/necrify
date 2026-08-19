@@ -61,8 +61,8 @@ public class MinecraftTemplate implements NecrifyTemplate {
     @Override
     public @NotNull CompletableFuture<Void> addStage(NecrifyTemplateStage stage) {
         return Util.executeAsync(() -> {
-            Query.query("INSERT INTO necrify_template_stage (template_id, index, duration, type, reason) " +
-                            "VALUES ((SELECT id FROM necrify_template WHERE name = ?), ?, ?, ?, ?)")
+            Query.query("INSERT INTO necrify_punishment_template_stage (template_id, index, duration, type, reason) " +
+                            "VALUES ((SELECT id FROM necrify_punishment_template WHERE name = ?), ?, ?, ?, ?)")
                     .single(Call.of().bind(name).bind(stage.index()).bind(stage.duration().javaDuration().toMillis())
                             .bind(stage.punishmentType().getId()).bind(miniMessage.serialize(stage.reason())))
                     .insert().rows();

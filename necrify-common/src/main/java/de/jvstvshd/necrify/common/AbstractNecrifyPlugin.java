@@ -36,25 +36,36 @@ import de.jvstvshd.necrify.common.punishment.NecrifyPunishmentFactory;
 import de.jvstvshd.necrify.common.punishment.log.NecrifyPunishmentLog;
 import de.jvstvshd.necrify.common.template.MinecraftTemplateManager;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.annotations.AnnotationParser;
+import org.incendo.cloud.component.DefaultValue;
 import org.incendo.cloud.exception.ArgumentParseException;
 import org.incendo.cloud.exception.CommandExecutionException;
 import org.incendo.cloud.exception.handling.ExceptionHandler;
+import org.incendo.cloud.help.result.CommandEntry;
+import org.incendo.cloud.minecraft.extras.AudienceProvider;
+import org.incendo.cloud.minecraft.extras.ImmutableMinecraftHelp;
+import org.incendo.cloud.minecraft.extras.MinecraftHelp;
 import org.incendo.cloud.minecraft.extras.parser.ComponentParser;
 import org.incendo.cloud.parser.ParserDescriptor;
 import org.incendo.cloud.parser.standard.StringParser;
+import org.incendo.cloud.suggestion.Suggestion;
+import org.incendo.cloud.suggestion.SuggestionProvider;
+import org.incendo.cloud.translations.TranslationBundle;
 import org.incendo.cloud.type.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 public abstract class AbstractNecrifyPlugin implements Necrify {
 
@@ -114,7 +125,27 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
                 return commands.stream().filter(commandDescriptor -> commandDescriptor.commandToken().startsWith("necrify")).toList();
             });
         }
+        registerExceptionsControllers(manager);
 
+        manager.captionRegistry().registerProvider((caption, user) -> {
+            var component = getMessageProvider().provide(caption.key(), user.getLocale());
+            return PlainTextComponentSerializer.plainText().serialize(component);
+        });
+        manager.captionRegistry().registerProvider(TranslationBundle.core(NecrifyUser::getLocale));
+        var parserRegistry = manager.parserRegistry();
+        parserRegistry.registerParser(ParserDescriptor.of(new NecrifyUserParser(this.getUserManager()), NecrifyUser.class));
+        parserRegistry.registerParser(ComponentParser.componentParser(miniMessage, StringParser.StringMode.QUOTED));
+        parserRegistry.registerParser(ParserDescriptor.of(new PunishmentDurationParser(getMessageProvider()), PunishmentDuration.class));
+        parserRegistry.registerParser(ParserDescriptor.of(new PunishmentParser(this), Punishment.class));
+        parserRegistry.registerParser(ParserDescriptor.of(new TemplateParser(getTemplateManager()), NecrifyTemplate.class));
+        parserRegistry.registerParser(ParserDescriptor.of(new PunishmentTypeParser(), PunishmentType.class));
+        var commands = new NecrifyCommand(this);
+        parser.parse(commands);
+        registerHelpCommand(manager, "necrifyhelp");
+
+    }
+
+    private void registerExceptionsControllers(CommandManager<NecrifyUser> manager) {
         manager.exceptionController()
                 .registerHandler(ArgumentParseException.class, context -> {
                     var component = getMessageProvider().prefixed(Component.text(context.exception().getCause().getMessage()).color(NamedTextColor.DARK_RED));
@@ -153,23 +184,32 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
                     var component = getMessageProvider().provide("error.internal");
                     context.context().sender().sendMessage(component);
                 });
-
-        manager.captionRegistry().registerProvider((caption, user) -> {
-            var component = getMessageProvider().provide(caption.key(), user.getLocale());
-            return PlainTextComponentSerializer.plainText().serialize(component);
-        });
-        var parserRegistry = manager.parserRegistry();
-        parserRegistry.registerParser(ParserDescriptor.of(new NecrifyUserParser(this.getUserManager()), NecrifyUser.class));
-        parserRegistry.registerParser(ComponentParser.componentParser(miniMessage, StringParser.StringMode.QUOTED));
-        parserRegistry.registerParser(ParserDescriptor.of(new PunishmentDurationParser(getMessageProvider()), PunishmentDuration.class));
-        parserRegistry.registerParser(ParserDescriptor.of(new PunishmentParser(this), Punishment.class));
-        parserRegistry.registerParser(ParserDescriptor.of(new TemplateParser(getTemplateManager()), NecrifyTemplate.class));
-        parserRegistry.registerParser(ParserDescriptor.of(new PunishmentTypeParser(), PunishmentType.class));
-        var commands = new NecrifyCommand(this);
-        parser.parse(commands);
     }
 
-    //TODO: Move config to necrify-common
+    private void registerHelpCommand(CommandManager<NecrifyUser> manager, String commandPrefix) {
+        var standardHelp = MinecraftHelp.createNative(commandPrefix, manager);
+        var help = ImmutableMinecraftHelp.of(manager, AudienceProvider.nativeAudience(), commandPrefix,
+                command -> command.rootComponent().name().equals("necrify"),
+                (_, description) -> getMessageProvider().provide(description, false),
+                standardHelp.messages(), standardHelp.messageProvider(), standardHelp.colors(), standardHelp.headerFooterLength(), 7);
+        manager.command(manager.commandBuilder(commandPrefix)
+                .optional("query",
+                        StringParser.greedyStringParser(),
+                        DefaultValue.constant(""),
+                        SuggestionProvider.blocking((context, _) ->
+                                help.helpHandler()
+                                        .queryRootIndex(context.sender())
+                                        .entries()
+                                        .stream().map(CommandEntry::syntax).map(Suggestion::suggestion).collect(Collectors.toList())
+                        ))
+                .handler(commandContext -> {
+                    help.queryCommands(commandContext.get("query"), commandContext.sender());
+                    commandContext.sender().sendMessage(getMessageProvider().provide("command.help.documentation")
+                            .clickEvent(ClickEvent.openUrl("https://docs.jvstvshd.de/necrify/commands/")).color(NamedTextColor.GRAY));
+                })
+        );
+    }
+
     public String getDefaultReason(PunishmentType type) {
         return configurationManager.getConfiguration().getPunishmentConfigData().getPunishmentMessages().get(type.getId());
     }

@@ -63,7 +63,8 @@ public class ResourceBundleMessageProvider implements MessageProvider {
         try (Stream<Path> paths = Files.list(baseDir)) {
             List<Path> registeredPaths = new ArrayList<>();
             try (JarFile jar = new JarFile(new File(AbstractNecrifyPlugin.class.getProtectionDomain().getCodeSource().getLocation().toURI()))) {
-                for (JarEntry translationEntry : jar.stream().filter(jarEntry -> jarEntry.getName().toLowerCase().contains("translations") && !jarEntry.isDirectory()).toList()) {
+                for (JarEntry translationEntry : jar.stream().filter(jarEntry -> jarEntry.getName().toLowerCase().contains("translations") && !jarEntry.isDirectory())
+                        .filter(jarEntry -> jarEntry.getName().toLowerCase(Locale.ROOT).endsWith(".properties")).toList()) {
                     var path = baseDir.resolve(translationEntry.getName().split("/")[1]);
                     var inputStream = Objects.requireNonNull(AbstractNecrifyPlugin.class.getResourceAsStream("/" + translationEntry.getName()));
                     if (Files.exists(path)) {

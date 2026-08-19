@@ -13,6 +13,7 @@ dependencies {
     compileOnly(libs.paper.api)
     api(projects.necrifyCommon)
     api(libs.bundles.jackson)
+    api(libs.cloud.translation.bukkit)
 
     //workaround, so that only the real dependencies are downloaded by paper and not the common module, which already
     //is included in the JAR

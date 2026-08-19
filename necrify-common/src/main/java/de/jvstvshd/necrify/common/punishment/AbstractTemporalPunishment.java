@@ -213,7 +213,7 @@ public abstract class AbstractTemporalPunishment extends AbstractPunishment impl
             }
             var issuanceSuccessor = duration.expiration();
             if (successor instanceof TemporalPunishment temporalSuccessor) {
-                var newSuccessor = temporalSuccessor.change(PunishmentDuration.from(successorNewExpiration), issuanceSuccessor, successor.getReason()).join();
+                var newSuccessor = temporalSuccessor.change(PunishmentDuration.from(successorNewExpiration, issuanceSuccessor), issuanceSuccessor, successor.getReason()).join();
                 setSuccessor0(newSuccessor);
             } else {
                 Query.query(APPLY_TIMESTAMP_UPDATE)
