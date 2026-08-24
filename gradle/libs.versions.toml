@@ -3,9 +3,9 @@
 [versions]
 velocity-api = "4.1.0-20260814.105711-13"
 luckperms-api = "5.5"
-jackson-databind = "2.22.1"
-jackson-datatype-jsr310 = "2.22.1"
-jackson-yaml = "2.22.1"
+jackson-databind = "2.22.2"
+jackson-datatype-jsr310 = "2.22.2"
+jackson-yaml = "2.22.2"
 postgresql = "42.7.13"
 hikari = "7.1.0"
 sadu = "2.3.9"
