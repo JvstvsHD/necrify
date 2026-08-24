@@ -20,7 +20,6 @@ package de.jvstvshd.necrify.api.duration;
 
 import de.jvstvshd.necrify.api.punishment.Punishment;
 import de.jvstvshd.necrify.api.punishment.TemporalPunishment;
-import org.jetbrains.annotations.ApiStatus;
 
 import java.sql.Timestamp;
 import java.time.Duration;
@@ -61,18 +60,6 @@ public interface PunishmentDuration extends Comparable<PunishmentDuration> {
     PunishmentDuration PERMANENT = PermanentPunishmentDuration.PERMANENT;
 
     /**
-     * Creates a new permanent (expiration date: 31.12.9999, 23:59:59) absolute punishment duration.
-     *
-     * @return a permanent duration
-     * @deprecated since 1.2.2, use {@link #PERMANENT} instead
-     */
-    @ApiStatus.ScheduledForRemoval(inVersion = "1.3.0")
-    @Deprecated(forRemoval = true, since = "1.2.2")
-    static PunishmentDuration permanent() {
-        return PERMANENT;
-    }
-
-    /**
      * Creates a new absolute punishment duration with the given expiration date.
      *
      * @param ldt the expiration date
@@ -86,18 +73,6 @@ public interface PunishmentDuration extends Comparable<PunishmentDuration> {
 
     static PunishmentDuration from(LocalDateTime expiration, LocalDateTime start) {
         return AbsolutePunishmentDuration.from(expiration, start);
-    }
-
-    /**
-     * Converts the given {@link Timestamp} into a {@link PunishmentDuration}. The duration is absolute because it already was before.
-     *
-     * @param timestamp the timestamp which should be converted
-     * @deprecated in favour of {@link #from(LocalDateTime)} and {@link #from(LocalDateTime, LocalDateTime)}
-     * @return the converted duration
-     */
-    @Deprecated(forRemoval = true, since = "1.2.6")
-    static PunishmentDuration fromTimestamp(Timestamp timestamp) {
-        return from(timestamp.toLocalDateTime());
     }
 
     /**

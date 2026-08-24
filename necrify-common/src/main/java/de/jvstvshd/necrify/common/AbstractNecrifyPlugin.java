@@ -58,7 +58,6 @@ import org.incendo.cloud.suggestion.SuggestionProvider;
 import org.incendo.cloud.translations.TranslationBundle;
 import org.incendo.cloud.type.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -90,12 +89,6 @@ public abstract class AbstractNecrifyPlugin implements Necrify {
     @Override
     public @NotNull ExecutorService getExecutor() {
         return executorService;
-    }
-
-    @Override
-    @Deprecated(forRemoval = true)
-    public @NotNull ExecutorService getService() {
-        return getExecutor();
     }
 
     /**

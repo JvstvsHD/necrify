@@ -132,12 +132,13 @@ public class NecrifyPunishmentLog implements PunishmentLog {
             actor = plugin.getUserManager().loadUser(actorUuid).join().orElseThrow(() -> new IllegalStateException("Actor not found " + actorUuid));
         }
         var message = row.getString(3);
-        var duration = PunishmentDuration.fromTimestamp(row.getTimestamp(4));
+        var beginsAt = row.getTimestamp(9).toLocalDateTime();
+        var duration = PunishmentDuration.from(row.getTimestamp(4).toLocalDateTime(), beginsAt);
         var reason = MiniMessage.miniMessage().deserialize(row.getString(5));
         var predecessor = getPunishment(Util.getUuid(row, 6), plugin);
         var successor = getPunishment(Util.getUuid(row, 7), plugin);
         var action = PunishmentLogActionRegistry.getAction(row.getString(8)).orElse(PunishmentLogAction.UNKNOWN);
-        var beginsAt = row.getTimestamp(9).toLocalDateTime();
+
         var instant = row.getTimestamp(10).toLocalDateTime();
         return new PunishmentLogEntry(actor, message, duration, reason, predecessor, punishment, successor,
                 beginsAt, action, log, instant, index);
