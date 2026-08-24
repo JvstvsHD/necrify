@@ -67,6 +67,7 @@ tasks {
 
     jar {
         dependsOn(generateRuntimeDownloadResourceForRuntimeDownload)
+        finalizedBy(shadowJar)
         archiveFileName.set("Necrify-Velocity-${project.buildVersion()}.jar")
     }
 

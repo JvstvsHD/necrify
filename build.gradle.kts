@@ -105,6 +105,12 @@ subprojects {
                     changelog.set("Changes will be provided shortly.\nComplete changelog can be found on GitHub: https://www.github.com/JvstvsHD/necrify/releases/tag/v${rootProject.version}")
                 }
             }
+            tasks.matching { it.name.startsWith("modrinth") }.configureEach {
+                onlyIf { !rootProject.isSnapshot }
+            }
+            tasks.withType<io.papermc.hangarpublishplugin.HangarPublishTask>().configureEach {
+                onlyIf { rootProject.isRelease }
+            }
         }
     }
 }
