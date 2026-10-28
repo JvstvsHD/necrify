@@ -50,7 +50,7 @@ tasks {
         downloadPlugins {
             modrinth("luckperms", "v5.5.17-velocity")
         }
-        velocityVersion("4.1.0-SNAPSHOT")
+        velocityVersion("4.3.1")
     }
 
     sourceSets {

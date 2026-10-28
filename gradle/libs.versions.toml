@@ -1,7 +1,7 @@
 # Generate from settings.gradle.kts
 
 [versions]
-velocity-api = "4.1.0-20260814.105711-13"
+velocity-api = "4.3.1"
 luckperms-api = "5.5"
 jackson-databind = "2.22.1"
 jackson-datatype-jsr310 = "2.22.1"
@@ -10,7 +10,7 @@ postgresql = "42.7.13"
 hikari = "7.1.0"
 sadu = "2.3.9"
 junit = "6.1.3"
-paper-api = "26.2.build.111-stable"
+paper-api = "26.3.build.227-stable"
 brigadier = "1.0.500"
 mariadb = "3.5.10"
 mysql = "26.7.0"
